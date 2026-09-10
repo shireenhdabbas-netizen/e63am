@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}I have food to give{% endblock %}
+{% block content %}
+<a class="back-link" href="{{ url_for('home') }}">&larr; Back</a>
+<h1>I have food to give</h1>
+<p class="subtitle">Fill this in and we'll match it with a nearby trusted center</p>
+
+<form method="POST">
+  <label>Your name *</label>
+  <input type="text" name="name" value="{{ form.get('name', '') }}" required>
+
+  <label>Phone number *</label>
+  <input type="tel" name="phone" value="{{ form.get('phone', '') }}" required>
+
+  <label>Area *</label>
+  <input type="text" name="area" placeholder="e.g. Maadi" value="{{ form.get('area', '') }}" required>
+
+  <label>Food type</label>
+  <select name="food_type">
+    <option value="Hot meal">Hot meal</option>
+    <option value="Cold meal">Cold meal</option>
+    <option value="Groceries">Groceries</option>
+  </select>
+
+  <label>Meal category</label>
+  <select name="meal_category">
+    <option value="Breakfast">Breakfast</option>
+    <option value="Lunch">Lunch</option>
+    <option value="Dinner">Dinner</option>
+    <option value="Snack">Snack</option>
+    <option value="N/A">N/A (groceries)</option>
+  </select>
+
+  <label>Quantity *</label>
+  <input type="text" name="quantity" placeholder="e.g. 20 meals" value="{{ form.get('quantity', '') }}" required>
+
+  <label>Ready time *</label>
+  <input type="datetime-local" name="ready_time" value="{{ form.get('ready_time', '') }}" required>
+  <p class="hint">Must be at least 24 hours from now, so a center can be arranged and notified ahead of time.</p>
+
+  <label>Is this a recurring / standing offer?</label>
+  <select name="recurring">
+    <option value="No">No, this is one-time</option>
+    <option value="Yes">Yes, this repeats regularly</option>
+  </select>
+
+  <label>Can you deliver it yourself, or does it need pickup?</label>
+  <select name="pickup">
+    <option value="No">I'll deliver it</option>
+    <option value="Yes">Needs pickup</option>
+  </select>
+
+  <button type="submit">Submit</button>
+</form>
+{% endblock %}

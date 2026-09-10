@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}افكر اطعام{% endblock %}
+{% block content %}
+<h1>افكر اطعام</h1>
+<p class="subtitle">Connecting surplus food with trusted local centers</p>
+
+<a class="card" href="{{ url_for('give_food') }}">
+  <p class="card-title">🍲 I have food to give</p>
+  <p class="card-sub">Meals or groceries</p>
+</a>
+
+<a class="card" href="{{ url_for('register_center') }}">
+  <p class="card-title">🕌 Register a center</p>
+  <p class="card-sub">Mosque, church, community center</p>
+</a>
+{% endblock %}

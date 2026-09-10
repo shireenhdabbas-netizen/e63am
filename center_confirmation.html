@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}Submitted for review{% endblock %}
+{% block content %}
+<div class="confirm-icon">📋</div>
+<h1>Submitted for review</h1>
+<p class="subtitle">Thank you — <strong>{{ center_name }}</strong> has been added to our review queue.</p>
+<div class="info-box">
+  A team member will reach out to verify the center before it appears live for givers in your area.
+</div>
+<a class="back-link" href="{{ url_for('home') }}">&larr; Back to home</a>
+{% endblock %}

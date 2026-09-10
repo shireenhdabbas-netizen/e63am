@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Register a center{% endblock %}
+{% block content %}
+<a class="back-link" href="{{ url_for('home') }}">&larr; Back</a>
+<h1>Register a center</h1>
+<p class="subtitle">Mosque, church, or community center that can receive and distribute food</p>
+
+<form method="POST">
+  <label>Center name *</label>
+  <input type="text" name="center_name" value="{{ form.get('center_name', '') }}" required>
+
+  <label>Type</label>
+  <select name="center_type">
+    <option value="Mosque">Mosque</option>
+    <option value="Church">Church</option>
+    <option value="Community center">Community center</option>
+    <option value="Other">Other</option>
+  </select>
+
+  <label>Area *</label>
+  <input type="text" name="area" placeholder="e.g. Maadi" value="{{ form.get('area', '') }}" required>
+
+  <label>Contact person (Sheikh / Priest / Admin) *</label>
+  <input type="text" name="contact_name" value="{{ form.get('contact_name', '') }}" required>
+
+  <label>Contact phone *</label>
+  <input type="tel" name="contact_phone" value="{{ form.get('contact_phone', '') }}" required>
+
+  <label>Standing schedule (the "ritual")</label>
+  <input type="text" name="ritual_schedule" placeholder="e.g. Lunch served daily at Dhuhr" value="{{ form.get('ritual_schedule', '') }}">
+
+  <label>Approximate capacity</label>
+  <input type="text" name="capacity" placeholder="e.g. serves ~50 people/day" value="{{ form.get('capacity', '') }}">
+
+  <button type="submit">Submit for review</button>
+  <p class="hint" style="text-align:center;margin-top:10px;">A team member will verify this center before it goes live.</p>
+</form>
+{% endblock %}
