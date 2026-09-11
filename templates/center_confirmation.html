@@ -1,11 +1,11 @@
 {% extends "base.html" %}
-{% block title %}Submitted for review{% endblock %}
+{% block title %}Center added{% endblock %}
 {% block content %}
 <div class="confirm-icon">📋</div>
-<h1>Submitted for review</h1>
-<p class="subtitle">Thank you — <strong>{{ center_name }}</strong> has been added to our review queue.</p>
+<h1>You're live</h1>
+<p class="subtitle">Thank you — <strong>{{ center_name }}</strong> is now visible to givers in your area.</p>
 <div class="info-box">
-  A team member will reach out to verify the center before it appears live for givers in your area.
+  It's shown as "Unverified" for now — once it receives its first donation, it automatically earns a "Verified" badge.
 </div>
 <a class="back-link" href="{{ url_for('home') }}">&larr; Back to home</a>
 {% endblock %}
