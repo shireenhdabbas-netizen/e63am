@@ -14,6 +14,9 @@
     <option value="Mosque">Mosque</option>
     <option value="Church">Church</option>
     <option value="Community center">Community center</option>
+    <option value="Orphanage">Orphanage</option>
+    <option value="Elderly home">Elderly home</option>
+    <option value="Shop">Shop</option>
     <option value="Other">Other</option>
   </select>
 
@@ -29,10 +32,21 @@
   <label>Standing schedule (the "ritual")</label>
   <input type="text" name="ritual_schedule" placeholder="e.g. Lunch served daily at Dhuhr" value="{{ form.get('ritual_schedule', '') }}">
 
-  <label>Approximate capacity</label>
-  <input type="text" name="capacity" placeholder="e.g. serves ~50 people/day" value="{{ form.get('capacity', '') }}">
+  <label>Do you have a fixed capacity per meal slot?</label>
+  <select name="has_capacity_limit">
+    <option value="No">No — open, can take any amount</option>
+    <option value="Yes">Yes — fixed number per slot</option>
+  </select>
 
-  <button type="submit">Submit for review</button>
-  <p class="hint" style="text-align:center;margin-top:10px;">A team member will verify this center before it goes live.</p>
+  <label>If yes, how many meals per slot?</label>
+  <input type="number" min="1" name="capacity_per_slot" placeholder="e.g. 30" value="{{ form.get('capacity_per_slot', '') }}">
+  <p class="hint">Leave blank if you selected "No" above — e.g. an open table serving anyone who comes.</p>
+
+  <label>Photo of the center (optional)</label>
+  <input type="url" name="photo_url" placeholder="Paste an image link" value="{{ form.get('photo_url', '') }}">
+  <p class="hint">Optional, but centers with a photo are shown higher to givers. Photos must show the place only — no photos of people or individuals. Centers that post photos of people will be flagged and removed.</p>
+
+  <button type="submit">Submit</button>
+  <p class="hint" style="text-align:center;margin-top:10px;">Your center goes live right away — it earns a "Verified" badge automatically once it receives its first donation.</p>
 </form>
 {% endblock %}
