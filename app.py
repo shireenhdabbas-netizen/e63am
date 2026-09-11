@@ -10,8 +10,8 @@ app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "dev-secret-change-me")
 
 SHEET_ID = os.environ.get("SHEET_ID")
-GIVERS_TAB = "Givers"
-CENTERS_TAB = "Centers"
+GIVERS_TAB = "givers"
+CENTERS_TAB = "centers"
 
 SCOPES = [
     "https://www.googleapis.com/auth/spreadsheets",
@@ -53,6 +53,11 @@ def get_worksheet(tab_name, header_row):
                 ws = spreadsheet.worksheet(tab_name)
             else:
                 raise
+
+    # If the tab exists but is empty (e.g. manually created), add headers now
+    if not ws.get_all_values():
+        ws.append_row(header_row)
+
     return ws
 
 
