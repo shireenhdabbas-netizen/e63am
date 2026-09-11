@@ -53,11 +53,11 @@
   <input type="text" name="address" placeholder="Street, building, landmark" value="{{ form.get('address', '') }}" required>
 
   <label>Google Maps link (optional)</label>
-  <input type="url" name="maps_link" placeholder="Paste a Google Maps link" value="{{ form.get('maps_link', '') }}">
+  <input type="text" name="maps_link" placeholder="Paste a Google Maps link" value="{{ form.get('maps_link', '') }}">
   <p class="hint">Open the location in Google Maps, tap Share, copy the link, paste it here.</p>
 
   <label>Social media page (optional)</label>
-  <input type="url" name="social_link" placeholder="Facebook, Instagram, or other page link" value="{{ form.get('social_link', '') }}">
+  <input type="text" name="social_link" placeholder="Facebook, Instagram, or other page link" value="{{ form.get('social_link', '') }}">
   <p class="hint">Helps givers see the center is real and active.</p>
 
   <label>Who do you serve? (optional, select any that apply)</label>
@@ -124,18 +124,20 @@
   <label>Additional schedule notes (optional)</label>
   <input type="text" name="ritual_schedule" placeholder="e.g. Daily iftar during Ramadan" value="{{ form.get('ritual_schedule', '') }}">
 
-  <label>Do you have a fixed capacity per meal slot?</label>
-  <select name="has_capacity_limit">
-    <option value="No">No — open, can take any amount</option>
-    <option value="Yes">Yes — fixed number per slot</option>
-  </select>
+  <div id="capacity-section" class="conditional-section visible">
+    <label>Do you have a fixed capacity per meal slot?</label>
+    <select name="has_capacity_limit">
+      <option value="No">No — open, can take any amount</option>
+      <option value="Yes">Yes — fixed number per slot</option>
+    </select>
 
-  <label>If yes, how many meals per slot?</label>
-  <input type="number" min="1" name="capacity_per_slot" placeholder="e.g. 30" value="{{ form.get('capacity_per_slot', '') }}">
-  <p class="hint">Leave blank if you selected "No" above — e.g. an open table serving anyone who comes.</p>
+    <label>If yes, how many meals per slot?</label>
+    <input type="number" min="1" name="capacity_per_slot" placeholder="e.g. 30" value="{{ form.get('capacity_per_slot', '') }}">
+    <p class="hint">Leave blank if you selected "No" above — e.g. an open table serving anyone who comes.</p>
+  </div>
 
   <label>Photo of the center (optional)</label>
-  <input type="url" name="photo_url" placeholder="Paste an image link" value="{{ form.get('photo_url', '') }}">
+  <input type="text" name="photo_url" placeholder="Paste an image link" value="{{ form.get('photo_url', '') }}">
   <p class="hint">Optional, but centers with a photo are shown higher to givers. Photos must show the place only — no photos of people or individuals. Centers that post photos of people will be flagged and removed.</p>
 
   <hr style="margin:20px 0;border:none;border-top:1px solid #eee;">
@@ -233,7 +235,10 @@
     var typeMatch = (type === 'Orphanage' || type === 'Elderly home');
     var targetChecked = Array.from(document.querySelectorAll('input[name="target_group"]:checked')).map(el => el.value);
     var groupMatch = targetChecked.some(v => v !== 'Homeless'); // any specific population served, not just general
-    document.getElementById('institution-section').classList.toggle('visible', typeMatch || groupMatch);
+    var showInstitution = typeMatch || groupMatch;
+    document.getElementById('institution-section').classList.toggle('visible', showInstitution);
+    // Capacity-per-slot asks the same thing as the institution total, so hide it there
+    document.getElementById('capacity-section').classList.toggle('visible', !showInstitution);
   }
   document.getElementById('center_type').addEventListener('change', updateInstitutionSection);
   document.querySelectorAll('input[name="target_group"]').forEach(el => el.addEventListener('change', updateInstitutionSection));
