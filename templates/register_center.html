@@ -10,22 +10,25 @@
   <input type="text" name="center_name" value="{{ form.get('center_name', '') }}" required>
 
   <label>Type</label>
-  <select name="center_type">
+  <select name="center_type" id="center_type">
     <option value="Mosque">Mosque</option>
     <option value="Church">Church</option>
     <option value="Community center">Community center</option>
     <option value="Orphanage">Orphanage</option>
     <option value="Elderly home">Elderly home</option>
     <option value="Shop">Shop</option>
+    <option value="Local NGO / Community organization">Local NGO / Community organization</option>
+    <option value="Ma'edet Rahman (community meal table)">Ma'edet Rahman (community meal table)</option>
+    <option value="Homeless outreach point">Homeless outreach point</option>
     <option value="Other">Other</option>
   </select>
+  <input type="text" name="center_type_other" placeholder="If Other, please specify" value="{{ form.get('center_type_other', '') }}">
 
   <label>Governorate *</label>
-  <select name="governorate" required>
+  <select name="governorate" id="governorate" required>
     <option value="">Select...</option>
     <option value="Cairo">Cairo</option>
     <option value="Giza">Giza</option>
-    <option value="Qalyubia">Qalyubia</option>
   </select>
 
   <label>Is this a governmental, private, or local NGO-run place? *</label>
@@ -37,10 +40,13 @@
     <option value="Independent / community-run">Independent / community-run</option>
     <option value="Other">Other</option>
   </select>
+  <input type="text" name="ownership_type_other" placeholder="If Other, please specify" value="{{ form.get('ownership_type_other', '') }}">
   <p class="hint">Helps with verification and helps givers know what they're choosing.</p>
 
   <label>Area *</label>
-  <input type="text" name="area" placeholder="e.g. Maadi" value="{{ form.get('area', '') }}" required>
+  <select name="area" id="area" required>
+    <option value="">Select governorate first...</option>
+  </select>
 
   <label>Physical address *</label>
   <input type="text" name="address" placeholder="Street, building, landmark" value="{{ form.get('address', '') }}" required>
@@ -59,8 +65,18 @@
     <label class="checkbox-label"><input type="checkbox" name="target_group" value="Widows"> Widows</label>
     <label class="checkbox-label"><input type="checkbox" name="target_group" value="Families in need"> Families in need</label>
     <label class="checkbox-label"><input type="checkbox" name="target_group" value="Orphans"> Orphans</label>
+    <label class="checkbox-label"><input type="checkbox" name="target_group" value="Homeless"> Homeless</label>
   </div>
   <input type="text" name="target_group_other" placeholder="Other (specify)" value="{{ form.get('target_group_other', '') }}">
+
+  <div id="institution-section" class="conditional-section">
+    <label>Number of beneficiaries (residents / people cared for)</label>
+    <input type="number" min="1" name="beneficiaries" placeholder="e.g. 30" value="{{ form.get('beneficiaries', '') }}">
+
+    <label>Number of staff (supervisors, teachers, carers, etc.)</label>
+    <input type="number" min="1" name="staff_members" placeholder="e.g. 8" value="{{ form.get('staff_members', '') }}">
+    <p class="hint">This helps givers understand the true number of people a donation needs to cover.</p>
+  </div>
 
   <label>We don't specify meal types donors bring — but if you had the choice, what would suit your group best? (optional)</label>
   <input type="text" name="preferred_meal_type" placeholder="e.g. soft food for elderly with chewing difficulty, no nuts" value="{{ form.get('preferred_meal_type', '') }}">
@@ -83,8 +99,7 @@
       <label class="checkbox-label"><input type="checkbox" name="meal_slots" value="Dinner (8-10)"> Dinner (8-10)</label>
     </div>
 
-    <label>Which days are you open to receiving meal donations? (optional)</label>
-    <p class="hint">Leave all unchecked if you're open every day</p>
+    <label>Which days are you open to receiving meal donations?</label>
     <div class="checkbox-row">
       <label class="checkbox-label"><input type="checkbox" name="days_open" value="Saturday"> Sat</label>
       <label class="checkbox-label"><input type="checkbox" name="days_open" value="Sunday"> Sun</label>
@@ -151,12 +166,50 @@
   .conditional-section.visible { display: block; }
 </style>
 <script>
-  function updateSections() {
+  var AREAS_BY_GOVERNORATE = {
+    "Cairo": ["Maadi", "Zamalek", "Downtown", "Garden City", "Nasr City", "Heliopolis",
+      "New Cairo", "Katameya", "Mokattam", "Shubra", "Ain Shams", "Zeitoun",
+      "Abbassia", "Helwan", "Manial", "Sayeda Zeinab", "Old Cairo", "15th of May City", "Other"],
+    "Giza": ["Dokki", "Mohandessin", "Agouza", "6th of October", "Sheikh Zayed",
+      "Haram", "Faisal", "Imbaba", "Giza Square", "Bulaq Dakrour", "Other"]
+  };
+
+  function updateAreaOptions() {
+    var gov = document.getElementById('governorate').value;
+    var areaSelect = document.getElementById('area');
+    areaSelect.innerHTML = "";
+    if (!gov || !AREAS_BY_GOVERNORATE[gov]) {
+      areaSelect.innerHTML = '<option value="">Select governorate first...</option>';
+      return;
+    }
+    var placeholder = document.createElement('option');
+    placeholder.value = "";
+    placeholder.textContent = "Select...";
+    areaSelect.appendChild(placeholder);
+    AREAS_BY_GOVERNORATE[gov].forEach(function(area) {
+      var opt = document.createElement('option');
+      opt.value = area;
+      opt.textContent = area;
+      areaSelect.appendChild(opt);
+    });
+  }
+  document.getElementById('governorate').addEventListener('change', updateAreaOptions);
+  updateAreaOptions();
+
+  function updateReceivesSections() {
     var checked = Array.from(document.querySelectorAll('input[name="receives"]:checked')).map(el => el.value);
     document.getElementById('meals-section').classList.toggle('visible', checked.includes('Meals'));
     document.getElementById('groceries-section').classList.toggle('visible', checked.includes('Groceries'));
   }
-  document.querySelectorAll('input[name="receives"]').forEach(el => el.addEventListener('change', updateSections));
-  updateSections();
+  document.querySelectorAll('input[name="receives"]').forEach(el => el.addEventListener('change', updateReceivesSections));
+  updateReceivesSections();
+
+  function updateInstitutionSection() {
+    var type = document.getElementById('center_type').value;
+    var show = (type === 'Orphanage' || type === 'Elderly home');
+    document.getElementById('institution-section').classList.toggle('visible', show);
+  }
+  document.getElementById('center_type').addEventListener('change', updateInstitutionSection);
+  updateInstitutionSection();
 </script>
 {% endblock %}
