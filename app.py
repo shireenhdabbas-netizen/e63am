@@ -1,276 +1,135 @@
-import os
-import json
-from datetime import datetime, timedelta
-from flask import Flask, render_template, request, redirect, url_for, flash
+{% extends "base.html" %}
+{% block title %}Register a center{% endblock %}
+{% block content %}
+<a class="back-link" href="{{ url_for('home') }}">&larr; Back</a>
+<h1>Register a center</h1>
+<p class="subtitle">Mosque, church, or community center that can receive and distribute food</p>
 
-import gspread
-from google.oauth2.service_account import Credentials
+<form method="POST">
+  <label>Center name *</label>
+  <input type="text" name="center_name" value="{{ form.get('center_name', '') }}" required>
 
-app = Flask(__name__)
-app.secret_key = os.environ.get("SECRET_KEY", "dev-secret-change-me")
+  <label>Type</label>
+  <select name="center_type">
+    <option value="Mosque">Mosque</option>
+    <option value="Church">Church</option>
+    <option value="Community center">Community center</option>
+    <option value="Orphanage">Orphanage</option>
+    <option value="Elderly home">Elderly home</option>
+    <option value="Shop">Shop</option>
+    <option value="Other">Other</option>
+  </select>
 
-SHEET_ID = os.environ.get("SHEET_ID")
-GIVERS_TAB = "givers"
-CENTERS_TAB = "centers"
+  <label>Governorate *</label>
+  <select name="governorate" required>
+    <option value="">Select...</option>
+    <option value="Cairo">Cairo</option>
+    <option value="Giza">Giza</option>
+    <option value="Qalyubia">Qalyubia</option>
+  </select>
 
-SCOPES = [
-    "https://www.googleapis.com/auth/spreadsheets",
-    "https://www.googleapis.com/auth/drive",
-]
+  <label>Area *</label>
+  <input type="text" name="area" placeholder="e.g. Maadi" value="{{ form.get('area', '') }}" required>
 
+  <label>Physical address *</label>
+  <input type="text" name="address" placeholder="Street, building, landmark" value="{{ form.get('address', '') }}" required>
 
-def get_sheet_client():
-    """
-    Loads Google service account credentials from the GOOGLE_CREDENTIALS_JSON
-    environment variable (the raw contents of the downloaded JSON key file)
-    and returns an authorized gspread client.
-    """
-    creds_json = os.environ.get("GOOGLE_CREDENTIALS_JSON")
-    if not creds_json:
-        raise RuntimeError("GOOGLE_CREDENTIALS_JSON environment variable is not set")
-    creds_dict = json.loads(creds_json)
-    creds = Credentials.from_service_account_info(creds_dict, scopes=SCOPES)
-    return gspread.authorize(creds)
+  <label>Google Maps link (optional)</label>
+  <input type="url" name="maps_link" placeholder="Paste a Google Maps link" value="{{ form.get('maps_link', '') }}">
+  <p class="hint">Open the location in Google Maps, tap Share, copy the link, paste it here.</p>
 
+  <label>What can you receive? *</label>
+  <div class="checkbox-row">
+    <label class="checkbox-label"><input type="checkbox" name="receives" value="Meals"> Fresh / hot meals</label>
+    <label class="checkbox-label"><input type="checkbox" name="receives" value="Groceries"> Groceries</label>
+  </div>
 
-def get_worksheet(tab_name, header_row):
-    """
-    Returns the worksheet for the given tab, creating it with a header row
-    if it doesn't exist yet.
-    """
-    client = get_sheet_client()
-    spreadsheet = client.open_by_key(SHEET_ID)
-    try:
-        ws = spreadsheet.worksheet(tab_name)
-    except gspread.WorksheetNotFound:
-        try:
-            ws = spreadsheet.add_worksheet(title=tab_name, rows=1000, cols=len(header_row))
-            ws.append_row(header_row)
-        except gspread.exceptions.APIError as e:
-            # Another near-simultaneous request already created this tab
-            # (e.g. a double form submission) - just use the existing one.
-            if "already exists" in str(e):
-                ws = spreadsheet.worksheet(tab_name)
-            else:
-                raise
+  <div id="meals-section" class="conditional-section">
+    <label>Number of meals you can receive per day</label>
+    <input type="number" min="1" name="meals_per_day" placeholder="e.g. 50" value="{{ form.get('meals_per_day', '') }}">
 
-    # If the tab exists but is empty (e.g. manually created), add headers now
-    if not ws.get_all_values():
-        ws.append_row(header_row)
+    <label>Which time slots can you receive meals in?</label>
+    <div class="checkbox-row">
+      <label class="checkbox-label"><input type="checkbox" name="meal_slots" value="Breakfast (9-11)"> Breakfast (9-11)</label>
+      <label class="checkbox-label"><input type="checkbox" name="meal_slots" value="Late breakfast (12-2)"> Late breakfast (12-2)</label>
+      <label class="checkbox-label"><input type="checkbox" name="meal_slots" value="Lunch (4-6)"> Lunch (4-6)</label>
+      <label class="checkbox-label"><input type="checkbox" name="meal_slots" value="Dinner (8-10)"> Dinner (8-10)</label>
+    </div>
 
-    return ws
+    <label>Days you don't need external meal donations (optional)</label>
+    <p class="hint">e.g. days you already have your own cooking covered</p>
+    <div class="checkbox-row">
+      <label class="checkbox-label"><input type="checkbox" name="days_not_receiving" value="Saturday"> Sat</label>
+      <label class="checkbox-label"><input type="checkbox" name="days_not_receiving" value="Sunday"> Sun</label>
+      <label class="checkbox-label"><input type="checkbox" name="days_not_receiving" value="Monday"> Mon</label>
+      <label class="checkbox-label"><input type="checkbox" name="days_not_receiving" value="Tuesday"> Tue</label>
+      <label class="checkbox-label"><input type="checkbox" name="days_not_receiving" value="Wednesday"> Wed</label>
+      <label class="checkbox-label"><input type="checkbox" name="days_not_receiving" value="Thursday"> Thu</label>
+      <label class="checkbox-label"><input type="checkbox" name="days_not_receiving" value="Friday"> Fri</label>
+    </div>
+  </div>
 
+  <div id="groceries-section" class="conditional-section">
+    <label>What hours can you receive groceries?</label>
+    <input type="text" name="grocery_hours" placeholder="e.g. Daily 10am-6pm" value="{{ form.get('grocery_hours', '') }}">
+  </div>
 
-GIVERS_HEADER = [
-    "Timestamp", "Name", "Phone", "Area", "Food Type", "Meal Category",
-    "Quantity", "Ready Time", "Recurring?", "Pickup Available?", "Status",
-    "Matched Center"
-]
+  <label>Additional schedule notes (optional)</label>
+  <input type="text" name="ritual_schedule" placeholder="e.g. Daily iftar during Ramadan" value="{{ form.get('ritual_schedule', '') }}">
 
-CENTERS_HEADER = [
-    "Timestamp", "Center Name", "Center Type", "Area", "Contact Name",
-    "Contact Phone", "Ritual Schedule", "Has Capacity Limit", "Capacity Per Slot",
-    "Photo URL", "Status", "Last Matched", "Visits"
-]
+  <label>Do you have a fixed capacity per meal slot?</label>
+  <select name="has_capacity_limit">
+    <option value="No">No — open, can take any amount</option>
+    <option value="Yes">Yes — fixed number per slot</option>
+  </select>
 
+  <label>If yes, how many meals per slot?</label>
+  <input type="number" min="1" name="capacity_per_slot" placeholder="e.g. 30" value="{{ form.get('capacity_per_slot', '') }}">
+  <p class="hint">Leave blank if you selected "No" above — e.g. an open table serving anyone who comes.</p>
 
-def ensure_columns(ws, required_header):
-    """
-    Makes sure every column in required_header exists in row 1 of the sheet,
-    appending any that are missing (for sheets created before a column was
-    added to the schema). Returns the current header row after any additions.
-    """
-    header = ws.row_values(1)
-    changed = False
-    for col_name in required_header:
-        if col_name not in header:
-            header.append(col_name)
-            ws.update_cell(1, len(header), col_name)
-            changed = True
-    return header
+  <label>Photo of the center (optional)</label>
+  <input type="url" name="photo_url" placeholder="Paste an image link" value="{{ form.get('photo_url', '') }}">
+  <p class="hint">Optional, but centers with a photo are shown higher to givers. Photos must show the place only — no photos of people or individuals. Centers that post photos of people will be flagged and removed.</p>
 
+  <hr style="margin:20px 0;border:none;border-top:1px solid #eee;">
 
-def col_index(header, col_name):
-    """1-based column index for a header name, or None if not present."""
-    try:
-        return header.index(col_name) + 1
-    except ValueError:
-        return None
+  <label>Are you part of this center's staff, or just sharing info on their behalf? *</label>
+  <select name="submitter_role" required>
+    <option value="Staff">I'm part of this center</option>
+    <option value="Info-only">I'm sharing info on their behalf (not staff)</option>
+  </select>
 
+  <label>Your name *</label>
+  <input type="text" name="submitter_name" value="{{ form.get('submitter_name', '') }}" required>
 
-def find_and_apply_match(area, giver_row_number):
-    """
-    Looks for the best available center in the same area and links it to
-    this giver's row. Preference order:
-      1. Verified centers over unverified ("Applied") ones
-      2. Among equally-verified centers, the one matched least recently
-         (fair rotation, so the same center isn't always picked)
-    Unverified centers are still eligible so the very first match to a new
-    center can act as its first real-world "visit" (crowd-sourced trust,
-    rather than requiring admin verification up front).
-    Updates both the center's "Last Matched" timestamp and the giver's
-    "Status"/"Matched Center" columns. Returns the matched center name,
-    or None if no center exists yet in that area.
-    """
-    centers_ws = get_worksheet(CENTERS_TAB, CENTERS_HEADER)
-    centers_header = ensure_columns(centers_ws, CENTERS_HEADER)
-    all_values = centers_ws.get_all_values()
-    if len(all_values) <= 1:
-        return None  # no centers registered yet
+  <label>Your phone number *</label>
+  <input type="tel" name="submitter_phone" value="{{ form.get('submitter_phone', '') }}" required>
 
-    area_i = col_index(centers_header, "Area")
-    status_i = col_index(centers_header, "Status")
-    name_i = col_index(centers_header, "Center Name")
-    last_matched_i = col_index(centers_header, "Last Matched")
+  <label>Center contact person (Sheikh / Priest / Admin) *</label>
+  <input type="text" name="contact_name" value="{{ form.get('contact_name', '') }}" required>
 
-    target_area = area.strip().lower()
-    candidates = []  # (sheet_row_number, is_verified, last_matched_str, center_name)
-    for row_num, row in enumerate(all_values[1:], start=2):
-        row_area = row[area_i - 1].strip().lower() if len(row) >= area_i else ""
-        if row_area != target_area:
-            continue
-        status = row[status_i - 1] if len(row) >= status_i else ""
-        if status == "Rejected":
-            continue
-        center_name = row[name_i - 1] if len(row) >= name_i else ""
-        last_matched = row[last_matched_i - 1] if len(row) >= last_matched_i else ""
-        candidates.append((row_num, status == "Verified", last_matched, center_name))
+  <label>Center contact phone *</label>
+  <input type="tel" name="contact_phone" value="{{ form.get('contact_phone', '') }}" required>
+  <p class="hint">The person actually reachable at the center — may be different from you.</p>
 
-    if not candidates:
-        return None
+  <button type="submit">Submit</button>
+  <p class="hint" style="text-align:center;margin-top:10px;">Your center goes live right away — it earns a "Verified" badge automatically once it receives its first donation.</p>
+</form>
 
-    # Prefer Verified centers; within each group, prefer least-recently-matched
-    # (empty "Last Matched" sorts first, i.e. never-matched centers go first)
-    candidates.sort(key=lambda c: (not c[1], c[2]))
-    chosen_row, _, _, chosen_name = candidates[0]
-
-    now_str = datetime.now().isoformat(timespec="seconds")
-    centers_ws.update_cell(chosen_row, last_matched_i, now_str)
-
-    visits_i = col_index(centers_header, "Visits")
-    if visits_i:
-        current_visits = all_values[chosen_row - 1][visits_i - 1] if len(all_values[chosen_row - 1]) >= visits_i else ""
-        try:
-            new_visits = int(current_visits) + 1
-        except ValueError:
-            new_visits = 1
-        centers_ws.update_cell(chosen_row, visits_i, new_visits)
-
-        # First-ever match auto-verifies the center (crowd-sourced trust,
-        # no admin gate) instead of requiring manual review.
-        if new_visits == 1:
-            centers_ws.update_cell(chosen_row, status_i, "Verified")
-
-    givers_ws = get_worksheet(GIVERS_TAB, GIVERS_HEADER)
-    givers_header = ensure_columns(givers_ws, GIVERS_HEADER)
-    givers_status_i = col_index(givers_header, "Status")
-    givers_matched_i = col_index(givers_header, "Matched Center")
-    givers_ws.update_cell(giver_row_number, givers_status_i, "Matched")
-    givers_ws.update_cell(giver_row_number, givers_matched_i, chosen_name)
-
-    return chosen_name
-
-
-@app.route("/")
-def home():
-    return render_template("home.html")
-
-
-@app.route("/give", methods=["GET", "POST"])
-def give_food():
-    if request.method == "POST":
-        name = request.form.get("name", "").strip()
-        phone = request.form.get("phone", "").strip()
-        area = request.form.get("area", "").strip()
-        food_type = request.form.get("food_type", "")
-        meal_category = request.form.get("meal_category", "")
-        quantity = request.form.get("quantity", "").strip()
-        ready_time_raw = request.form.get("ready_time", "")
-        recurring = request.form.get("recurring", "No")
-        pickup = request.form.get("pickup", "No")
-
-        errors = []
-
-        if not name or not phone or not area or not quantity:
-            errors.append("Please fill in all required fields.")
-
-        ready_time = None
-        if ready_time_raw:
-            try:
-                ready_time = datetime.fromisoformat(ready_time_raw)
-            except ValueError:
-                errors.append("Invalid date/time format.")
-        else:
-            errors.append("Please select a ready time.")
-
-        # 24-hour minimum lead time check (skip this check for recurring/standing offers)
-        if ready_time and recurring != "Yes":
-            if ready_time < datetime.now() + timedelta(hours=24):
-                errors.append(
-                    "Ready time must be at least 24 hours from now, so we can "
-                    "arrange a center and let them know ahead of time."
-                )
-
-        if errors:
-            for e in errors:
-                flash(e)
-            return render_template("give.html", form=request.form)
-
-        ws = get_worksheet(GIVERS_TAB, GIVERS_HEADER)
-        ws.append_row([
-            datetime.now().isoformat(timespec="seconds"),
-            name, phone, area, food_type, meal_category,
-            quantity, ready_time.isoformat(timespec="minutes"),
-            recurring, pickup, "Pending", "",
-        ])
-        giver_row_number = len(ws.get_all_values())
-
-        matched_center = find_and_apply_match(area, giver_row_number)
-
-        return render_template("give_confirmation.html", area=area, quantity=quantity,
-                                food_type=food_type, meal_category=meal_category,
-                                ready_time=ready_time, matched_center=matched_center)
-
-    return render_template("give.html", form={})
-
-
-@app.route("/register-center", methods=["GET", "POST"])
-def register_center():
-    if request.method == "POST":
-        center_name = request.form.get("center_name", "").strip()
-        center_type = request.form.get("center_type", "")
-        area = request.form.get("area", "").strip()
-        contact_name = request.form.get("contact_name", "").strip()
-        contact_phone = request.form.get("contact_phone", "").strip()
-        ritual_schedule = request.form.get("ritual_schedule", "").strip()
-        has_capacity_limit = request.form.get("has_capacity_limit", "No")
-        capacity_per_slot = request.form.get("capacity_per_slot", "").strip()
-        photo_url = request.form.get("photo_url", "").strip()
-
-        errors = []
-        if not center_name or not area or not contact_name or not contact_phone:
-            errors.append("Please fill in all required fields.")
-        if has_capacity_limit == "Yes" and not capacity_per_slot:
-            errors.append("Please enter a capacity per slot, or select 'No' if you don't have a fixed limit.")
-
-        if errors:
-            for e in errors:
-                flash(e)
-            return render_template("register_center.html", form=request.form)
-
-        ws = get_worksheet(CENTERS_TAB, CENTERS_HEADER)
-        ws.append_row([
-            datetime.now().isoformat(timespec="seconds"),
-            center_name, center_type, area, contact_name, contact_phone,
-            ritual_schedule, has_capacity_limit, capacity_per_slot,
-            photo_url, "Unverified", "", 0,
-        ])
-
-        return render_template("center_confirmation.html", center_name=center_name)
-
-    return render_template("register_center.html", form={})
-
-
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port, debug=False)
+<style>
+  .checkbox-row { display: flex; flex-wrap: wrap; gap: 10px 16px; margin: 6px 0 4px; }
+  .checkbox-label { display: flex; align-items: center; gap: 6px; font-size: 13px; color: #333; margin: 0; }
+  .checkbox-label input { width: auto; }
+  .conditional-section { display: none; border-left: 2px solid #2f7d5c; padding-left: 12px; margin: 8px 0 16px; }
+  .conditional-section.visible { display: block; }
+</style>
+<script>
+  function updateSections() {
+    var checked = Array.from(document.querySelectorAll('input[name="receives"]:checked')).map(el => el.value);
+    document.getElementById('meals-section').classList.toggle('visible', checked.includes('Meals'));
+    document.getElementById('groceries-section').classList.toggle('visible', checked.includes('Groceries'));
+  }
+  document.querySelectorAll('input[name="receives"]').forEach(el => el.addEventListener('change', updateSections));
+  updateSections();
+</script>
+{% endblock %}
