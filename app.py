@@ -287,6 +287,12 @@ def register_center():
 
         has_capacity_limit = request.form.get("has_capacity_limit", "No")
         capacity_per_slot = request.form.get("capacity_per_slot", "").strip()
+        # If they went through the institution fields (beneficiaries/staff/total)
+        # instead of the capacity question, use their stated total as the capacity
+        # rather than asking the same thing twice.
+        if total_to_feed and not capacity_per_slot:
+            has_capacity_limit = "Yes"
+            capacity_per_slot = total_to_feed
         photo_url = request.form.get("photo_url", "").strip()
 
         errors = []
