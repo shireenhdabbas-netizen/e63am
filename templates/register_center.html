@@ -1,247 +1,60 @@
 {% extends "base.html" %}
-{% block title %}Register a center{% endblock %}
+{% block title %}I have food to give{% endblock %}
 {% block content %}
 <a class="back-link" href="{{ url_for('home') }}">&larr; Back</a>
-<h1>Register a center</h1>
-<p class="subtitle">Mosque, church, or community center that can receive and distribute food</p>
+<h1>I have food to give</h1>
+<p class="subtitle">Fill this in and we'll match it with a nearby trusted center</p>
 
 <form method="POST">
-  <label>Center name *</label>
-  <input type="text" name="center_name" value="{{ form.get('center_name', '') }}" required>
+  <label>Your name *</label>
+  <input type="text" name="name" value="{{ form.get('name', '') }}" required>
 
-  <label>Type</label>
-  <select name="center_type" id="center_type">
-    <option value="Mosque">Mosque</option>
-    <option value="Church">Church</option>
-    <option value="Community center">Community center</option>
-    <option value="Orphanage">Orphanage</option>
-    <option value="Elderly home">Elderly home</option>
-    <option value="Shop">Shop</option>
-    <option value="Local NGO / Community organization">Local NGO / Community organization</option>
-    <option value="Ma'edet Rahman (community meal table)">Ma'edet Rahman (community meal table)</option>
-    <option value="Homeless outreach point">Homeless outreach point</option>
-    <option value="Other">Other</option>
-  </select>
-  <input type="text" name="center_type_other" placeholder="If Other, please specify" value="{{ form.get('center_type_other', '') }}">
-
-  <label>Governorate *</label>
-  <select name="governorate" id="governorate" required>
-    <option value="">Select...</option>
-    <option value="Cairo">Cairo</option>
-    <option value="Giza">Giza</option>
-  </select>
-
-  <label>Is this a governmental, private, or local NGO-run place? *</label>
-  <select name="ownership_type" required>
-    <option value="">Select...</option>
-    <option value="Governmental">Governmental</option>
-    <option value="Private">Private</option>
-    <option value="Local NGO">Local NGO</option>
-    <option value="Independent / community-run">Independent / community-run</option>
-    <option value="Other">Other</option>
-  </select>
-  <input type="text" name="ownership_type_other" placeholder="If Other, please specify" value="{{ form.get('ownership_type_other', '') }}">
-  <p class="hint">Helps with verification and helps givers know what they're choosing.</p>
+  <label>Phone number *</label>
+  <input type="tel" name="phone" value="{{ form.get('phone', '') }}" required>
 
   <label>Area *</label>
-  <select name="area" id="area" required>
-    <option value="">Select governorate first...</option>
-  </select>
-  <input type="text" name="area_other" placeholder="If your area isn't listed, specify it here" value="{{ form.get('area_other', '') }}">
+  <input type="text" name="area" placeholder="e.g. Maadi" value="{{ form.get('area', '') }}" required>
 
-  <label>Physical address *</label>
-  <input type="text" name="address" placeholder="Street, building, landmark" value="{{ form.get('address', '') }}" required>
-
-  <label>Google Maps link (optional)</label>
-  <input type="text" name="maps_link" placeholder="Paste a Google Maps link" value="{{ form.get('maps_link', '') }}">
-  <p class="hint">Open the location in Google Maps, tap Share, copy the link, paste it here.</p>
-
-  <label>Social media page (optional)</label>
-  <input type="text" name="social_link" placeholder="Facebook, Instagram, or other page link" value="{{ form.get('social_link', '') }}">
-  <p class="hint">Helps givers see the center is real and active.</p>
-
-  <label>Who do you serve? (optional, select any that apply)</label>
-  <div class="checkbox-row">
-    <label class="checkbox-label"><input type="checkbox" name="target_group" value="Elderly"> Elderly</label>
-    <label class="checkbox-label"><input type="checkbox" name="target_group" value="Elderly with chronic illness"> Elderly with chronic illness</label>
-    <label class="checkbox-label"><input type="checkbox" name="target_group" value="Children"> Children</label>
-    <label class="checkbox-label"><input type="checkbox" name="target_group" value="Children with disabilities"> Children with disabilities</label>
-    <label class="checkbox-label"><input type="checkbox" name="target_group" value="People with disabilities"> People with disabilities</label>
-    <label class="checkbox-label"><input type="checkbox" name="target_group" value="Widows"> Widows</label>
-    <label class="checkbox-label"><input type="checkbox" name="target_group" value="Families in need"> Families in need</label>
-    <label class="checkbox-label"><input type="checkbox" name="target_group" value="Orphans"> Orphans</label>
-    <label class="checkbox-label"><input type="checkbox" name="target_group" value="Homeless"> Homeless</label>
-  </div>
-  <input type="text" name="target_group_other" placeholder="Other (specify)" value="{{ form.get('target_group_other', '') }}">
-
-  <div id="institution-section" class="conditional-section">
-    <label>Number of beneficiaries (residents / people cared for)</label>
-    <input type="number" min="1" name="beneficiaries" placeholder="e.g. 30" value="{{ form.get('beneficiaries', '') }}">
-
-    <label>Number of staff (supervisors, teachers, carers, etc.)</label>
-    <input type="number" min="1" name="staff_members" placeholder="e.g. 8" value="{{ form.get('staff_members', '') }}">
-
-    <label>Total number of people you'd like meals to cover</label>
-    <input type="number" min="1" name="total_to_feed" placeholder="e.g. 35" value="{{ form.get('total_to_feed', '') }}">
-    <p class="hint">Please enter this yourself rather than us adding the two numbers above — not everyone listed necessarily needs a donated meal.</p>
-  </div>
-
-  <label>We don't specify meal types donors bring — but if you had the choice, what would suit your group best? (optional)</label>
-  <input type="text" name="preferred_meal_type" placeholder="e.g. soft food for elderly with chewing difficulty, no nuts" value="{{ form.get('preferred_meal_type', '') }}">
-
-  <label>What do you receive? *</label>
-  <div class="checkbox-row">
-    <label class="checkbox-label"><input type="checkbox" name="receives" value="Meals"> Fresh / hot meals</label>
-    <label class="checkbox-label"><input type="checkbox" name="receives" value="Groceries"> Groceries</label>
-  </div>
-
-  <div id="meals-section" class="conditional-section">
-    <label>Which time slots can you receive meals in?</label>
-    <div class="checkbox-row">
-      <label class="checkbox-label"><input type="checkbox" name="meal_slots" value="Breakfast (9-11)"> Breakfast (9-11)</label>
-      <label class="checkbox-label"><input type="checkbox" name="meal_slots" value="Late breakfast (12-2)"> Late breakfast (12-2)</label>
-      <label class="checkbox-label"><input type="checkbox" name="meal_slots" value="Lunch (4-6)"> Lunch (4-6)</label>
-      <label class="checkbox-label"><input type="checkbox" name="meal_slots" value="Dinner (8-10)"> Dinner (8-10)</label>
-    </div>
-
-    <label>Which days are you open to receiving meal donations?</label>
-    <div class="checkbox-row">
-      <label class="checkbox-label"><input type="checkbox" name="days_open" value="Saturday"> Sat</label>
-      <label class="checkbox-label"><input type="checkbox" name="days_open" value="Sunday"> Sun</label>
-      <label class="checkbox-label"><input type="checkbox" name="days_open" value="Monday"> Mon</label>
-      <label class="checkbox-label"><input type="checkbox" name="days_open" value="Tuesday"> Tue</label>
-      <label class="checkbox-label"><input type="checkbox" name="days_open" value="Wednesday"> Wed</label>
-      <label class="checkbox-label"><input type="checkbox" name="days_open" value="Thursday"> Thu</label>
-      <label class="checkbox-label"><input type="checkbox" name="days_open" value="Friday"> Fri</label>
-    </div>
-  </div>
-
-  <div id="groceries-section" class="conditional-section">
-    <label>What hours can you receive groceries?</label>
-    <input type="text" name="grocery_hours" placeholder="e.g. Daily 10am-6pm" value="{{ form.get('grocery_hours', '') }}">
-  </div>
-
-  <label>Additional schedule notes (optional)</label>
-  <input type="text" name="ritual_schedule" placeholder="e.g. Daily iftar during Ramadan" value="{{ form.get('ritual_schedule', '') }}">
-
-  <div id="capacity-section" class="conditional-section visible">
-    <label>Do you have a fixed capacity per meal slot?</label>
-    <select name="has_capacity_limit">
-      <option value="No">No — open, can take any amount</option>
-      <option value="Yes">Yes — fixed number per slot</option>
-    </select>
-
-    <label>If yes, how many meals per slot?</label>
-    <input type="number" min="1" name="capacity_per_slot" placeholder="e.g. 30" value="{{ form.get('capacity_per_slot', '') }}">
-    <p class="hint">Leave blank if you selected "No" above — e.g. an open table serving anyone who comes.</p>
-  </div>
-
-  <label>Photo of the center (optional)</label>
-  <input type="text" name="photo_url" placeholder="Paste an image link" value="{{ form.get('photo_url', '') }}">
-  <p class="hint">Optional, but centers with a photo are shown higher to givers. Photos must show the place only — no photos of people or individuals. Centers that post photos of people will be flagged and removed.</p>
-
-  <hr style="margin:20px 0;border:none;border-top:1px solid #eee;">
-
-  <label>Are you part of this center's staff, or just sharing info on their behalf? *</label>
-  <select name="submitter_role" required>
-    <option value="Staff">I'm part of this center</option>
-    <option value="Info-only">I'm sharing info on their behalf (not staff)</option>
+  <label>Food type</label>
+  <select name="food_type">
+    <option value="Hot meal">Hot meal</option>
+    <option value="Cold meal">Cold meal</option>
+    <option value="Groceries">Groceries</option>
   </select>
 
-  <label>Your name *</label>
-  <input type="text" name="submitter_name" value="{{ form.get('submitter_name', '') }}" required>
+  <label>Meal category</label>
+  <select name="meal_category">
+    <option value="Breakfast">Breakfast</option>
+    <option value="Lunch">Lunch</option>
+    <option value="Dinner">Dinner</option>
+    <option value="Snack">Snack</option>
+    <option value="N/A">N/A (groceries)</option>
+  </select>
 
-  <label>Your phone number *</label>
-  <input type="tel" name="submitter_phone" value="{{ form.get('submitter_phone', '') }}" required>
+  <label>Quantity *</label>
+  <input type="text" name="quantity" placeholder="e.g. 20 meals" value="{{ form.get('quantity', '') }}" required>
 
-  <label>Center contact person (Sheikh / Priest / Admin) *</label>
-  <input type="text" name="contact_name" value="{{ form.get('contact_name', '') }}" required>
+  <label>Ready time *</label>
+  <input type="datetime-local" name="ready_time" value="{{ form.get('ready_time', '') }}" required>
+  <p class="hint">Must be at least 24 hours from now, so a center can be arranged and notified ahead of time.</p>
 
-  <label>Center contact phone *</label>
-  <input type="tel" name="contact_phone" value="{{ form.get('contact_phone', '') }}" required>
-  <p class="hint">The person actually reachable at the center — may be different from you.</p>
+  <label>Is this a recurring / standing offer?</label>
+  <select name="recurring">
+    <option value="No">No, this is one-time</option>
+    <option value="Yes">Yes, this repeats regularly</option>
+  </select>
+
+  <label>Can you deliver it yourself, or does it need pickup?</label>
+  <select name="pickup">
+    <option value="No">I'll deliver it</option>
+    <option value="Yes">Needs pickup</option>
+  </select>
+
+  <label>Who should the center contact about this delivery? *</label>
+  <input type="text" name="delivery_contact_name" placeholder="Name" value="{{ form.get('delivery_contact_name', '') }}" required>
+  <input type="tel" name="delivery_contact_phone" placeholder="Phone number" value="{{ form.get('delivery_contact_phone', '') }}" required>
+  <p class="hint">If that's you, just repeat your name and number above. If someone else will actually be there (e.g. staff dropping it off), put their details instead.</p>
 
   <button type="submit">Submit</button>
-  <p class="hint" style="text-align:center;margin-top:10px;">Your center goes live right away — it earns a "Verified" badge automatically once it receives its first donation.</p>
 </form>
-
-<style>
-  .checkbox-row { display: flex; flex-wrap: wrap; gap: 10px 16px; margin: 6px 0 4px; }
-  .checkbox-label { display: flex; align-items: center; gap: 6px; font-size: 13px; color: #333; margin: 0; }
-  .checkbox-label input { width: auto; }
-  .conditional-section { display: none; border-left: 2px solid #2f7d5c; padding-left: 12px; margin: 8px 0 16px; }
-  .conditional-section.visible { display: block; }
-</style>
-<script>
-  var AREAS_BY_GOVERNORATE = {
-    "Cairo": [
-      // North Area
-      "Shubra", "El-Zawia El-Hamra", "Hadayek El-Kobba", "Rod El-Farg", "El-Sharabia", "El-Sahel", "El-Zaiton", "Al-Ameria",
-      // South Area
-      "Masr El-Qadima", "El-Khalifa", "El-Moqattam", "El-Basatin", "Dar El-Salam", "El-Sayeda Zeinab", "El-Tebin", "Helwan", "El-Maasara", "El-Maadi", "Tora", "15 May",
-      // West Area
-      "Manshaet Naser", "El-Waily", "Wast El-Qahira (Downtown)", "Boulak", "Gharb El-Qahira", "Abdeen", "Azbakia", "Moski", "Bab El-Shaaria",
-      // East Area
-      "Misr El-Gadidah (Heliopolis)", "El-Nozha", "Sharq Madinet Nasr", "Gharb Madinet Nasr", "El-Salam Awal", "El-Salam Thani", "El-Mataria", "Ain Shams", "El-Marg",
-      // Commonly used newer/informal names not in the official 38
-      "Zamalek", "Garden City", "New Cairo", "Katameya",
-      "Other"
-    ],
-    "Giza": [
-      // Giza City's official districts
-      "Dokki", "Agouza / Mohandessin", "Omraniya", "Haram", "Boulak El Dakrour", "El Warraq", "North Giza", "South Giza",
-      // Major new cities within Giza governorate
-      "6th of October", "Sheikh Zayed",
-      // Other well-known areas
-      "Imbaba", "Faisal", "Giza Square",
-      // Regional centers (markaz) covering semi-rural/outer Giza
-      "Al-Ayyat", "Atfih", "Awsim", "Al-Badrashin", "Al-Hawamdiya", "Al-Saff", "Kerdasa", "Manshaat El Qanater",
-      "Other"
-    ]
-  };
-
-  function updateAreaOptions() {
-    var gov = document.getElementById('governorate').value;
-    var areaSelect = document.getElementById('area');
-    areaSelect.innerHTML = "";
-    if (!gov || !AREAS_BY_GOVERNORATE[gov]) {
-      areaSelect.innerHTML = '<option value="">Select governorate first...</option>';
-      return;
-    }
-    var placeholder = document.createElement('option');
-    placeholder.value = "";
-    placeholder.textContent = "Select...";
-    areaSelect.appendChild(placeholder);
-    AREAS_BY_GOVERNORATE[gov].forEach(function(area) {
-      var opt = document.createElement('option');
-      opt.value = area;
-      opt.textContent = area;
-      areaSelect.appendChild(opt);
-    });
-  }
-  document.getElementById('governorate').addEventListener('change', updateAreaOptions);
-  updateAreaOptions();
-
-  function updateReceivesSections() {
-    var checked = Array.from(document.querySelectorAll('input[name="receives"]:checked')).map(el => el.value);
-    document.getElementById('meals-section').classList.toggle('visible', checked.includes('Meals'));
-    document.getElementById('groceries-section').classList.toggle('visible', checked.includes('Groceries'));
-  }
-  document.querySelectorAll('input[name="receives"]').forEach(el => el.addEventListener('change', updateReceivesSections));
-  updateReceivesSections();
-
-  function updateInstitutionSection() {
-    var type = document.getElementById('center_type').value;
-    var typeMatch = (type === 'Orphanage' || type === 'Elderly home');
-    var targetChecked = Array.from(document.querySelectorAll('input[name="target_group"]:checked')).map(el => el.value);
-    var groupMatch = targetChecked.some(v => v !== 'Homeless'); // any specific population served, not just general
-    var showInstitution = typeMatch || groupMatch;
-    document.getElementById('institution-section').classList.toggle('visible', showInstitution);
-    // Capacity-per-slot asks the same thing as the institution total, so hide it there
-    document.getElementById('capacity-section').classList.toggle('visible', !showInstitution);
-  }
-  document.getElementById('center_type').addEventListener('change', updateInstitutionSection);
-  document.querySelectorAll('input[name="target_group"]').forEach(el => el.addEventListener('change', updateInstitutionSection));
-  updateInstitutionSection();
-</script>
 {% endblock %}
