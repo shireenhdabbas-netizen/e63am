@@ -80,7 +80,10 @@
 
     <label>Number of staff (supervisors, teachers, carers, etc.)</label>
     <input type="number" min="1" name="staff_members" placeholder="e.g. 8" value="{{ form.get('staff_members', '') }}">
-    <p class="hint">This helps givers understand the true number of people a donation needs to cover.</p>
+
+    <label>Total number of people you'd like meals to cover</label>
+    <input type="number" min="1" name="total_to_feed" placeholder="e.g. 35" value="{{ form.get('total_to_feed', '') }}">
+    <p class="hint">Please enter this yourself rather than us adding the two numbers above — not everyone listed necessarily needs a donated meal.</p>
   </div>
 
   <label>We don't specify meal types donors bring — but if you had the choice, what would suit your group best? (optional)</label>
@@ -93,9 +96,6 @@
   </div>
 
   <div id="meals-section" class="conditional-section">
-    <label>Number of meals you can receive per day</label>
-    <input type="number" min="1" name="meals_per_day" placeholder="e.g. 50" value="{{ form.get('meals_per_day', '') }}">
-
     <label>Which time slots can you receive meals in?</label>
     <div class="checkbox-row">
       <label class="checkbox-label"><input type="checkbox" name="meal_slots" value="Breakfast (9-11)"> Breakfast (9-11)</label>
