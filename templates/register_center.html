@@ -28,6 +28,17 @@
     <option value="Qalyubia">Qalyubia</option>
   </select>
 
+  <label>Is this a governmental, private, or local NGO-run place? *</label>
+  <select name="ownership_type" required>
+    <option value="">Select...</option>
+    <option value="Governmental">Governmental</option>
+    <option value="Private">Private</option>
+    <option value="Local NGO">Local NGO</option>
+    <option value="Independent / community-run">Independent / community-run</option>
+    <option value="Other">Other</option>
+  </select>
+  <p class="hint">Helps with verification and helps givers know what they're choosing.</p>
+
   <label>Area *</label>
   <input type="text" name="area" placeholder="e.g. Maadi" value="{{ form.get('area', '') }}" required>
 
@@ -38,7 +49,23 @@
   <input type="url" name="maps_link" placeholder="Paste a Google Maps link" value="{{ form.get('maps_link', '') }}">
   <p class="hint">Open the location in Google Maps, tap Share, copy the link, paste it here.</p>
 
-  <label>What can you receive? *</label>
+  <label>Who do you serve? (optional, select any that apply)</label>
+  <div class="checkbox-row">
+    <label class="checkbox-label"><input type="checkbox" name="target_group" value="Elderly"> Elderly</label>
+    <label class="checkbox-label"><input type="checkbox" name="target_group" value="Elderly with chronic illness"> Elderly with chronic illness</label>
+    <label class="checkbox-label"><input type="checkbox" name="target_group" value="Children"> Children</label>
+    <label class="checkbox-label"><input type="checkbox" name="target_group" value="Children with disabilities"> Children with disabilities</label>
+    <label class="checkbox-label"><input type="checkbox" name="target_group" value="People with disabilities"> People with disabilities</label>
+    <label class="checkbox-label"><input type="checkbox" name="target_group" value="Widows"> Widows</label>
+    <label class="checkbox-label"><input type="checkbox" name="target_group" value="Families in need"> Families in need</label>
+    <label class="checkbox-label"><input type="checkbox" name="target_group" value="Orphans"> Orphans</label>
+  </div>
+  <input type="text" name="target_group_other" placeholder="Other (specify)" value="{{ form.get('target_group_other', '') }}">
+
+  <label>We don't specify meal types donors bring — but if you had the choice, what would suit your group best? (optional)</label>
+  <input type="text" name="preferred_meal_type" placeholder="e.g. soft food for elderly with chewing difficulty, no nuts" value="{{ form.get('preferred_meal_type', '') }}">
+
+  <label>What do you receive? *</label>
   <div class="checkbox-row">
     <label class="checkbox-label"><input type="checkbox" name="receives" value="Meals"> Fresh / hot meals</label>
     <label class="checkbox-label"><input type="checkbox" name="receives" value="Groceries"> Groceries</label>
@@ -56,16 +83,16 @@
       <label class="checkbox-label"><input type="checkbox" name="meal_slots" value="Dinner (8-10)"> Dinner (8-10)</label>
     </div>
 
-    <label>Days you don't need external meal donations (optional)</label>
-    <p class="hint">e.g. days you already have your own cooking covered</p>
+    <label>Which days are you open to receiving meal donations? (optional)</label>
+    <p class="hint">Leave all unchecked if you're open every day</p>
     <div class="checkbox-row">
-      <label class="checkbox-label"><input type="checkbox" name="days_not_receiving" value="Saturday"> Sat</label>
-      <label class="checkbox-label"><input type="checkbox" name="days_not_receiving" value="Sunday"> Sun</label>
-      <label class="checkbox-label"><input type="checkbox" name="days_not_receiving" value="Monday"> Mon</label>
-      <label class="checkbox-label"><input type="checkbox" name="days_not_receiving" value="Tuesday"> Tue</label>
-      <label class="checkbox-label"><input type="checkbox" name="days_not_receiving" value="Wednesday"> Wed</label>
-      <label class="checkbox-label"><input type="checkbox" name="days_not_receiving" value="Thursday"> Thu</label>
-      <label class="checkbox-label"><input type="checkbox" name="days_not_receiving" value="Friday"> Fri</label>
+      <label class="checkbox-label"><input type="checkbox" name="days_open" value="Saturday"> Sat</label>
+      <label class="checkbox-label"><input type="checkbox" name="days_open" value="Sunday"> Sun</label>
+      <label class="checkbox-label"><input type="checkbox" name="days_open" value="Monday"> Mon</label>
+      <label class="checkbox-label"><input type="checkbox" name="days_open" value="Tuesday"> Tue</label>
+      <label class="checkbox-label"><input type="checkbox" name="days_open" value="Wednesday"> Wed</label>
+      <label class="checkbox-label"><input type="checkbox" name="days_open" value="Thursday"> Thu</label>
+      <label class="checkbox-label"><input type="checkbox" name="days_open" value="Friday"> Fri</label>
     </div>
   </div>
 
