@@ -69,7 +69,7 @@ GIVERS_HEADER = [
 
 CENTERS_HEADER = [
     "Timestamp", "Center Name", "Center Type", "Governorate", "Ownership Type",
-    "Area", "Address", "Maps Link",
+    "Area", "Address", "Maps Link", "Social Link",
     "Target Group", "Beneficiaries", "Staff Members", "Preferred Meal Type",
     "Submitter Role", "Submitter Name", "Submitter Phone",
     "Contact Name", "Contact Phone", "Ritual Schedule",
@@ -256,10 +256,12 @@ def register_center():
             ownership_type = ownership_type_other
 
         area = request.form.get("area", "").strip()
+        area_other = request.form.get("area_other", "").strip()
+        if area == "Other" and area_other:
+            area = area_other
         address = request.form.get("address", "").strip()
         maps_link = request.form.get("maps_link", "").strip()
-
-        target_groups = request.form.getlist("target_group")
+        social_link = request.form.get("social_link", "").strip()
         target_group_other = request.form.get("target_group_other", "").strip()
         if target_group_other:
             target_groups.append(target_group_other)
@@ -308,7 +310,7 @@ def register_center():
         ws.append_row([
             datetime.now().isoformat(timespec="seconds"),
             center_name, center_type, governorate, ownership_type,
-            area, address, maps_link,
+            area, address, maps_link, social_link,
             target_group, beneficiaries, staff_members, preferred_meal_type,
             submitter_role, submitter_name, submitter_phone,
             contact_name, contact_phone, ritual_schedule,
