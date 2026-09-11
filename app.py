@@ -63,8 +63,8 @@ def get_worksheet(tab_name, header_row):
 
 GIVERS_HEADER = [
     "Timestamp", "Name", "Phone", "Area", "Food Type", "Meal Category",
-    "Quantity", "Ready Time", "Recurring?", "Pickup Available?", "Status",
-    "Matched Center"
+    "Quantity", "Ready Time", "Recurring?", "Pickup Available?",
+    "Delivery Contact Name", "Delivery Contact Phone", "Status", "Matched Center"
 ]
 
 CENTERS_HEADER = [
@@ -194,11 +194,15 @@ def give_food():
         ready_time_raw = request.form.get("ready_time", "")
         recurring = request.form.get("recurring", "No")
         pickup = request.form.get("pickup", "No")
+        delivery_contact_name = request.form.get("delivery_contact_name", "").strip()
+        delivery_contact_phone = request.form.get("delivery_contact_phone", "").strip()
 
         errors = []
 
         if not name or not phone or not area or not quantity:
             errors.append("Please fill in all required fields.")
+        if not delivery_contact_name or not delivery_contact_phone:
+            errors.append("Please fill in who the center should contact about this delivery.")
 
         ready_time = None
         if ready_time_raw:
@@ -227,7 +231,8 @@ def give_food():
             datetime.now().isoformat(timespec="seconds"),
             name, phone, area, food_type, meal_category,
             quantity, ready_time.isoformat(timespec="minutes"),
-            recurring, pickup, "Pending", "",
+            recurring, pickup, delivery_contact_name, delivery_contact_phone,
+            "Pending", "",
         ])
         giver_row_number = len(ws.get_all_values())
 
