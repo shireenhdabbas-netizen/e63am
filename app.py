@@ -68,10 +68,12 @@ GIVERS_HEADER = [
 ]
 
 CENTERS_HEADER = [
-    "Timestamp", "Center Name", "Center Type", "Governorate", "Area", "Address",
-    "Maps Link", "Submitter Role", "Submitter Name", "Submitter Phone",
+    "Timestamp", "Center Name", "Center Type", "Governorate", "Ownership Type",
+    "Area", "Address", "Maps Link",
+    "Target Group", "Preferred Meal Type",
+    "Submitter Role", "Submitter Name", "Submitter Phone",
     "Contact Name", "Contact Phone", "Ritual Schedule",
-    "Receives Meals", "Meals Per Day", "Meal Slots", "Days Not Receiving",
+    "Receives Meals", "Meals Per Day", "Meal Slots", "Days Open",
     "Receives Groceries", "Grocery Hours",
     "Has Capacity Limit", "Capacity Per Slot",
     "Photo URL", "Status", "Last Matched", "Visits"
@@ -244,9 +246,18 @@ def register_center():
         center_name = request.form.get("center_name", "").strip()
         center_type = request.form.get("center_type", "")
         governorate = request.form.get("governorate", "").strip()
+        ownership_type = request.form.get("ownership_type", "").strip()
         area = request.form.get("area", "").strip()
         address = request.form.get("address", "").strip()
         maps_link = request.form.get("maps_link", "").strip()
+
+        target_groups = request.form.getlist("target_group")
+        target_group_other = request.form.get("target_group_other", "").strip()
+        if target_group_other:
+            target_groups.append(target_group_other)
+        target_group = ", ".join(target_groups)
+        preferred_meal_type = request.form.get("preferred_meal_type", "").strip()
+
         submitter_role = request.form.get("submitter_role", "")
         submitter_name = request.form.get("submitter_name", "").strip()
         submitter_phone = request.form.get("submitter_phone", "").strip()
@@ -259,7 +270,7 @@ def register_center():
         receives_groceries = "Yes" if "Groceries" in receives else "No"
         meals_per_day = request.form.get("meals_per_day", "").strip()
         meal_slots = ", ".join(request.form.getlist("meal_slots"))
-        days_not_receiving = ", ".join(request.form.getlist("days_not_receiving"))
+        days_open = ", ".join(request.form.getlist("days_open"))
         grocery_hours = request.form.get("grocery_hours", "").strip()
 
         has_capacity_limit = request.form.get("has_capacity_limit", "No")
@@ -267,7 +278,7 @@ def register_center():
         photo_url = request.form.get("photo_url", "").strip()
 
         errors = []
-        if not center_name or not governorate or not area or not address:
+        if not center_name or not governorate or not ownership_type or not area or not address:
             errors.append("Please fill in all required location fields.")
         if not submitter_role or not submitter_name or not submitter_phone:
             errors.append("Please fill in your own name, phone, and role.")
@@ -286,10 +297,12 @@ def register_center():
         ws = get_worksheet(CENTERS_TAB, CENTERS_HEADER)
         ws.append_row([
             datetime.now().isoformat(timespec="seconds"),
-            center_name, center_type, governorate, area, address, maps_link,
+            center_name, center_type, governorate, ownership_type,
+            area, address, maps_link,
+            target_group, preferred_meal_type,
             submitter_role, submitter_name, submitter_phone,
             contact_name, contact_phone, ritual_schedule,
-            receives_meals, meals_per_day, meal_slots, days_not_receiving,
+            receives_meals, meals_per_day, meal_slots, days_open,
             receives_groceries, grocery_hours,
             has_capacity_limit, capacity_per_slot,
             photo_url, "Unverified", "", 0,
