@@ -43,8 +43,16 @@ def get_worksheet(tab_name, header_row):
     try:
         ws = spreadsheet.worksheet(tab_name)
     except gspread.WorksheetNotFound:
-        ws = spreadsheet.add_worksheet(title=tab_name, rows=1000, cols=len(header_row))
-        ws.append_row(header_row)
+        try:
+            ws = spreadsheet.add_worksheet(title=tab_name, rows=1000, cols=len(header_row))
+            ws.append_row(header_row)
+        except gspread.exceptions.APIError as e:
+            # Another near-simultaneous request already created this tab
+            # (e.g. a double form submission) - just use the existing one.
+            if "already exists" in str(e):
+                ws = spreadsheet.worksheet(tab_name)
+            else:
+                raise
     return ws
 
 
