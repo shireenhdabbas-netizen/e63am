@@ -262,6 +262,7 @@ def register_center():
         address = request.form.get("address", "").strip()
         maps_link = request.form.get("maps_link", "").strip()
         social_link = request.form.get("social_link", "").strip()
+        target_groups = request.form.getlist("target_group")
         target_group_other = request.form.get("target_group_other", "").strip()
         if target_group_other:
             target_groups.append(target_group_other)
