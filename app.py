@@ -70,7 +70,7 @@ GIVERS_HEADER = [
 CENTERS_HEADER = [
     "Timestamp", "Center Name", "Center Type", "Governorate", "Ownership Type",
     "Area", "Address", "Maps Link",
-    "Target Group", "Preferred Meal Type",
+    "Target Group", "Beneficiaries", "Staff Members", "Preferred Meal Type",
     "Submitter Role", "Submitter Name", "Submitter Phone",
     "Contact Name", "Contact Phone", "Ritual Schedule",
     "Receives Meals", "Meals Per Day", "Meal Slots", "Days Open",
@@ -245,8 +245,16 @@ def register_center():
     if request.method == "POST":
         center_name = request.form.get("center_name", "").strip()
         center_type = request.form.get("center_type", "")
+        center_type_other = request.form.get("center_type_other", "").strip()
+        if center_type == "Other" and center_type_other:
+            center_type = center_type_other
+
         governorate = request.form.get("governorate", "").strip()
         ownership_type = request.form.get("ownership_type", "").strip()
+        ownership_type_other = request.form.get("ownership_type_other", "").strip()
+        if ownership_type == "Other" and ownership_type_other:
+            ownership_type = ownership_type_other
+
         area = request.form.get("area", "").strip()
         address = request.form.get("address", "").strip()
         maps_link = request.form.get("maps_link", "").strip()
@@ -256,6 +264,8 @@ def register_center():
         if target_group_other:
             target_groups.append(target_group_other)
         target_group = ", ".join(target_groups)
+        beneficiaries = request.form.get("beneficiaries", "").strip()
+        staff_members = request.form.get("staff_members", "").strip()
         preferred_meal_type = request.form.get("preferred_meal_type", "").strip()
 
         submitter_role = request.form.get("submitter_role", "")
@@ -299,7 +309,7 @@ def register_center():
             datetime.now().isoformat(timespec="seconds"),
             center_name, center_type, governorate, ownership_type,
             area, address, maps_link,
-            target_group, preferred_meal_type,
+            target_group, beneficiaries, staff_members, preferred_meal_type,
             submitter_role, submitter_name, submitter_phone,
             contact_name, contact_phone, ritual_schedule,
             receives_meals, meals_per_day, meal_slots, days_open,
