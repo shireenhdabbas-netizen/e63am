@@ -63,13 +63,112 @@ def get_worksheet(tab_name, header_row):
 
 GIVERS_HEADER = [
     "Timestamp", "Name", "Phone", "Area", "Food Type", "Meal Category",
-    "Quantity", "Ready Time", "Recurring?", "Pickup Available?", "Status"
+    "Quantity", "Ready Time", "Recurring?", "Pickup Available?", "Status",
+    "Matched Center"
 ]
 
 CENTERS_HEADER = [
     "Timestamp", "Center Name", "Center Type", "Area", "Contact Name",
-    "Contact Phone", "Ritual Schedule", "Capacity", "Status"
+    "Contact Phone", "Ritual Schedule", "Has Capacity Limit", "Capacity Per Slot",
+    "Photo URL", "Status", "Last Matched", "Visits"
 ]
+
+
+def ensure_columns(ws, required_header):
+    """
+    Makes sure every column in required_header exists in row 1 of the sheet,
+    appending any that are missing (for sheets created before a column was
+    added to the schema). Returns the current header row after any additions.
+    """
+    header = ws.row_values(1)
+    changed = False
+    for col_name in required_header:
+        if col_name not in header:
+            header.append(col_name)
+            ws.update_cell(1, len(header), col_name)
+            changed = True
+    return header
+
+
+def col_index(header, col_name):
+    """1-based column index for a header name, or None if not present."""
+    try:
+        return header.index(col_name) + 1
+    except ValueError:
+        return None
+
+
+def find_and_apply_match(area, giver_row_number):
+    """
+    Looks for the best available center in the same area and links it to
+    this giver's row. Preference order:
+      1. Verified centers over unverified ("Applied") ones
+      2. Among equally-verified centers, the one matched least recently
+         (fair rotation, so the same center isn't always picked)
+    Unverified centers are still eligible so the very first match to a new
+    center can act as its first real-world "visit" (crowd-sourced trust,
+    rather than requiring admin verification up front).
+    Updates both the center's "Last Matched" timestamp and the giver's
+    "Status"/"Matched Center" columns. Returns the matched center name,
+    or None if no center exists yet in that area.
+    """
+    centers_ws = get_worksheet(CENTERS_TAB, CENTERS_HEADER)
+    centers_header = ensure_columns(centers_ws, CENTERS_HEADER)
+    all_values = centers_ws.get_all_values()
+    if len(all_values) <= 1:
+        return None  # no centers registered yet
+
+    area_i = col_index(centers_header, "Area")
+    status_i = col_index(centers_header, "Status")
+    name_i = col_index(centers_header, "Center Name")
+    last_matched_i = col_index(centers_header, "Last Matched")
+
+    target_area = area.strip().lower()
+    candidates = []  # (sheet_row_number, is_verified, last_matched_str, center_name)
+    for row_num, row in enumerate(all_values[1:], start=2):
+        row_area = row[area_i - 1].strip().lower() if len(row) >= area_i else ""
+        if row_area != target_area:
+            continue
+        status = row[status_i - 1] if len(row) >= status_i else ""
+        if status == "Rejected":
+            continue
+        center_name = row[name_i - 1] if len(row) >= name_i else ""
+        last_matched = row[last_matched_i - 1] if len(row) >= last_matched_i else ""
+        candidates.append((row_num, status == "Verified", last_matched, center_name))
+
+    if not candidates:
+        return None
+
+    # Prefer Verified centers; within each group, prefer least-recently-matched
+    # (empty "Last Matched" sorts first, i.e. never-matched centers go first)
+    candidates.sort(key=lambda c: (not c[1], c[2]))
+    chosen_row, _, _, chosen_name = candidates[0]
+
+    now_str = datetime.now().isoformat(timespec="seconds")
+    centers_ws.update_cell(chosen_row, last_matched_i, now_str)
+
+    visits_i = col_index(centers_header, "Visits")
+    if visits_i:
+        current_visits = all_values[chosen_row - 1][visits_i - 1] if len(all_values[chosen_row - 1]) >= visits_i else ""
+        try:
+            new_visits = int(current_visits) + 1
+        except ValueError:
+            new_visits = 1
+        centers_ws.update_cell(chosen_row, visits_i, new_visits)
+
+        # First-ever match auto-verifies the center (crowd-sourced trust,
+        # no admin gate) instead of requiring manual review.
+        if new_visits == 1:
+            centers_ws.update_cell(chosen_row, status_i, "Verified")
+
+    givers_ws = get_worksheet(GIVERS_TAB, GIVERS_HEADER)
+    givers_header = ensure_columns(givers_ws, GIVERS_HEADER)
+    givers_status_i = col_index(givers_header, "Status")
+    givers_matched_i = col_index(givers_header, "Matched Center")
+    givers_ws.update_cell(giver_row_number, givers_status_i, "Matched")
+    givers_ws.update_cell(giver_row_number, givers_matched_i, chosen_name)
+
+    return chosen_name
 
 
 @app.route("/")
@@ -122,12 +221,15 @@ def give_food():
             datetime.now().isoformat(timespec="seconds"),
             name, phone, area, food_type, meal_category,
             quantity, ready_time.isoformat(timespec="minutes"),
-            recurring, pickup, "Pending",
+            recurring, pickup, "Pending", "",
         ])
+        giver_row_number = len(ws.get_all_values())
+
+        matched_center = find_and_apply_match(area, giver_row_number)
 
         return render_template("give_confirmation.html", area=area, quantity=quantity,
                                 food_type=food_type, meal_category=meal_category,
-                                ready_time=ready_time)
+                                ready_time=ready_time, matched_center=matched_center)
 
     return render_template("give.html", form={})
 
@@ -141,11 +243,15 @@ def register_center():
         contact_name = request.form.get("contact_name", "").strip()
         contact_phone = request.form.get("contact_phone", "").strip()
         ritual_schedule = request.form.get("ritual_schedule", "").strip()
-        capacity = request.form.get("capacity", "").strip()
+        has_capacity_limit = request.form.get("has_capacity_limit", "No")
+        capacity_per_slot = request.form.get("capacity_per_slot", "").strip()
+        photo_url = request.form.get("photo_url", "").strip()
 
         errors = []
         if not center_name or not area or not contact_name or not contact_phone:
             errors.append("Please fill in all required fields.")
+        if has_capacity_limit == "Yes" and not capacity_per_slot:
+            errors.append("Please enter a capacity per slot, or select 'No' if you don't have a fixed limit.")
 
         if errors:
             for e in errors:
@@ -156,7 +262,8 @@ def register_center():
         ws.append_row([
             datetime.now().isoformat(timespec="seconds"),
             center_name, center_type, area, contact_name, contact_phone,
-            ritual_schedule, capacity, "Applied",
+            ritual_schedule, has_capacity_limit, capacity_per_slot,
+            photo_url, "Unverified", "", 0,
         ])
 
         return render_template("center_confirmation.html", center_name=center_name)
