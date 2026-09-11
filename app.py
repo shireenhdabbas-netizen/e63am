@@ -70,10 +70,10 @@ GIVERS_HEADER = [
 CENTERS_HEADER = [
     "Timestamp", "Center Name", "Center Type", "Governorate", "Ownership Type",
     "Area", "Address", "Maps Link", "Social Link",
-    "Target Group", "Beneficiaries", "Staff Members", "Preferred Meal Type",
+    "Target Group", "Beneficiaries", "Staff Members", "Total To Feed", "Preferred Meal Type",
     "Submitter Role", "Submitter Name", "Submitter Phone",
     "Contact Name", "Contact Phone", "Ritual Schedule",
-    "Receives Meals", "Meals Per Day", "Meal Slots", "Days Open",
+    "Receives Meals", "Meal Slots", "Days Open",
     "Receives Groceries", "Grocery Hours",
     "Has Capacity Limit", "Capacity Per Slot",
     "Photo URL", "Status", "Last Matched", "Visits"
@@ -268,6 +268,7 @@ def register_center():
         target_group = ", ".join(target_groups)
         beneficiaries = request.form.get("beneficiaries", "").strip()
         staff_members = request.form.get("staff_members", "").strip()
+        total_to_feed = request.form.get("total_to_feed", "").strip()
         preferred_meal_type = request.form.get("preferred_meal_type", "").strip()
 
         submitter_role = request.form.get("submitter_role", "")
@@ -280,7 +281,6 @@ def register_center():
         receives = request.form.getlist("receives")
         receives_meals = "Yes" if "Meals" in receives else "No"
         receives_groceries = "Yes" if "Groceries" in receives else "No"
-        meals_per_day = request.form.get("meals_per_day", "").strip()
         meal_slots = ", ".join(request.form.getlist("meal_slots"))
         days_open = ", ".join(request.form.getlist("days_open"))
         grocery_hours = request.form.get("grocery_hours", "").strip()
@@ -311,10 +311,10 @@ def register_center():
             datetime.now().isoformat(timespec="seconds"),
             center_name, center_type, governorate, ownership_type,
             area, address, maps_link, social_link,
-            target_group, beneficiaries, staff_members, preferred_meal_type,
+            target_group, beneficiaries, staff_members, total_to_feed, preferred_meal_type,
             submitter_role, submitter_name, submitter_phone,
             contact_name, contact_phone, ritual_schedule,
-            receives_meals, meals_per_day, meal_slots, days_open,
+            receives_meals, meal_slots, days_open,
             receives_groceries, grocery_hours,
             has_capacity_limit, capacity_per_slot,
             photo_url, "Unverified", "", 0,
