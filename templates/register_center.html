@@ -47,6 +47,7 @@
   <select name="area" id="area" required>
     <option value="">Select governorate first...</option>
   </select>
+  <input type="text" name="area_other" placeholder="If your area isn't listed, specify it here" value="{{ form.get('area_other', '') }}">
 
   <label>Physical address *</label>
   <input type="text" name="address" placeholder="Street, building, landmark" value="{{ form.get('address', '') }}" required>
@@ -54,6 +55,10 @@
   <label>Google Maps link (optional)</label>
   <input type="url" name="maps_link" placeholder="Paste a Google Maps link" value="{{ form.get('maps_link', '') }}">
   <p class="hint">Open the location in Google Maps, tap Share, copy the link, paste it here.</p>
+
+  <label>Social media page (optional)</label>
+  <input type="url" name="social_link" placeholder="Facebook, Instagram, or other page link" value="{{ form.get('social_link', '') }}">
+  <p class="hint">Helps givers see the center is real and active.</p>
 
   <label>Who do you serve? (optional, select any that apply)</label>
   <div class="checkbox-row">
@@ -167,11 +172,30 @@
 </style>
 <script>
   var AREAS_BY_GOVERNORATE = {
-    "Cairo": ["Maadi", "Zamalek", "Downtown", "Garden City", "Nasr City", "Heliopolis",
-      "New Cairo", "Katameya", "Mokattam", "Shubra", "Ain Shams", "Zeitoun",
-      "Abbassia", "Helwan", "Manial", "Sayeda Zeinab", "Old Cairo", "15th of May City", "Other"],
-    "Giza": ["Dokki", "Mohandessin", "Agouza", "6th of October", "Sheikh Zayed",
-      "Haram", "Faisal", "Imbaba", "Giza Square", "Bulaq Dakrour", "Other"]
+    "Cairo": [
+      // North Area
+      "Shubra", "El-Zawia El-Hamra", "Hadayek El-Kobba", "Rod El-Farg", "El-Sharabia", "El-Sahel", "El-Zaiton", "Al-Ameria",
+      // South Area
+      "Masr El-Qadima", "El-Khalifa", "El-Moqattam", "El-Basatin", "Dar El-Salam", "El-Sayeda Zeinab", "El-Tebin", "Helwan", "El-Maasara", "El-Maadi", "Tora", "15 May",
+      // West Area
+      "Manshaet Naser", "El-Waily", "Wast El-Qahira (Downtown)", "Boulak", "Gharb El-Qahira", "Abdeen", "Azbakia", "Moski", "Bab El-Shaaria",
+      // East Area
+      "Misr El-Gadidah (Heliopolis)", "El-Nozha", "Sharq Madinet Nasr", "Gharb Madinet Nasr", "El-Salam Awal", "El-Salam Thani", "El-Mataria", "Ain Shams", "El-Marg",
+      // Commonly used newer/informal names not in the official 38
+      "Zamalek", "Garden City", "New Cairo", "Katameya",
+      "Other"
+    ],
+    "Giza": [
+      // Giza City's official districts
+      "Dokki", "Agouza / Mohandessin", "Omraniya", "Haram", "Boulak El Dakrour", "El Warraq", "North Giza", "South Giza",
+      // Major new cities within Giza governorate
+      "6th of October", "Sheikh Zayed",
+      // Other well-known areas
+      "Imbaba", "Faisal", "Giza Square",
+      // Regional centers (markaz) covering semi-rural/outer Giza
+      "Al-Ayyat", "Atfih", "Awsim", "Al-Badrashin", "Al-Hawamdiya", "Al-Saff", "Kerdasa", "Manshaat El Qanater",
+      "Other"
+    ]
   };
 
   function updateAreaOptions() {
