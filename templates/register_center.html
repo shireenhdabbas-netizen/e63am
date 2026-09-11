@@ -230,10 +230,13 @@
 
   function updateInstitutionSection() {
     var type = document.getElementById('center_type').value;
-    var show = (type === 'Orphanage' || type === 'Elderly home');
-    document.getElementById('institution-section').classList.toggle('visible', show);
+    var typeMatch = (type === 'Orphanage' || type === 'Elderly home');
+    var targetChecked = Array.from(document.querySelectorAll('input[name="target_group"]:checked')).map(el => el.value);
+    var groupMatch = targetChecked.some(v => v !== 'Homeless'); // any specific population served, not just general
+    document.getElementById('institution-section').classList.toggle('visible', typeMatch || groupMatch);
   }
   document.getElementById('center_type').addEventListener('change', updateInstitutionSection);
+  document.querySelectorAll('input[name="target_group"]').forEach(el => el.addEventListener('change', updateInstitutionSection));
   updateInstitutionSection();
 </script>
 {% endblock %}
