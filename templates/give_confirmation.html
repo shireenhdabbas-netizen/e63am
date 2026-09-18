@@ -3,34 +3,25 @@
 {% block content %}
 <div class="confirm-icon">✅</div>
 <h1>Submitted</h1>
-<p class="subtitle">We'll match this with a nearby trusted center</p>
-
+{% if matched_center %}
+<p class="subtitle">Matched with a nearby center</p>
 <div class="info-box">
-  <strong>{{ quantity }}</strong> · {{ food_type }}{% if meal_category and meal_category != 'N/A' %} · {{ meal_category }}{% endif %}<br>
+  <strong>{{ quantity_number }} {{ quantity_unit }}</strong> · {{ food_type }}{% if meal_slot %} · {{ meal_slot }}{% endif %}<br>
   {{ area }} · {{ ready_time.strftime('%b %d, %Y %I:%M %p') }}
 </div>
-
-<div class="timeline-item next">
-  <div class="dot"></div>
-  <div>
-    <p class="timeline-title">Now</p>
-    <p class="timeline-sub">Added to the matching pool for your area</p>
-  </div>
+<div class="info-box">
+  🕌 <strong>{{ matched_center }}</strong> — we'll reach out on your phone number to confirm the details and arrange delivery.
 </div>
-<div class="timeline-item">
-  <div class="dot"></div>
-  <div>
-    <p class="timeline-title">4h before ready time</p>
-    <p class="timeline-sub">If not yet matched, flagged for manual review</p>
-  </div>
+{% else %}
+<p class="subtitle">Thank you — we've received this</p>
+<div class="info-box">
+  <strong>{{ quantity_number }} {{ quantity_unit }}</strong> · {{ food_type }}{% if meal_slot %} · {{ meal_slot }}{% endif %}<br>
+  {{ area }} · {{ ready_time.strftime('%b %d, %Y %I:%M %p') }}
 </div>
-<div class="timeline-item">
-  <div class="dot"></div>
-  <div>
-    <p class="timeline-title">1h before</p>
-    <p class="timeline-sub">You and the center both get a reminder</p>
-  </div>
+<div class="info-box">
+  There's no registered center in your area yet — our team will follow up with you directly on the phone number you gave us.
 </div>
+{% endif %}
 
 <a class="back-link" href="{{ url_for('home') }}">&larr; Back to home</a>
 {% endblock %}
