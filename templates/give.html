@@ -6,6 +6,10 @@
 <p class="subtitle">Fill this in and we'll match it with a nearby trusted center</p>
 
 <form method="POST">
+  {% if user %}
+  <div class="info-box" style="margin-bottom:16px;">Signed in as {{ user.get('Nickname') or user.get('Real Name') }} — <a href="{{ url_for('logout') }}">not you?</a></div>
+  {% endif %}
+
   <label>Are you an individual or a restaurant/business? *</label>
   <select name="giver_type" required>
     <option value="Individual">Individual</option>
@@ -13,10 +17,13 @@
   </select>
 
   <label>Your name *</label>
-  <input type="text" name="name" value="{{ form.get('name', '') }}" required>
+  <input type="text" name="name" value="{{ form.get('name') or (user.get('Real Name') if user else '') }}" required>
 
   <label>Phone number *</label>
-  <input type="tel" name="phone" value="{{ form.get('phone', '') }}" required>
+  <input type="tel" name="phone" value="{{ form.get('phone') or (user.get('Phone') if user else '') }}" required>
+
+  <label>Email (optional)</label>
+  <input type="email" name="email" placeholder="So we can notify you if no center matches yet" value="{{ form.get('email') or (user.get('Email') if user else '') }}">
 
   <label>Governorate *</label>
   <select name="governorate" id="governorate" required>
