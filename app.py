@@ -1,3 +1,4 @@
+
 import os
 import json
 from datetime import datetime, timedelta
@@ -202,7 +203,7 @@ def give_food():
         ready_time_raw = request.form.get("ready_time", "")
         recurring = request.form.get("recurring", "No")
         recurring_days = ", ".join(request.form.getlist("recurring_days"))
-        pickup = request.form.get("pickup", "No")
+        pickup = "No"  # Phase 1: self-delivery only, no pickup/volunteer option yet
         delivery_contact_name = request.form.get("delivery_contact_name", "").strip()
         delivery_contact_phone = request.form.get("delivery_contact_phone", "").strip()
 
