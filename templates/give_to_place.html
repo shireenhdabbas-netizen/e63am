@@ -1,9 +1,26 @@
 {% extends "base.html" %}
-{% block title %}هتدّي لـ {{ center.get('Center Name') }}{% endblock %}
+{% block title %}أمّن وجبة لـ {{ center.get('Center Name') }}{% endblock %}
 {% block content %}
-<a class="back-link" href="{{ url_for('browse_maedet_rahman') }}">&rarr; رجوع للبحث</a>
-<h1>هتدّي لـ {{ center.get('Center Name') }}</h1>
+<a class="back-link" href="{{ url_for('browse_maedet_rahman') if is_maedet_rahman else url_for('browse_places') }}">&rarr; رجوع للبحث</a>
+<h1>أمّن وجبة لـ {{ center.get('Center Name') }}</h1>
 <p class="subtitle">{{ center.get('Area')|ar }}{% if center.get('Bio') %} · {{ center.get('Bio') }}{% endif %}</p>
+
+{% if center.get('Total To Feed') %}
+<div class="info-box">محتاجين يغطوا <strong>{{ center.get('Total To Feed') }}</strong> شخص.</div>
+{% elif center.get('Capacity Per Slot') %}
+<div class="info-box">محتاجين لحد <strong>{{ center.get('Capacity Per Slot') }}</strong> في الفترة.</div>
+{% endif %}
+{% if center.get('Meal Slots') %}
+<div class="info-box">فترات الاستقبال: {{ center.get('Meal Slots')|ar }}</div>
+{% endif %}
+{% if center.get('Preferred Meal Type') %}
+<div class="info-box">تفضيلهم، لو عندك اختيار: {{ center.get('Preferred Meal Type') }}</div>
+{% endif %}
+{% if is_maedet_rahman %}
+<div class="info-box" style="background:#fdf6ec;border-color:#f0dfc0;">
+  <strong>عشان الوجبة تبقى متكاملة:</strong> ربع فرخة أو حاجة بروتين، رز أو نشويات، طبخة خضار، عصير أو مشروب، وحلو بسيط زي بسكويت أو كيك أو فاكهة. (اقتراح عام، مش شرط)
+</div>
+{% endif %}
 
 <form method="POST">
   <label>انت فرد ولا مطعم/منشأة؟ *</label>
@@ -54,9 +71,6 @@
     <option value="boxes">كرتونة</option>
     <option value="items">قطعة</option>
   </select>
-  {% if center.get('Capacity Per Slot') %}
-  <p class="hint">المكان ده محتاج لحد {{ center.get('Capacity Per Slot') }} في الفترة.</p>
-  {% endif %}
 
   <label>هيكون جاهز إمتى؟ *</label>
   <input type="date" name="ready_date" value="{{ form.get('ready_date', '') }}" required>
@@ -97,7 +111,7 @@
   <label>رقم احتياطي (اختياري)</label>
   <input type="tel" name="backup_phone" value="{{ form.get('backup_phone', '') }}">
 
-  <button type="submit">إرسال</button>
+  <button type="submit">أمّن الوجبة</button>
 </form>
 
 <style>

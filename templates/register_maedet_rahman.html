@@ -1,17 +1,17 @@
 {% extends "base.html" %}
-{% block title %}سجّل مكان استقبال{% endblock %}
+{% block title %}سجّل مائدة رحمن{% endblock %}
 {% block content %}
 <a class="back-link" href="{{ url_for('home') }}">&rarr; رجوع</a>
-<h1>سجّل مكان استقبال</h1>
-<p class="subtitle">دار أيتام، دار مسنين، مركز خدمة مجتمعي، أو أي جهة بتخدم عدد محدد ومعروف من المستفيدين</p>
+<h1>سجّل مائدة رحمن</h1>
+<p class="subtitle">مسجد، كنيسة، أو أي مكان بيقدّم أكل مفتوح لأي حد بييجي — من غير قايمة مستفيدين محددة</p>
 
 <form method="POST" enctype="multipart/form-data">
   <label>اسم المكان *</label>
   <input type="text" name="center_name" value="{{ form.get('center_name', '') }}" required>
 
   <label>احكي للناس اللي هتدّي عن المكان ده (اختياري)</label>
-  <textarea name="bio" rows="4" placeholder="المكان ده بيعمل إيه؟ رسالته، من إمتى وهو بيخدم المنطقة، وليه يستاهل التبرّع...">{{ form.get('bio', '') }}</textarea>
-  <p class="hint">ده بيظهر للناس اللي بتتصفح الأماكن عشان تختار — بيساعدهم يفهموا هيدعموا مين.</p>
+  <textarea name="bio" rows="4" placeholder="المائدة دي بتقدّم إمتى وفين، من إمتى وهي شغالة، وأي تفاصيل تساعد الناس تثق فيها...">{{ form.get('bio', '') }}</textarea>
+  <p class="hint">ده بيظهر للناس اللي بتتصفح الأماكن عشان تختار.</p>
 
   <label>المكان حكومي، خاص، ولا منظمة أهلية؟ *</label>
   <select name="ownership_type" required>
@@ -23,20 +23,7 @@
     <option value="Other">تاني</option>
   </select>
   <input type="text" name="ownership_type_other" placeholder="لو اخترت تاني، حدد" value="{{ form.get('ownership_type_other', '') }}">
-  <p class="hint">بيساعد في التوثيق وبيوضّح للناس هيختاروا إيه.</p>
 
-  <label>نوع المكان</label>
-  <select name="center_type" id="center_type">
-    <option value="Community center">مركز خدمة مجتمعي</option>
-    <option value="Orphanage">دار أيتام</option>
-    <option value="Elderly home">دار مسنين</option>
-    <option value="Shop">محل</option>
-    <option value="Local NGO / Community organization">منظمة أهلية محلية</option>
-    <option value="Homeless outreach point">نقطة دعم للمشردين</option>
-    <option value="Other">تاني</option>
-  </select>
-  <input type="text" name="center_type_other" placeholder="لو اخترت تاني، حدد" value="{{ form.get('center_type_other', '') }}">
-  <p class="hint">مسجد أو كنيسة بييجي بمائدة رحمن مفتوحة؟ استخدم "سجّل مائدة رحمن" من الصفحة الرئيسية بدل الفورم ده.</p>
   <label>المحافظة *</label>
   <select name="governorate" id="governorate" required>
     <option value="">اختار...</option>
@@ -59,36 +46,6 @@
 
   <label>صفحة السوشيال ميديا (اختياري)</label>
   <input type="text" name="social_link" placeholder="فيسبوك، إنستجرام، أو أي صفحة تانية" value="{{ form.get('social_link', '') }}">
-  <p class="hint">بيساعد الناس تتأكد إن المكان حقيقي وفعّال.</p>
-
-  <label>مين بتخدموا؟ (اختياري، اختار أي حاجة تنطبق)</label>
-  <div class="checkbox-row">
-    <label class="checkbox-label"><input type="checkbox" name="target_group" value="Elderly"> مسنين</label>
-    <label class="checkbox-label"><input type="checkbox" name="target_group" value="Elderly with chronic illness"> مسنين بأمراض مزمنة</label>
-    <label class="checkbox-label"><input type="checkbox" name="target_group" value="Children"> أطفال</label>
-    <label class="checkbox-label"><input type="checkbox" name="target_group" value="Children with disabilities"> أطفال ذوي إعاقة</label>
-    <label class="checkbox-label"><input type="checkbox" name="target_group" value="People with disabilities"> ذوي إعاقة</label>
-    <label class="checkbox-label"><input type="checkbox" name="target_group" value="Widows"> أرامل</label>
-    <label class="checkbox-label"><input type="checkbox" name="target_group" value="Families in need"> أسر محتاجة</label>
-    <label class="checkbox-label"><input type="checkbox" name="target_group" value="Orphans"> أيتام</label>
-    <label class="checkbox-label"><input type="checkbox" name="target_group" value="Homeless"> مشردين</label>
-  </div>
-  <input type="text" name="target_group_other" placeholder="تاني (حدد)" value="{{ form.get('target_group_other', '') }}">
-
-  <div id="institution-section" class="conditional-section">
-    <label>عدد المستفيدين (المقيمين / اللي بترعاهم)</label>
-    <input type="number" min="1" name="beneficiaries" id="beneficiaries" placeholder="مثلاً 30" value="{{ form.get('beneficiaries', '') }}">
-
-    <label>عدد فريق العمل (مشرفين، مدرّسين، مقدّمين رعاية، إلخ)</label>
-    <input type="number" min="1" name="staff_members" id="staff_members" placeholder="مثلاً 8" value="{{ form.get('staff_members', '') }}">
-
-    <label>إجمالي عدد الناس عايزين الوجبات تغطيهم</label>
-    <input type="number" min="1" name="total_to_feed" id="total_to_feed" placeholder="مثلاً 35" value="{{ form.get('total_to_feed', '') }}">
-    <p class="hint">بيتحسب أوتوماتيك من الرقمين فوق — عدّله لو الرقم الحقيقي مختلف (مثلاً مش كل الناس المذكورين محتاجين وجبة تبرّع).</p>
-  </div>
-
-  <label>احنا مش بنحدد نوع الأكل اللي المتبرعين بيجيبوه — بس لو كان عندك اختيار، إيه الأنسب لمجموعتك؟ (اختياري)</label>
-  <input type="text" name="preferred_meal_type" placeholder="مثلاً أكل طري للمسنين اللي بيصعب عليهم المضغ، من غير مكسرات" value="{{ form.get('preferred_meal_type', '') }}">
 
   <label>بتستقبلوا إيه؟ *</label>
   <div class="checkbox-row">
@@ -97,7 +54,7 @@
   </div>
 
   <div id="meals-section" class="conditional-section">
-    <label>في أنهي فترات بتستقبلوا وجبات؟</label>
+    <label>في أنهي فترات المائدة شغالة؟</label>
     <div class="checkbox-row">
       <label class="checkbox-label"><input type="checkbox" name="meal_slots" value="Breakfast (9-11)"> فطار (9-11)</label>
       <label class="checkbox-label"><input type="checkbox" name="meal_slots" value="Late breakfast (12-2)"> فطار متأخر (12-2)</label>
@@ -125,22 +82,18 @@
   <label>ملاحظات إضافية عن المواعيد (اختياري)</label>
   <input type="text" name="ritual_schedule" placeholder="مثلاً إفطار جماعي يومي في رمضان" value="{{ form.get('ritual_schedule', '') }}">
 
-  <div id="capacity-section" class="conditional-section visible">
-    <label>عندكم سقف ثابت لكل فترة؟</label>
-    <select name="has_capacity_limit">
-      <option value="No">لأ — مفتوح، نقدر نستقبل أي كمية</option>
-      <option value="Yes">أيوه — رقم ثابت لكل فترة</option>
-    </select>
+  <label>في سقف تقريبي لعدد الأطباق اللي بتقدموها؟ (اختياري)</label>
+  <select name="has_capacity_limit">
+    <option value="No">لأ — مفتوحة لأي عدد بييجي</option>
+    <option value="Yes">أيوه — رقم تقريبي بنستقبله</option>
+  </select>
+  <input type="number" min="1" name="capacity_per_slot" placeholder="مثلاً 100 طبق" value="{{ form.get('capacity_per_slot', '') }}">
+  <p class="hint">سيبها فاضية لو المائدة مفتوحة من غير سقف محدد.</p>
 
-    <label>لو أيوه، كام وجبة في الفترة؟</label>
-    <input type="number" min="1" name="capacity_per_slot" placeholder="مثلاً 30" value="{{ form.get('capacity_per_slot', '') }}">
-    <p class="hint">سيبها فاضية لو اخترت "لأ" فوق — مثلاً مائدة مفتوحة لأي حد بييجي.</p>
-  </div>
-
-  <label>صور المكان (اختياري، لحد 10 صور)</label>
+  <label>صور المائدة (اختياري، لحد 10 صور)</label>
   <input type="file" name="photos" accept="image/*" multiple id="photos-input">
   <p class="hint" id="photos-count-hint"></p>
-  <p class="hint">اختياري، بس الأماكن اللي عندها صور بتظهر الأول للناس. اعرض المكان، الأكل، أو النشاط — من غير أشخاص ظاهرين. الأماكن اللي بتنشر صور أشخاص (خصوصًا أطفال) هتتشال.</p>
+  <p class="hint">اختياري، بس الأماكن اللي عندها صور بتظهر الأول للناس. اعرض المكان أو المائدة نفسها — من غير أشخاص ظاهرين. الأماكن اللي بتنشر صور أشخاص (خصوصًا أطفال) هتتشال.</p>
 
   <hr style="margin:20px 0;border:none;border-top:1px solid #eee;">
 
@@ -168,7 +121,7 @@
   <p class="hint">من غير إيميل، مش هينفعنا نبلغكم أوتوماتيك إن في أكل جاي — لازم تتابعوا بنفسكم.</p>
 
   <button type="submit">إرسال</button>
-  <p class="hint" style="text-align:center;margin-top:10px;">المكان بيظهر للناس فورًا — وهياخد شارة "موثّق" أوتوماتيك أول ما وجبة تتأمّن ليه.</p>
+  <p class="hint" style="text-align:center;margin-top:10px;">المائدة بتظهر للناس فورًا — وهتاخد شارة "موثّق" أوتوماتيك أول ما وجبة تتأمّن ليها.</p>
 </form>
 
 <style>
@@ -250,34 +203,6 @@
   }
   document.querySelectorAll('input[name="receives"]').forEach(el => el.addEventListener('change', updateReceivesSections));
   updateReceivesSections();
-
-  function updateInstitutionSection() {
-    var type = document.getElementById('center_type').value;
-    var typeMatch = (type === 'Orphanage' || type === 'Elderly home');
-    var targetChecked = Array.from(document.querySelectorAll('input[name="target_group"]:checked')).map(el => el.value);
-    var groupMatch = targetChecked.some(v => v !== 'Homeless'); // any specific population served, not just general
-    var showInstitution = typeMatch || groupMatch;
-    document.getElementById('institution-section').classList.toggle('visible', showInstitution);
-    // Capacity-per-slot asks the same thing as the institution total, so hide it there
-    document.getElementById('capacity-section').classList.toggle('visible', !showInstitution);
-  }
-  document.getElementById('center_type').addEventListener('change', updateInstitutionSection);
-  document.querySelectorAll('input[name="target_group"]').forEach(el => el.addEventListener('change', updateInstitutionSection));
-  updateInstitutionSection();
-
-  // Auto-calculate the suggested total whenever beneficiaries or staff change.
-  // The total field stays a normal editable input, so the person can still
-  // adjust it by hand afterward if the real number differs.
-  function updateTotalSuggestion() {
-    var beneficiaries = parseInt(document.getElementById('beneficiaries').value, 10) || 0;
-    var staff = parseInt(document.getElementById('staff_members').value, 10) || 0;
-    var sum = beneficiaries + staff;
-    if (sum > 0) {
-      document.getElementById('total_to_feed').value = sum;
-    }
-  }
-  document.getElementById('beneficiaries').addEventListener('input', updateTotalSuggestion);
-  document.getElementById('staff_members').addEventListener('input', updateTotalSuggestion);
 
   document.getElementById('photos-input').addEventListener('change', function() {
     var count = this.files.length;

@@ -1,9 +1,9 @@
 {% extends "base.html" %}
-{% block title %}دوّر على مائدة رحمن{% endblock %}
+{% block title %}دوّر على جهة استقبال{% endblock %}
 {% block content %}
 <a class="back-link" href="{{ url_for('home') }}">&rarr; رجوع</a>
-<h1>دوّر على مائدة رحمن</h1>
-<p class="subtitle">اختار منطقتك عشان تشوف الموايد القريبة منك</p>
+<h1>دوّر على جهة استقبال</h1>
+<p class="subtitle">اختار منطقتك عشان تشوف الجهات القريبة منك</p>
 
 <form method="GET">
   <label>المحافظة</label>
@@ -24,10 +24,7 @@
 {% if results is not none %}
 <div style="margin-top:24px;">
 {% if results %}
-<div class="info-box" style="margin-bottom:16px;background:#fdf6ec;border-color:#f0dfc0;">
-  <p style="margin:0;font-size:13px;"><strong>عشان الوجبة تبقى متكاملة:</strong> ربع فرخة أو حاجة بروتين، رز أو نشويات، طبخة خضار، عصير أو مشروب، وحلو بسيط زي بسكويت أو كيك أو فاكهة. (اقتراح عام، مش شرط)</p>
-</div>
-<p class="subtitle">{{ results|length }} مائدة لقيناها</p>
+<p class="subtitle">{{ results|length }} جهة لقيناها</p>
 {% for center in results %}
 <div class="center-card">
   {% set photos = (center.get('Photo URLs') or '').split(',') | map('trim') | select | list %}
@@ -47,25 +44,28 @@
       <span class="badge badge-unverified">لسه مش موثّق</span>
       {% endif %}
     </div>
-    <p class="card-sub" style="margin:2px 0 8px;">{{ center.get('Area')|ar }}</p>
+    <p class="card-sub" style="margin:2px 0 8px;">{{ center.get('Center Type')|ar }} · {{ center.get('Area')|ar }}</p>
     {% if center.get('Bio') %}
     <p style="font-size:13px;color:#444;margin:0 0 8px;">{{ center.get('Bio') }}</p>
     {% endif %}
-    {% if center.get('Meal Slots') %}
-    <p style="font-size:12px;color:#888;margin:0 0 8px;">فترات: {{ center.get('Meal Slots')|ar }}</p>
-    {% endif %}
+    <div class="center-meta">
+      {% if center.get('Total To Feed') %}<span>محتاجين يغطوا {{ center.get('Total To Feed') }} شخص</span>
+      {% elif center.get('Capacity Per Slot') %}<span>لحد {{ center.get('Capacity Per Slot') }} في الفترة</span>
+      {% endif %}
+      {% if center.get('Meal Slots') %}<span> · {{ center.get('Meal Slots')|ar }}</span>{% endif %}
+    </div>
     <a class="choose-btn" href="{{ url_for('give_to_place', center_row=center._row) }}">أمّن وجبة هنا</a>
   </div>
 </div>
 {% endfor %}
 {% else %}
 <div class="info-box">
-  <p style="margin:0 0 10px;">لسه مفيش موايد رحمن مسجّلة في المنطقة دي — <a href="{{ url_for('register_maedet_rahman') }}">كن أول واحد يسجّل واحدة</a>.</p>
+  <p style="margin:0 0 10px;">لسه مفيش جهات مسجّلة في المنطقة دي.</p>
   <form method="POST" action="{{ url_for('notify_me') }}">
     <input type="hidden" name="governorate" value="{{ governorate }}">
     <input type="hidden" name="area" value="{{ area }}">
-    <input type="hidden" name="place_type" value="Ma'edet Rahman">
-    <label>أو عايز نبلغك أول ما مائدة تتسجّل؟</label>
+    <input type="hidden" name="place_type" value="Center">
+    <label>عايز نبلغك أول ما جهة تتسجّل؟</label>
     <input type="email" name="email" placeholder="إيميلك" required>
     <button type="submit">بلّغني</button>
   </form>
@@ -83,6 +83,7 @@
   .badge { font-size: 11px; padding: 2px 8px; border-radius: 20px; white-space: nowrap; }
   .badge-verified { background: #e3f3ec; color: #2f7d5c; }
   .badge-unverified { background: #f2f2f2; color: #888; }
+  .center-meta { font-size: 12px; color: #888; margin-bottom: 10px; }
   .choose-btn { display: block; text-align: center; background: #2f7d5c; color: #fff; text-decoration: none; padding: 10px; border-radius: 8px; font-size: 14px; font-weight: 600; }
 </style>
 <script>
