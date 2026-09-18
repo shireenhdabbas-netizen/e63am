@@ -81,11 +81,7 @@
     </div>
   </div>
 
-  <label>Can you deliver it yourself, or does it need pickup?</label>
-  <select name="pickup">
-    <option value="No">I'll deliver it</option>
-    <option value="Yes">Needs pickup</option>
-  </select>
+  <p class="hint">By submitting, you're committing to deliver this yourself to the matched center — pickup/volunteer delivery isn't available yet in this early phase.</p>
 
   <label>Who should the center contact about this delivery? *</label>
   <input type="text" name="delivery_contact_name" placeholder="Name" value="{{ form.get('delivery_contact_name', '') }}" required>
