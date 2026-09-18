@@ -5,7 +5,7 @@
 <h1>Register a center</h1>
 <p class="subtitle">Mosque, church, or community center that can receive and distribute food</p>
 
-<form method="POST">
+<form method="POST" enctype="multipart/form-data">
   <label>Center name *</label>
   <input type="text" name="center_name" value="{{ form.get('center_name', '') }}" required>
 
@@ -140,8 +140,9 @@
     <p class="hint">Leave blank if you selected "No" above — e.g. an open table serving anyone who comes.</p>
   </div>
 
-  <label>Photo of the center (optional)</label>
-  <input type="text" name="photo_url" placeholder="Paste an image link" value="{{ form.get('photo_url', '') }}">
+  <label>Photos of the center (optional, up to 10)</label>
+  <input type="file" name="photos" accept="image/*" multiple id="photos-input">
+  <p class="hint" id="photos-count-hint"></p>
   <p class="hint">Optional, but centers with a photo are shown higher to givers. Show the space, the food, or the activity — not identifiable people. Centers that post photos of individuals (especially children) will be flagged and removed.</p>
 
   <hr style="margin:20px 0;border:none;border-top:1px solid #eee;">
@@ -261,5 +262,17 @@
   }
   document.getElementById('beneficiaries').addEventListener('input', updateTotalSuggestion);
   document.getElementById('staff_members').addEventListener('input', updateTotalSuggestion);
+
+  document.getElementById('photos-input').addEventListener('change', function() {
+    var count = this.files.length;
+    var hint = document.getElementById('photos-count-hint');
+    if (count > 10) {
+      hint.textContent = count + ' selected — only the first 10 will be uploaded.';
+    } else if (count > 0) {
+      hint.textContent = count + ' photo' + (count !== 1 ? 's' : '') + ' selected.';
+    } else {
+      hint.textContent = '';
+    }
+  });
 </script>
 {% endblock %}
