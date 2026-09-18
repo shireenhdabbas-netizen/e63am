@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+{% block title %}هتدّي لـ {{ center.get('Center Name') }}{% endblock %}
+{% block content %}
+<a class="back-link" href="{{ url_for('browse_maedet_rahman') }}">&rarr; رجوع للبحث</a>
+<h1>هتدّي لـ {{ center.get('Center Name') }}</h1>
+<p class="subtitle">{{ center.get('Area')|ar }}{% if center.get('Bio') %} · {{ center.get('Bio') }}{% endif %}</p>
+
+<form method="POST">
+  <label>انت فرد ولا مطعم/منشأة؟ *</label>
+  <select name="giver_type" required>
+    <option value="Individual">فرد</option>
+    <option value="Restaurant / Business">مطعم / منشأة</option>
+  </select>
+
+  <label>اسمك *</label>
+  <input type="text" name="name" value="{{ form.get('name', '') }}" required>
+
+  <label>رقم التليفون *</label>
+  <input type="tel" name="phone" value="{{ form.get('phone', '') }}" required>
+
+  <label>الإيميل (اختياري)</label>
+  <input type="email" name="email" value="{{ form.get('email', '') }}">
+
+  <label>نوع الأكل</label>
+  <select name="food_type" id="food_type">
+    <option value="Hot meal">وجبة سخنة</option>
+    <option value="Cold meal">وجبة باردة</option>
+    <option value="Groceries">مواد غذائية</option>
+  </select>
+
+  <div id="time-preference-wrapper" class="conditional-section visible">
+    <label>عندك وقت محدد ولا مرن حسب احتياج المكان؟</label>
+    <select name="time_preference" id="time_preference">
+      <option value="Flexible">مرن — هظبط نفسي على احتياج المكان</option>
+      <option value="Specific">عندي فترة محددة</option>
+    </select>
+    <div id="meal-slot-section" class="conditional-section">
+      <label>الفترة دي إمتى؟</label>
+      <select name="meal_slot">
+        <option value="Breakfast (9-11)">فطار (9-11)</option>
+        <option value="Late breakfast (12-2)">فطار متأخر (12-2)</option>
+        <option value="Lunch (4-6)">غدا (4-6)</option>
+        <option value="Dinner (8-10)">عشا (8-10)</option>
+      </select>
+    </div>
+  </div>
+
+  <label>هتدّي كام؟ *</label>
+  <input type="number" min="1" name="quantity_number" placeholder="مثلاً 20" value="{{ form.get('quantity_number', '') }}" required>
+  <select name="quantity_unit">
+    <option value="meals">وجبة</option>
+    <option value="portions">حصة</option>
+    <option value="kg">كجم</option>
+    <option value="boxes">كرتونة</option>
+    <option value="items">قطعة</option>
+  </select>
+  {% if center.get('Capacity Per Slot') %}
+  <p class="hint">المكان ده محتاج لحد {{ center.get('Capacity Per Slot') }} في الفترة.</p>
+  {% endif %}
+
+  <label>هيكون جاهز إمتى؟ *</label>
+  <input type="date" name="ready_date" value="{{ form.get('ready_date', '') }}" required>
+  <p class="hint">لازم يكون بكرة على الأقل.</p>
+
+  <label>ده عرض متكرر؟</label>
+  <select name="recurring" id="recurring">
+    <option value="No">لأ، مرة واحدة بس</option>
+    <option value="Yes">أيوه، بيتكرر بانتظام</option>
+  </select>
+  <div id="recurring-section" class="conditional-section">
+    <label>بتدّي في أنهي أيام؟</label>
+    <div class="checkbox-row">
+      <label class="checkbox-label"><input type="checkbox" name="recurring_days" value="Saturday"> السبت</label>
+      <label class="checkbox-label"><input type="checkbox" name="recurring_days" value="Sunday"> الأحد</label>
+      <label class="checkbox-label"><input type="checkbox" name="recurring_days" value="Monday"> الإتنين</label>
+      <label class="checkbox-label"><input type="checkbox" name="recurring_days" value="Tuesday"> التلات</label>
+      <label class="checkbox-label"><input type="checkbox" name="recurring_days" value="Wednesday"> الأربع</label>
+      <label class="checkbox-label"><input type="checkbox" name="recurring_days" value="Thursday"> الخميس</label>
+      <label class="checkbox-label"><input type="checkbox" name="recurring_days" value="Friday"> الجمعة</label>
+    </div>
+  </div>
+
+  <p class="hint">بإرسالك الطلب، انت بتلتزم إنك توصّل بنفسك.</p>
+
+  <label>المكان هيتواصل مع مين — انت ولا حد تاني؟ *</label>
+  <select name="delivery_contact_who" id="delivery_contact_who" required>
+    <option value="Me">أنا</option>
+    <option value="Someone else">حد تاني</option>
+  </select>
+  <div id="other-contact-section" class="conditional-section">
+    <label>اسمه *</label>
+    <input type="text" name="delivery_contact_name" id="delivery_contact_name" value="{{ form.get('delivery_contact_name', '') }}">
+    <label>رقم تليفونه *</label>
+    <input type="tel" name="delivery_contact_phone" id="delivery_contact_phone" value="{{ form.get('delivery_contact_phone', '') }}">
+  </div>
+
+  <label>رقم احتياطي (اختياري)</label>
+  <input type="tel" name="backup_phone" value="{{ form.get('backup_phone', '') }}">
+
+  <button type="submit">إرسال</button>
+</form>
+
+<style>
+  .checkbox-row { display: flex; flex-wrap: wrap; gap: 10px 16px; margin: 6px 0 4px; }
+  .checkbox-label { display: flex; align-items: center; gap: 6px; font-size: 13px; color: #333; margin: 0; }
+  .checkbox-label input { width: auto; }
+  .conditional-section { display: none; border-right: 2px solid #2f7d5c; padding-right: 12px; margin: 8px 0 16px; }
+  .conditional-section.visible { display: block; }
+</style>
+<script>
+  function updateTimePreferenceVisibility() {
+    var foodType = document.getElementById('food_type').value;
+    document.getElementById('time-preference-wrapper').classList.toggle('visible', foodType !== 'Groceries');
+  }
+  document.getElementById('food_type').addEventListener('change', updateTimePreferenceVisibility);
+  updateTimePreferenceVisibility();
+
+  function updateMealSlotSection() {
+    var timePref = document.getElementById('time_preference').value;
+    document.getElementById('meal-slot-section').classList.toggle('visible', timePref === 'Specific');
+  }
+  document.getElementById('time_preference').addEventListener('change', updateMealSlotSection);
+  updateMealSlotSection();
+
+  function updateRecurringSection() {
+    document.getElementById('recurring-section').classList.toggle('visible', document.getElementById('recurring').value === 'Yes');
+  }
+  document.getElementById('recurring').addEventListener('change', updateRecurringSection);
+  updateRecurringSection();
+
+  function updateDeliveryContactSection() {
+    var showOther = document.getElementById('delivery_contact_who').value === 'Someone else';
+    document.getElementById('other-contact-section').classList.toggle('visible', showOther);
+    document.getElementById('delivery_contact_name').required = showOther;
+    document.getElementById('delivery_contact_phone').required = showOther;
+  }
+  document.getElementById('delivery_contact_who').addEventListener('change', updateDeliveryContactSection);
+  updateDeliveryContactSection();
+</script>
+{% endblock %}
