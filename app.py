@@ -1,6 +1,6 @@
 import os
 import json
-from datetime import datetime, timedelta
+from datetime import datetime, date, timedelta
 from flask import Flask, render_template, request, redirect, url_for, flash, session
 
 import gspread
@@ -66,8 +66,8 @@ GIVERS_HEADER = [
     "Area Flexibility", "Additional Areas",
     "Food Type", "Time Preference", "Meal Slot",
     "Quantity Max", "Quantity Confirmed", "Quantity Unit",
-    "Ready Time", "Recurring?", "Recurring Days", "Pickup Available?",
-    "Delivery Contact Name", "Delivery Contact Phone",
+    "Ready Date", "Recurring?", "Recurring Days", "Pickup Available?",
+    "Delivery Contact Who", "Delivery Contact Name", "Delivery Contact Phone", "Backup Phone",
     "Status", "Matched Center", "Matched Center Row"
 ]
 
@@ -212,34 +212,41 @@ def give_food():
         meal_slot = request.form.get("meal_slot", "") if (food_type != "Groceries" and time_preference == "Specific") else ""
         quantity_max = request.form.get("quantity_number", "").strip()
         quantity_unit = request.form.get("quantity_unit", "")
-        ready_time_raw = request.form.get("ready_time", "")
+        ready_date_raw = request.form.get("ready_date", "")
         recurring = request.form.get("recurring", "No")
         recurring_days = ", ".join(request.form.getlist("recurring_days"))
         pickup = "No"  # Phase 1: self-delivery only, no pickup/volunteer option yet
-        delivery_contact_name = request.form.get("delivery_contact_name", "").strip()
-        delivery_contact_phone = request.form.get("delivery_contact_phone", "").strip()
+
+        delivery_contact_who = request.form.get("delivery_contact_who", "Me")
+        if delivery_contact_who == "Someone else":
+            delivery_contact_name = request.form.get("delivery_contact_name", "").strip()
+            delivery_contact_phone = request.form.get("delivery_contact_phone", "").strip()
+        else:
+            delivery_contact_name = name
+            delivery_contact_phone = phone
+        backup_phone = request.form.get("backup_phone", "").strip()
 
         errors = []
 
         if not giver_type or not name or not phone or not governorate or not area or not quantity_max:
             errors.append("Please fill in all required fields.")
-        if not delivery_contact_name or not delivery_contact_phone:
-            errors.append("Please fill in who the center should contact about this delivery.")
+        if delivery_contact_who == "Someone else" and (not delivery_contact_name or not delivery_contact_phone):
+            errors.append("Please fill in the name and phone of the person the center should contact.")
 
-        ready_time = None
-        if ready_time_raw:
+        ready_date = None
+        if ready_date_raw:
             try:
-                ready_time = datetime.fromisoformat(ready_time_raw)
+                ready_date = date.fromisoformat(ready_date_raw)
             except ValueError:
-                errors.append("Invalid date/time format.")
+                errors.append("Invalid date format.")
         else:
-            errors.append("Please select a ready time.")
+            errors.append("Please select a ready date.")
 
-        # 24-hour minimum lead time check (skip this check for recurring/standing offers)
-        if ready_time and recurring != "Yes":
-            if ready_time < datetime.now() + timedelta(hours=24):
+        # Minimum one full day's notice (skip this check for recurring/standing offers)
+        if ready_date and recurring != "Yes":
+            if ready_date < date.today() + timedelta(days=1):
                 errors.append(
-                    "Ready time must be at least 24 hours from now, so we can "
+                    "Ready date must be at least tomorrow, so we can "
                     "arrange a center and let them know ahead of time."
                 )
 
@@ -256,10 +263,12 @@ def give_food():
             "area_flexibility": area_flexibility, "additional_areas": additional_areas,
             "food_type": food_type, "time_preference": time_preference, "meal_slot": meal_slot,
             "quantity_max": quantity_max, "quantity_unit": quantity_unit,
-            "ready_time": ready_time.isoformat(timespec="minutes"),
+            "ready_date": ready_date.isoformat(),
             "recurring": recurring, "recurring_days": recurring_days, "pickup": pickup,
+            "delivery_contact_who": delivery_contact_who,
             "delivery_contact_name": delivery_contact_name,
             "delivery_contact_phone": delivery_contact_phone,
+            "backup_phone": backup_phone,
         }
         return redirect(url_for("browse_centers"))
 
@@ -285,15 +294,16 @@ def browse_centers():
             pending["area_flexibility"], ", ".join(pending.get("additional_areas", [])),
             pending["food_type"], pending["time_preference"], pending["meal_slot"],
             pending["quantity_max"], "", pending["quantity_unit"],
-            pending["ready_time"], pending["recurring"], pending["recurring_days"], pending["pickup"],
-            pending["delivery_contact_name"], pending["delivery_contact_phone"],
+            pending["ready_date"], pending["recurring"], pending["recurring_days"], pending["pickup"],
+            pending["delivery_contact_who"], pending["delivery_contact_name"], pending["delivery_contact_phone"],
+            pending["backup_phone"],
             "Pending", "", "",
         ])
         session.pop("pending_giver", None)
         return render_template("give_confirmation.html", area=pending["area"],
                                 quantity_number=pending["quantity_max"], quantity_unit=pending["quantity_unit"],
                                 food_type=pending["food_type"], meal_slot=pending["meal_slot"],
-                                ready_time=datetime.fromisoformat(pending["ready_time"]),
+                                ready_date=date.fromisoformat(pending["ready_date"]),
                                 matched_center=None)
 
     return render_template("browse_centers.html", centers=centers, pending=pending)
@@ -317,8 +327,9 @@ def choose_center(center_row):
         pending["area_flexibility"], ", ".join(pending.get("additional_areas", [])),
         pending["food_type"], pending["time_preference"], pending["meal_slot"],
         pending["quantity_max"], "", pending["quantity_unit"],
-        pending["ready_time"], pending["recurring"], pending["recurring_days"], pending["pickup"],
-        pending["delivery_contact_name"], pending["delivery_contact_phone"],
+        pending["ready_date"], pending["recurring"], pending["recurring_days"], pending["pickup"],
+        pending["delivery_contact_who"], pending["delivery_contact_name"], pending["delivery_contact_phone"],
+        pending["backup_phone"],
         "Pending Confirmation", center.get("Center Name", ""), center_row,
     ])
     giver_row_number = len(ws.get_all_values())
@@ -367,7 +378,7 @@ def confirm_match(row_number):
         return render_template("give_confirmation.html", area=giver.get("Area"),
                                 quantity_number=final_quantity, quantity_unit=giver.get("Quantity Unit"),
                                 food_type=giver.get("Food Type"), meal_slot=giver.get("Meal Slot"),
-                                ready_time=datetime.fromisoformat(giver.get("Ready Time")),
+                                ready_date=date.fromisoformat(giver.get("Ready Date")),
                                 matched_center=center.get("Center Name"))
 
     return render_template("confirm_match.html", giver=giver, center=center,
