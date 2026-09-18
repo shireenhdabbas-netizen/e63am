@@ -30,6 +30,19 @@
     <option value="">Select governorate first...</option>
   </select>
   <input type="text" name="area_other" placeholder="If your area isn't listed, specify it here" value="{{ form.get('area_other', '') }}">
+  <p class="hint">Where you are / where the food is ready.</p>
+
+  <label>Are you limited to your own area, or open to deliver elsewhere?</label>
+  <select name="area_flexibility" id="area_flexibility">
+    <option value="Limited">Just my area</option>
+    <option value="Open">I'm open to other areas too</option>
+  </select>
+
+  <div id="additional-areas-section" class="conditional-section">
+    <label>Which other areas could you deliver to?</label>
+    <p class="hint">Select any you'd be willing to travel to</p>
+    <div class="checkbox-row" id="additional-areas-list"></div>
+  </div>
 
   <label>Food type</label>
   <select name="food_type" id="food_type">
@@ -38,17 +51,25 @@
     <option value="Groceries">Groceries</option>
   </select>
 
-  <div id="meal-slot-section" class="conditional-section visible">
-    <label>Which time slot is this for?</label>
-    <select name="meal_slot">
-      <option value="Breakfast (9-11)">Breakfast (9-11)</option>
-      <option value="Late breakfast (12-2)">Late breakfast (12-2)</option>
-      <option value="Lunch (4-6)">Lunch (4-6)</option>
-      <option value="Dinner (8-10)">Dinner (8-10)</option>
+  <div id="time-preference-wrapper" class="conditional-section visible">
+    <label>Do you have a specific time, or are you flexible based on what the center needs?</label>
+    <select name="time_preference" id="time_preference">
+      <option value="Flexible">I'm flexible — I'll adjust to the center's need</option>
+      <option value="Specific">I have a specific time slot</option>
     </select>
+
+    <div id="meal-slot-section" class="conditional-section">
+      <label>Which time slot is this for?</label>
+      <select name="meal_slot">
+        <option value="Breakfast (9-11)">Breakfast (9-11)</option>
+        <option value="Late breakfast (12-2)">Late breakfast (12-2)</option>
+        <option value="Lunch (4-6)">Lunch (4-6)</option>
+        <option value="Dinner (8-10)">Dinner (8-10)</option>
+      </select>
+    </div>
   </div>
 
-  <label>Quantity *</label>
+  <label>Maximum you can give *</label>
   <input type="number" min="1" name="quantity_number" placeholder="e.g. 20" value="{{ form.get('quantity_number', '') }}" required>
   <select name="quantity_unit">
     <option value="meals">meals</option>
@@ -57,6 +78,7 @@
     <option value="boxes">boxes</option>
     <option value="items">items</option>
   </select>
+  <p class="hint">This is your ceiling — once we find a matching center, you'll see what they actually need and can confirm the exact amount then.</p>
 
   <label>Ready time *</label>
   <input type="datetime-local" name="ready_time" value="{{ form.get('ready_time', '') }}" required>
@@ -139,11 +161,47 @@
   document.getElementById('governorate').addEventListener('change', updateAreaOptions);
   updateAreaOptions();
 
-  function updateMealSlotSection() {
-    var foodType = document.getElementById('food_type').value;
-    document.getElementById('meal-slot-section').classList.toggle('visible', foodType !== 'Groceries');
+  // Combined list (both governorates) for "open to other areas" selection,
+  // since a giver might be willing to cross governorate lines too.
+  var ALL_AREAS = [].concat(AREAS_BY_GOVERNORATE['Cairo'], AREAS_BY_GOVERNORATE['Giza'])
+    .filter(function(a, i, arr) { return a !== 'Other' && arr.indexOf(a) === i; });
+
+  function populateAdditionalAreas() {
+    var container = document.getElementById('additional-areas-list');
+    container.innerHTML = '';
+    ALL_AREAS.forEach(function(area) {
+      var label = document.createElement('label');
+      label.className = 'checkbox-label';
+      var input = document.createElement('input');
+      input.type = 'checkbox';
+      input.name = 'additional_areas';
+      input.value = area;
+      label.appendChild(input);
+      label.appendChild(document.createTextNode(' ' + area));
+      container.appendChild(label);
+    });
   }
-  document.getElementById('food_type').addEventListener('change', updateMealSlotSection);
+  populateAdditionalAreas();
+
+  function updateAdditionalAreasVisibility() {
+    var flexibility = document.getElementById('area_flexibility').value;
+    document.getElementById('additional-areas-section').classList.toggle('visible', flexibility === 'Open');
+  }
+  document.getElementById('area_flexibility').addEventListener('change', updateAdditionalAreasVisibility);
+  updateAdditionalAreasVisibility();
+
+  function updateTimePreferenceVisibility() {
+    var foodType = document.getElementById('food_type').value;
+    document.getElementById('time-preference-wrapper').classList.toggle('visible', foodType !== 'Groceries');
+  }
+  document.getElementById('food_type').addEventListener('change', updateTimePreferenceVisibility);
+  updateTimePreferenceVisibility();
+
+  function updateMealSlotSection() {
+    var timePref = document.getElementById('time_preference').value;
+    document.getElementById('meal-slot-section').classList.toggle('visible', timePref === 'Specific');
+  }
+  document.getElementById('time_preference').addEventListener('change', updateMealSlotSection);
   updateMealSlotSection();
 
   function updateRecurringSection() {
