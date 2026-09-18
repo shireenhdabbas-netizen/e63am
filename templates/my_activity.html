@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}My activity{% endblock %}
+{% block content %}
+<a class="back-link" href="{{ url_for('home') }}">&larr; Back</a>
+<h1>{{ user.get('Nickname') or user.get('Real Name') }}</h1>
+<p class="subtitle">{{ donations|length }} donation{{ 's' if donations|length != 1 }} so far</p>
+
+{% for d in donations %}
+<div class="info-box" style="margin-bottom:10px;">
+  <strong>{{ d.get('Quantity Confirmed') or d.get('Quantity Max') }} {{ d.get('Quantity Unit') }}</strong>
+  · {{ d.get('Food Type') }}<br>
+  {{ d.get('Area') }} · {{ d.get('Ready Date') }}<br>
+  {% if d.get('Matched Center') %}→ {{ d.get('Matched Center') }}{% endif %}
+  <span style="float:right;color:#888;font-size:12px;">{{ d.get('Status') }}</span>
+</div>
+{% else %}
+<p style="color:#888;font-size:14px;">No donations yet — <a href="{{ url_for('give_food') }}">give your first one</a>.</p>
+{% endfor %}
+
+<a class="back-link" href="{{ url_for('logout') }}" style="margin-top:16px;display:inline-block;">Sign out</a>
+{% endblock %}
