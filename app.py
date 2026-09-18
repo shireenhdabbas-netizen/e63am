@@ -27,6 +27,90 @@ SCOPES = [
     "https://www.googleapis.com/auth/drive",
 ]
 
+# Stored/matched values stay in English (so matching logic and the sheet
+# stay stable and simple to work with) - this dict translates them to
+# Egyptian Arabic wherever they're displayed back to a person. Used via
+# the `ar` Jinja filter below, and mirrored in give.html/register_center.html's
+# JS for the two area dropdowns.
+AR_LABELS = {
+    # Governorates
+    "Cairo": "القاهرة", "Giza": "الجيزة",
+    # Cairo areas
+    "Shubra": "شبرا", "El-Zawia El-Hamra": "الزاوية الحمراء", "Hadayek El-Kobba": "حدائق القبة",
+    "Rod El-Farg": "روض الفرج", "El-Sharabia": "الشرابية", "El-Sahel": "الساحل",
+    "El-Zaiton": "الزيتون", "Al-Ameria": "الأميرية", "Masr El-Qadima": "مصر القديمة",
+    "El-Khalifa": "الخليفة", "El-Moqattam": "المقطم", "El-Basatin": "البساتين",
+    "Dar El-Salam": "دار السلام", "El-Sayeda Zeinab": "السيدة زينب", "El-Tebin": "التبين",
+    "Helwan": "حلوان", "El-Maasara": "المعصرة", "El-Maadi": "المعادي", "Tora": "طرة",
+    "15 May": "15 مايو", "Manshaet Naser": "منشأة ناصر", "El-Waily": "الوايلي",
+    "Wast El-Qahira (Downtown)": "وسط القاهرة", "Boulak": "بولاق", "Gharb El-Qahira": "غرب القاهرة",
+    "Abdeen": "عابدين", "Azbakia": "الأزبكية", "Moski": "الموسكي", "Bab El-Shaaria": "باب الشعرية",
+    "Misr El-Gadidah (Heliopolis)": "مصر الجديدة (هليوبوليس)", "El-Nozha": "النزهة",
+    "Sharq Madinet Nasr": "شرق مدينة نصر", "Gharb Madinet Nasr": "غرب مدينة نصر",
+    "El-Salam Awal": "السلام أول", "El-Salam Thani": "السلام ثاني", "El-Mataria": "المطرية",
+    "Ain Shams": "عين شمس", "El-Marg": "المرج", "Zamalek": "الزمالك", "Garden City": "جاردن سيتي",
+    "New Cairo": "القاهرة الجديدة", "Katameya": "القطامية",
+    # Giza areas
+    "Dokki": "الدقي", "Agouza / Mohandessin": "العجوزة / المهندسين", "Omraniya": "العمرانية",
+    "Haram": "الهرم", "Boulak El Dakrour": "بولاق الدكرور", "El Warraq": "الوراق",
+    "North Giza": "شمال الجيزة", "South Giza": "جنوب الجيزة", "6th of October": "السادس من أكتوبر",
+    "Sheikh Zayed": "الشيخ زايد", "Imbaba": "إمبابة", "Faisal": "فيصل", "Giza Square": "ميدان الجيزة",
+    "Al-Ayyat": "العياط", "Atfih": "أطفيح", "Awsim": "أوسيم", "Al-Badrashin": "البدرشين",
+    "Al-Hawamdiya": "الحوامدية", "Al-Saff": "الصف", "Kerdasa": "كرداسة",
+    "Manshaat El Qanater": "منشأة القناطر", "Other": "تاني",
+    # Giver type
+    "Individual": "فرد", "Restaurant / Business": "مطعم / منشأة",
+    # Food type
+    "Hot meal": "وجبة سخنة", "Cold meal": "وجبة باردة", "Groceries": "مواد غذائية",
+    # Time preference
+    "Flexible": "مرن حسب احتياج المكان", "Specific": "وقت محدد",
+    # Meal slots
+    "Breakfast (9-11)": "فطار (9-11)", "Late breakfast (12-2)": "فطار متأخر (12-2)",
+    "Lunch (4-6)": "غدا (4-6)", "Dinner (8-10)": "عشا (8-10)",
+    # Quantity units
+    "meals": "وجبة", "portions": "حصة", "kg": "كجم", "boxes": "كرتونة", "items": "قطعة",
+    # Yes/No (recurring, capacity limit, etc.)
+    "Yes": "أيوه", "No": "لأ",
+    # Days
+    "Saturday": "السبت", "Sunday": "الأحد", "Monday": "الإتنين", "Tuesday": "التلات",
+    "Wednesday": "الأربع", "Thursday": "الخميس", "Friday": "الجمعة",
+    # Delivery contact who
+    "Me": "أنا", "Someone else": "حد تاني",
+    # Status
+    "Pending": "في انتظار مكان", "Pending Confirmation": "محتاج تأكيد منك",
+    "Matched": "تم التوصيل", "Verified": "موثّق", "Unverified": "لسه مش موثّق", "Rejected": "مرفوض",
+    # Area flexibility
+    "Limited": "منطقتي بس", "Open": "مفتوح لمناطق تانية",
+    # Center type
+    "Mosque": "مسجد", "Church": "كنيسة", "Community center": "مركز خدمة مجتمعي",
+    "Orphanage": "دار أيتام", "Elderly home": "دار مسنين", "Shop": "محل",
+    "Local NGO / Community organization": "منظمة أهلية محلية",
+    "Ma'edet Rahman (community meal table)": "مائدة رحمن", "Homeless outreach point": "نقطة دعم للمشردين",
+    # Ownership type
+    "Governmental": "حكومي", "Private": "خاص", "Local NGO": "منظمة أهلية",
+    "Independent / community-run": "مستقل / أهلي",
+    # Target groups served
+    "Elderly": "مسنين", "Elderly with chronic illness": "مسنين بأمراض مزمنة", "Children": "أطفال",
+    "Children with disabilities": "أطفال ذوي إعاقة", "People with disabilities": "ذوي إعاقة",
+    "Widows": "أرامل", "Families in need": "أسر محتاجة", "Orphans": "أيتام", "Homeless": "مشردين",
+    # Submitter role
+    "Staff": "من فريق المكان", "Info-only": "بشارك معلومات بس",
+}
+
+
+@app.template_filter("ar")
+def ar_label(value):
+    """
+    Translates a stored English value (or a comma-joined list of them, e.g.
+    "Elderly, Children") to Egyptian Arabic for display, using AR_LABELS.
+    Falls back to the original value if there's no translation on file.
+    """
+    if not value:
+        return value
+    if isinstance(value, str) and ", " in value:
+        return "، ".join(AR_LABELS.get(p.strip(), p.strip()) for p in value.split(", "))
+    return AR_LABELS.get(value, value)
+
 
 def get_sheet_client():
     """
@@ -344,17 +428,18 @@ def notify_pending_givers_in_area(area, center_name, center_row):
         givers_ws.update_cell(row_num, matched_center_row_i, center_row)
 
         email = row[email_i - 1] if len(row) >= email_i else ""
-        giver_name = row[name_i - 1] if len(row) >= name_i else "there"
+        giver_name = row[name_i - 1] if len(row) >= name_i else "صديقنا"
         if email:
             confirm_link = url_for("confirm_match", row_number=row_num, _external=True)
             send_email(
                 email,
-                f"{center_name} just joined in your area!",
-                f"<p>Hi {giver_name},</p>"
-                f"<p><strong>{center_name}</strong> just registered in {area} — "
-                f"the area you offered to give in. You've been matched with them — "
-                f'<a href="{confirm_link}">click here to confirm the details</a>.</p>'
-                f"<p>— افكر اطعام</p>",
+                f"{center_name} انضم في منطقتك دلوقتي!",
+                f'<div dir="rtl" style="text-align:right;font-family:Tahoma,Arial,sans-serif;">'
+                f"<p>أهلاً {giver_name}،</p>"
+                f"<p><strong>{center_name}</strong> سجّل دلوقتي في {AR_LABELS.get(area, area)} — "
+                f"المنطقة اللي عرضت تدّي فيها. تم توصيلك بيهم — "
+                f'<a href="{confirm_link}">دوس هنا عشان تأكّد التفاصيل</a>.</p>'
+                f"<p>— افكر اطعام</p></div>",
             )
 
 
@@ -370,7 +455,7 @@ def login():
         remember_me = request.form.get("remember_me") == "on"
 
         if not phone:
-            flash("Please enter your phone number.")
+            flash("من فضلك اكتب رقم التليفون.")
             return render_template("login.html", form=request.form)
 
         user = get_user_by_phone(phone)
@@ -394,7 +479,7 @@ def complete_profile():
     remember_me = request.form.get("remember_me") == "on"
 
     if not phone or not real_name:
-        flash("Please fill in your name.")
+        flash("من فضلك اكتب اسمك.")
         return render_template("complete_profile.html", phone=phone, remember_me=remember_me,
                                 form=request.form)
 
@@ -470,25 +555,25 @@ def give_food():
         errors = []
 
         if not giver_type or not name or not phone or not governorate or not area or not quantity_max:
-            errors.append("Please fill in all required fields.")
+            errors.append("من فضلك املا كل الحقول المطلوبة.")
         if delivery_contact_who == "Someone else" and (not delivery_contact_name or not delivery_contact_phone):
-            errors.append("Please fill in the name and phone of the person the center should contact.")
+            errors.append("من فضلك اكتب اسم ورقم الشخص اللي هيتواصل معاه المكان.")
 
         ready_date = None
         if ready_date_raw:
             try:
                 ready_date = date.fromisoformat(ready_date_raw)
             except ValueError:
-                errors.append("Invalid date format.")
+                errors.append("صيغة التاريخ غير صحيحة.")
         else:
-            errors.append("Please select a ready date.")
+            errors.append("من فضلك اختار تاريخ.")
 
         # Minimum one full day's notice (skip this check for recurring/standing offers)
         if ready_date and recurring != "Yes":
             if ready_date < date.today() + timedelta(days=1):
                 errors.append(
-                    "Ready date must be at least tomorrow, so we can "
-                    "arrange a center and let them know ahead of time."
+                    "التاريخ لازم يكون بكرة على الأقل، عشان نقدر "
+                    "نظبط مكان ونبلغه بدري."
                 )
 
         if errors:
@@ -543,12 +628,13 @@ def browse_centers():
         if pending.get("email"):
             send_email(
                 pending["email"],
-                "We'll let you know when a center joins your area",
-                f"<p>Hi {pending['name']},</p>"
-                f"<p>Thanks for offering to give {pending['quantity_max']} {pending['quantity_unit']} "
-                f"in {pending['area']}. There's no registered center there yet, but we'll email you "
-                f"the moment one joins so you can come back and give.</p>"
-                f"<p>— افكر اطعام</p>",
+                "هنبلغك أول ما مكان ينضم في منطقتك",
+                f'<div dir="rtl" style="text-align:right;font-family:Tahoma,Arial,sans-serif;">'
+                f"<p>أهلاً {pending['name']}،</p>"
+                f"<p>شكرًا إنك عرضت تدّي {pending['quantity_max']} {AR_LABELS.get(pending['quantity_unit'], pending['quantity_unit'])} "
+                f"في {AR_LABELS.get(pending['area'], pending['area'])}. لسه مفيش مكان مسجّل هناك، بس هنبعتلك إيميل "
+                f"أول ما مكان ينضم عشان ترجع تدّي.</p>"
+                f"<p>— افكر اطعام</p></div>",
             )
         session.pop("pending_giver", None)
         return render_template("give_confirmation.html", area=pending["area"],
@@ -619,7 +705,7 @@ def confirm_match(row_number):
             final_quantity = 0
 
         if final_quantity < 1 or final_quantity > quantity_max:
-            flash(f"Please enter a quantity between 1 and {quantity_max}.")
+            flash(f"من فضلك اكتب كمية بين 1 و{quantity_max}.")
             return render_template("confirm_match.html", giver=giver, center=center,
                                     quantity_max=quantity_max, suggested_quantity=suggested_quantity,
                                     row_number=row_number)
@@ -703,15 +789,15 @@ def register_center():
 
         errors = []
         if not center_name or not governorate or not ownership_type or not area or not address:
-            errors.append("Please fill in all required location fields.")
+            errors.append("من فضلك املا كل حقول الموقع المطلوبة.")
         if not submitter_role or not submitter_name or not submitter_phone:
-            errors.append("Please fill in your own name, phone, and role.")
+            errors.append("من فضلك اكتب اسمك، رقمك، ودورك.")
         if not contact_name or not contact_phone:
-            errors.append("Please fill in the center's contact person and phone.")
+            errors.append("من فضلك اكتب اسم ورقم الشخص المسؤول في المكان.")
         if not receives:
-            errors.append("Please select what the center can receive: meals, groceries, or both.")
+            errors.append("من فضلك اختار إيه اللي المكان بيستقبله: وجبات، مواد غذائية، أو الاتنين.")
         if has_capacity_limit == "Yes" and not capacity_per_slot:
-            errors.append("Please enter a capacity per slot, or select 'No' if you don't have a fixed limit.")
+            errors.append("من فضلك اكتب السقف لكل فترة، أو اختار \"لأ\" لو مفيش سقف ثابت.")
 
         if errors:
             for e in errors:
