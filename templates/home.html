@@ -1,8 +1,8 @@
 {% extends "base.html" %}
-{% block title %}مما تحبون {% endblock %}
+{% block title %}افكر اطعام{% endblock %}
 {% block content %}
-<h1>مما تحبون </h1>
-<p class="subtitle">بنربط الناس اللي حابين يقدموا اطعام مع الجهات اللي بتستحقه</p>
+<h1>مما تحبون</h1>
+<p class="subtitle">بنوصّل اللي حابب يطعم بأماكن يثق فيها في منطقته</p>
 
 {% if user %}
 <p style="font-size:13px;margin:-8px 0 18px;">
@@ -19,9 +19,17 @@
   <p class="card-title">🍲 عندي أكل أديه</p>
   <p class="card-sub">وجبات أو مواد غذائية</p>
 </a>
+<p style="font-size:13px;text-align:center;margin:-8px 0 14px;">
+  <a href="{{ url_for('browse_maedet_rahman') }}">أو دوّر على مائدة رحمن قريبة منك مباشرة</a>
+</p>
+
+<a class="card" href="{{ url_for('register_maedet_rahman') }}">
+  <p class="card-title">🕌 سجّل مائدة رحمن</p>
+  <p class="card-sub">مسجد، كنيسة، أو مكان بيقدّم أكل مفتوح لأي حد</p>
+</a>
 
 <a class="card" href="{{ url_for('register_center') }}">
-  <p class="card-title">🕌 سجّل جهة استقبال</p>
-  <p class="card-sub">مسجد، كنيسة، أو مركز خدمة مجتمعي</p>
+  <p class="card-title">🏠 سجّل جهة استقبال</p>
+  <p class="card-sub">دار أيتام، دار مسنين، أو جهة بعدد مستفيدين محدد</p>
 </a>
 {% endblock %}
