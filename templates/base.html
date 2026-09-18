@@ -108,5 +108,20 @@
   {% endwith %}
   {% block content %}{% endblock %}
 </div>
+<script>
+  // Prevents duplicate submissions: disables the submit button the instant
+  // a form is submitted, so a second tap (e.g. if the page is slow to
+  // respond) can't fire a second request.
+  document.querySelectorAll('form').forEach(function(form) {
+    form.addEventListener('submit', function() {
+      var btn = form.querySelector('button[type="submit"]');
+      if (btn && !btn.disabled) {
+        btn.disabled = true;
+        btn.dataset.originalText = btn.textContent;
+        btn.textContent = 'جاري الإرسال...';
+      }
+    });
+  });
+</script>
 </body>
 </html>

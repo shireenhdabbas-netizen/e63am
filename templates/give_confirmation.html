@@ -1,10 +1,9 @@
 {% extends "base.html" %}
-{% block title %}تم الإرسال{% endblock %}
+{% block title %}الوجبة مؤمّنة{% endblock %}
 {% block content %}
 <div class="confirm-icon">✅</div>
-<h1>تم الإرسال</h1>
-{% if matched_center %}
-<p class="subtitle">تم التوصيل بمكان قريب</p>
+<h1>الوجبة مؤمّنة</h1>
+<p class="subtitle">تم تأمينها مع {{ matched_center }}</p>
 <div class="info-box">
   <strong>{{ quantity_number }} {{ quantity_unit|ar }}</strong> · {{ food_type|ar }}{% if meal_slot %} · {{ meal_slot|ar }}{% endif %}<br>
   {{ area|ar }} · {{ ready_date.strftime('%d/%m/%Y') }}
@@ -12,16 +11,6 @@
 <div class="info-box">
   🕌 <strong>{{ matched_center }}</strong> — هنتواصل معاك على رقمك عشان نأكّد التفاصيل ونظبط التوصيل.
 </div>
-{% else %}
-<p class="subtitle">شكرًا — استلمنا طلبك</p>
-<div class="info-box">
-  <strong>{{ quantity_number }} {{ quantity_unit|ar }}</strong> · {{ food_type|ar }}{% if meal_slot %} · {{ meal_slot|ar }}{% endif %}<br>
-  {{ area|ar }} · {{ ready_date.strftime('%d/%m/%Y') }}
-</div>
-<div class="info-box">
-  لسه مفيش مكان مسجّل في منطقتك — هنتواصل معاك على ايميلك أول ما مكان ينضم، أو عشان نظبط حاجة معاك مباشرة و ارجع على صفحتك هنا علشان تشوف لو ظهرت حاجة تانية مناسبة .
-</div>
-{% endif %}
 
 <a class="back-link" href="{{ url_for('home') }}">&rarr; رجوع للرئيسية</a>
 {% endblock %}

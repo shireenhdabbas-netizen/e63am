@@ -3,18 +3,18 @@
 {% block content %}
 <a class="back-link" href="{{ url_for('home') }}">&rarr; رجوع</a>
 <h1>{{ user.get('Nickname') or user.get('Real Name') }}</h1>
-<p class="subtitle">{{ donations|length }} اطعام لحد دلوقتي</p>
+<p class="subtitle">{{ donations|length }} وجبة مؤمّنة لحد دلوقتي</p>
 
 {% for d in donations %}
 <div class="info-box" style="margin-bottom:10px;">
-  <strong>{{ d.get('Quantity Confirmed') or d.get('Quantity Max') }} {{ d.get('Quantity Unit')|ar }}</strong>
+  <strong>{{ d.get('Quantity') }} {{ d.get('Quantity Unit')|ar }}</strong>
   · {{ d.get('Food Type')|ar }}<br>
   {{ d.get('Area')|ar }} · {{ d.get('Ready Date') }}<br>
   {% if d.get('Matched Center') %}→ {{ d.get('Matched Center') }}{% endif %}
   <span style="float:left;color:#888;font-size:12px;">{{ d.get('Status')|ar }}</span>
 </div>
 {% else %}
-<p style="color:#888;font-size:14px;">لسه مفيش اي اطعام — <a href="{{ url_for('give_food') }}">ابدأ بأول اطعام</a>.</p>
+<p style="color:#888;font-size:14px;">لسه مفيش حاجة — <a href="{{ url_for('browse_places') }}">أمّن أول وجبة</a>.</p>
 {% endfor %}
 
 <a class="back-link" href="{{ url_for('logout') }}" style="margin-top:16px;display:inline-block;">تسجيل خروج</a>

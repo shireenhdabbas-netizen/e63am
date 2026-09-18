@@ -1,8 +1,8 @@
 {% extends "base.html" %}
-{% block title %}مما تحبون {% endblock %}
+{% block title %}مما تحبون{% endblock %}
 {% block content %}
-<h1>مما تحبون </h1>
-<p class="subtitle">بنربط الناس اللي حابين يقدموا اطعام مع الجهات اللي بتستحقه</p>
+<h1>مما تحبون</h1>
+<p class="subtitle">بنوصّل اللي حابب يطعم بأماكن يثق فيها في منطقته</p>
 
 {% if user %}
 <p style="font-size:13px;margin:-8px 0 18px;">
@@ -11,17 +11,27 @@
 </p>
 {% else %}
 <p style="font-size:13px;margin:-8px 0 18px;">
-  <a href="{{ url_for('login') }}">سجّل دخول</a> عشان تحتفظ بسجل تبرعاتك
+  <a href="{{ url_for('login') }}">سجّل دخول</a> عشان تحتفظ بسجل نشاطك
 </p>
 {% endif %}
 
-<a class="card" href="{{ url_for('give_food') }}">
-  <p class="card-title">🍲 عندي أكل أديه</p>
-  <p class="card-sub">وجبات أو مواد غذائية</p>
+<p style="font-size:13px;color:#888;margin:0 0 8px;">عايز تدّي؟</p>
+<a class="card" href="{{ url_for('browse_places') }}">
+  <p class="card-title">🏠 دوّر على جهة استقبال</p>
+  <p class="card-sub">دار أيتام، دار مسنين، أو جهة بعدد مستفيدين محدد</p>
+</a>
+<a class="card" href="{{ url_for('browse_maedet_rahman') }}">
+  <p class="card-title">🕌 دوّر على مائدة رحمن</p>
+  <p class="card-sub">مسجد، كنيسة، أو مكان بيقدّم أكل مفتوح لأي حد</p>
 </a>
 
+<p style="font-size:13px;color:#888;margin:18px 0 8px;">عندك مكان استقبال؟</p>
 <a class="card" href="{{ url_for('register_center') }}">
-  <p class="card-title">🕌 سجّل جهة استقبال</p>
-  <p class="card-sub">مسجد، كنيسة، أو مركز خدمة مجتمعي</p>
+  <p class="card-title">📋 سجّل جهة استقبال</p>
+  <p class="card-sub">عدد مستفيدين محدد ومعروف</p>
+</a>
+<a class="card" href="{{ url_for('register_maedet_rahman') }}">
+  <p class="card-title">📋 سجّل مائدة رحمن</p>
+  <p class="card-sub">مفتوحة لأي حد بييجي</p>
 </a>
 {% endblock %}

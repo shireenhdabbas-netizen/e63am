@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+{% block title %}دوّر على جهة استقبال{% endblock %}
+{% block content %}
+<a class="back-link" href="{{ url_for('home') }}">&rarr; رجوع</a>
+<h1>دوّر على جهة استقبال</h1>
+<p class="subtitle">اختار منطقتك عشان تشوف الجهات القريبة منك</p>
+
+<form method="GET">
+  <label>المحافظة</label>
+  <select name="governorate" id="governorate" required>
+    <option value="">اختار...</option>
+    <option value="Cairo" {{ 'selected' if governorate == 'Cairo' }}>القاهرة</option>
+    <option value="Giza" {{ 'selected' if governorate == 'Giza' }}>الجيزة</option>
+  </select>
+
+  <label>المنطقة</label>
+  <select name="area" id="area" required>
+    <option value="">اختار المحافظة الأول...</option>
+  </select>
+
+  <button type="submit">ابحث</button>
+</form>
+
+{% if results is not none %}
+<div style="margin-top:24px;">
+{% if results %}
+<p class="subtitle">{{ results|length }} جهة لقيناها</p>
+{% for center in results %}
+<div class="center-card">
+  {% set photos = (center.get('Photo URLs') or '').split(',') | map('trim') | select | list %}
+  {% if photos %}
+  <div class="center-photo-strip">
+    {% for photo in photos %}
+    <img src="{{ photo }}" alt="" class="center-photo">
+    {% endfor %}
+  </div>
+  {% endif %}
+  <div class="center-card-body">
+    <div class="center-card-header">
+      <p class="card-title" style="margin:0;">{{ center.get('Center Name') }}</p>
+      {% if center.get('Status') == 'Verified' %}
+      <span class="badge badge-verified">✓ موثّق</span>
+      {% else %}
+      <span class="badge badge-unverified">لسه مش موثّق</span>
+      {% endif %}
+    </div>
+    <p class="card-sub" style="margin:2px 0 8px;">{{ center.get('Center Type')|ar }} · {{ center.get('Area')|ar }}</p>
+    {% if center.get('Bio') %}
+    <p style="font-size:13px;color:#444;margin:0 0 8px;">{{ center.get('Bio') }}</p>
+    {% endif %}
+    <div class="center-meta">
+      {% if center.get('Total To Feed') %}<span>محتاجين يغطوا {{ center.get('Total To Feed') }} شخص</span>
+      {% elif center.get('Capacity Per Slot') %}<span>لحد {{ center.get('Capacity Per Slot') }} في الفترة</span>
+      {% endif %}
+      {% if center.get('Meal Slots') %}<span> · {{ center.get('Meal Slots')|ar }}</span>{% endif %}
+    </div>
+    <a class="choose-btn" href="{{ url_for('give_to_place', center_row=center._row) }}">أمّن وجبة هنا</a>
+  </div>
+</div>
+{% endfor %}
+{% else %}
+<div class="info-box">
+  <p style="margin:0 0 10px;">لسه مفيش جهات مسجّلة في المنطقة دي.</p>
+  <form method="POST" action="{{ url_for('notify_me') }}">
+    <input type="hidden" name="governorate" value="{{ governorate }}">
+    <input type="hidden" name="area" value="{{ area }}">
+    <input type="hidden" name="place_type" value="Center">
+    <label>عايز نبلغك أول ما جهة تتسجّل؟</label>
+    <input type="email" name="email" placeholder="إيميلك" required>
+    <button type="submit">بلّغني</button>
+  </form>
+</div>
+{% endif %}
+</div>
+{% endif %}
+
+<style>
+  .center-card { background: #fff; border: 1px solid #eee; border-radius: 14px; overflow: hidden; margin-bottom: 14px; }
+  .center-photo-strip { display: flex; gap: 4px; overflow-x: auto; }
+  .center-photo { width: 140px; height: 140px; object-fit: cover; display: block; flex-shrink: 0; }
+  .center-card-body { padding: 14px; }
+  .center-card-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .badge { font-size: 11px; padding: 2px 8px; border-radius: 20px; white-space: nowrap; }
+  .badge-verified { background: #e3f3ec; color: #2f7d5c; }
+  .badge-unverified { background: #f2f2f2; color: #888; }
+  .center-meta { font-size: 12px; color: #888; margin-bottom: 10px; }
+  .choose-btn { display: block; text-align: center; background: #2f7d5c; color: #fff; text-decoration: none; padding: 10px; border-radius: 8px; font-size: 14px; font-weight: 600; }
+</style>
+<script>
+  var AREAS_BY_GOVERNORATE = {
+    "Cairo": [
+      "Shubra", "El-Zawia El-Hamra", "Hadayek El-Kobba", "Rod El-Farg", "El-Sharabia", "El-Sahel", "El-Zaiton", "Al-Ameria",
+      "Masr El-Qadima", "El-Khalifa", "El-Moqattam", "El-Basatin", "Dar El-Salam", "El-Sayeda Zeinab", "El-Tebin", "Helwan", "El-Maasara", "El-Maadi", "Tora", "15 May",
+      "Manshaet Naser", "El-Waily", "Wast El-Qahira (Downtown)", "Boulak", "Gharb El-Qahira", "Abdeen", "Azbakia", "Moski", "Bab El-Shaaria",
+      "Misr El-Gadidah (Heliopolis)", "El-Nozha", "Sharq Madinet Nasr", "Gharb Madinet Nasr", "El-Salam Awal", "El-Salam Thani", "El-Mataria", "Ain Shams", "El-Marg",
+      "Zamalek", "Garden City", "New Cairo", "Katameya", "Other"
+    ],
+    "Giza": [
+      "Dokki", "Agouza / Mohandessin", "Omraniya", "Haram", "Boulak El Dakrour", "El Warraq", "North Giza", "South Giza",
+      "6th of October", "Sheikh Zayed", "Imbaba", "Faisal", "Giza Square",
+      "Al-Ayyat", "Atfih", "Awsim", "Al-Badrashin", "Al-Hawamdiya", "Al-Saff", "Kerdasa", "Manshaat El Qanater", "Other"
+    ]
+  };
+  var AREA_NAMES_AR = {
+    "Shubra": "شبرا", "El-Zawia El-Hamra": "الزاوية الحمراء", "Hadayek El-Kobba": "حدائق القبة",
+    "Rod El-Farg": "روض الفرج", "El-Sharabia": "الشرابية", "El-Sahel": "الساحل",
+    "El-Zaiton": "الزيتون", "Al-Ameria": "الأميرية", "Masr El-Qadima": "مصر القديمة",
+    "El-Khalifa": "الخليفة", "El-Moqattam": "المقطم", "El-Basatin": "البساتين",
+    "Dar El-Salam": "دار السلام", "El-Sayeda Zeinab": "السيدة زينب", "El-Tebin": "التبين",
+    "Helwan": "حلوان", "El-Maasara": "المعصرة", "El-Maadi": "المعادي", "Tora": "طرة",
+    "15 May": "15 مايو", "Manshaet Naser": "منشأة ناصر", "El-Waily": "الوايلي",
+    "Wast El-Qahira (Downtown)": "وسط القاهرة", "Boulak": "بولاق", "Gharb El-Qahira": "غرب القاهرة",
+    "Abdeen": "عابدين", "Azbakia": "الأزبكية", "Moski": "الموسكي", "Bab El-Shaaria": "باب الشعرية",
+    "Misr El-Gadidah (Heliopolis)": "مصر الجديدة (هليوبوليس)", "El-Nozha": "النزهة",
+    "Sharq Madinet Nasr": "شرق مدينة نصر", "Gharb Madinet Nasr": "غرب مدينة نصر",
+    "El-Salam Awal": "السلام أول", "El-Salam Thani": "السلام ثاني", "El-Mataria": "المطرية",
+    "Ain Shams": "عين شمس", "El-Marg": "المرج", "Zamalek": "الزمالك", "Garden City": "جاردن سيتي",
+    "New Cairo": "القاهرة الجديدة", "Katameya": "القطامية",
+    "Dokki": "الدقي", "Agouza / Mohandessin": "العجوزة / المهندسين", "Omraniya": "العمرانية",
+    "Haram": "الهرم", "Boulak El Dakrour": "بولاق الدكرور", "El Warraq": "الوراق",
+    "North Giza": "شمال الجيزة", "South Giza": "جنوب الجيزة", "6th of October": "السادس من أكتوبر",
+    "Sheikh Zayed": "الشيخ زايد", "Imbaba": "إمبابة", "Faisal": "فيصل", "Giza Square": "ميدان الجيزة",
+    "Al-Ayyat": "العياط", "Atfih": "أطفيح", "Awsim": "أوسيم", "Al-Badrashin": "البدرشين",
+    "Al-Hawamdiya": "الحوامدية", "Al-Saff": "الصف", "Kerdasa": "كرداسة",
+    "Manshaat El Qanater": "منشأة القناطر", "Other": "تاني"
+  };
+  function updateAreaOptions(preselect) {
+    var gov = document.getElementById('governorate').value;
+    var areaSelect = document.getElementById('area');
+    areaSelect.innerHTML = "";
+    if (!gov || !AREAS_BY_GOVERNORATE[gov]) {
+      areaSelect.innerHTML = '<option value="">اختار المحافظة الأول...</option>';
+      return;
+    }
+    var placeholder = document.createElement('option');
+    placeholder.value = ""; placeholder.textContent = "اختار...";
+    areaSelect.appendChild(placeholder);
+    AREAS_BY_GOVERNORATE[gov].forEach(function(area) {
+      var opt = document.createElement('option');
+      opt.value = area;
+      opt.textContent = AREA_NAMES_AR[area] || area;
+      if (preselect && area === preselect) opt.selected = true;
+      areaSelect.appendChild(opt);
+    });
+  }
+  document.getElementById('governorate').addEventListener('change', function() { updateAreaOptions(); });
+  updateAreaOptions("{{ area }}");
+</script>
+{% endblock %}

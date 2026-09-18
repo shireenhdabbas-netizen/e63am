@@ -1,4 +1,4 @@
-# Afker Atem Platform (افكر اطعام)
+# Afker Atem Platform (مما تحبون)
 
 Phase 1: two public forms — "I have food to give" and "Register a center" —
 writing directly into a Google Sheet. No matching automation yet (that's Phase 2).
