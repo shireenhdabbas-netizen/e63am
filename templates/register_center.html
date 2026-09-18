@@ -9,6 +9,10 @@
   <label>Center name *</label>
   <input type="text" name="center_name" value="{{ form.get('center_name', '') }}" required>
 
+  <label>Tell givers about this place (optional)</label>
+  <textarea name="bio" rows="4" placeholder="What does this place do? Its mission, how long it's been serving the community, what makes it worth donating to...">{{ form.get('bio', '') }}</textarea>
+  <p class="hint">This is shown to givers browsing centers to choose from — helps them understand who they're supporting.</p>
+
   <label>Is this a governmental, private, or local NGO-run place? *</label>
   <select name="ownership_type" required>
     <option value="">Select...</option>
@@ -138,7 +142,7 @@
 
   <label>Photo of the center (optional)</label>
   <input type="text" name="photo_url" placeholder="Paste an image link" value="{{ form.get('photo_url', '') }}">
-  <p class="hint">Optional, but centers with a photo are shown higher to givers. Photos must show the place only — no photos of people or individuals. Centers that post photos of people will be flagged and removed.</p>
+  <p class="hint">Optional, but centers with a photo are shown higher to givers. Show the space, the food, or the activity — not identifiable people. Centers that post photos of individuals (especially children) will be flagged and removed.</p>
 
   <hr style="margin:20px 0;border:none;border-top:1px solid #eee;">
 
