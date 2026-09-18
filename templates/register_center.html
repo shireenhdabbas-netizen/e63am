@@ -9,6 +9,18 @@
   <label>Center name *</label>
   <input type="text" name="center_name" value="{{ form.get('center_name', '') }}" required>
 
+  <label>Is this a governmental, private, or local NGO-run place? *</label>
+  <select name="ownership_type" required>
+    <option value="">Select...</option>
+    <option value="Governmental">Governmental</option>
+    <option value="Private">Private</option>
+    <option value="Local NGO">Local NGO</option>
+    <option value="Independent / community-run">Independent / community-run</option>
+    <option value="Other">Other</option>
+  </select>
+  <input type="text" name="ownership_type_other" placeholder="If Other, please specify" value="{{ form.get('ownership_type_other', '') }}">
+  <p class="hint">Helps with verification and helps givers know what they're choosing.</p>
+
   <label>Type</label>
   <select name="center_type" id="center_type">
     <option value="Mosque">Mosque</option>
@@ -30,18 +42,6 @@
     <option value="Cairo">Cairo</option>
     <option value="Giza">Giza</option>
   </select>
-
-  <label>Is this a governmental, private, or local NGO-run place? *</label>
-  <select name="ownership_type" required>
-    <option value="">Select...</option>
-    <option value="Governmental">Governmental</option>
-    <option value="Private">Private</option>
-    <option value="Local NGO">Local NGO</option>
-    <option value="Independent / community-run">Independent / community-run</option>
-    <option value="Other">Other</option>
-  </select>
-  <input type="text" name="ownership_type_other" placeholder="If Other, please specify" value="{{ form.get('ownership_type_other', '') }}">
-  <p class="hint">Helps with verification and helps givers know what they're choosing.</p>
 
   <label>Area *</label>
   <select name="area" id="area" required>
@@ -76,14 +76,14 @@
 
   <div id="institution-section" class="conditional-section">
     <label>Number of beneficiaries (residents / people cared for)</label>
-    <input type="number" min="1" name="beneficiaries" placeholder="e.g. 30" value="{{ form.get('beneficiaries', '') }}">
+    <input type="number" min="1" name="beneficiaries" id="beneficiaries" placeholder="e.g. 30" value="{{ form.get('beneficiaries', '') }}">
 
     <label>Number of staff (supervisors, teachers, carers, etc.)</label>
-    <input type="number" min="1" name="staff_members" placeholder="e.g. 8" value="{{ form.get('staff_members', '') }}">
+    <input type="number" min="1" name="staff_members" id="staff_members" placeholder="e.g. 8" value="{{ form.get('staff_members', '') }}">
 
     <label>Total number of people you'd like meals to cover</label>
-    <input type="number" min="1" name="total_to_feed" placeholder="e.g. 35" value="{{ form.get('total_to_feed', '') }}">
-    <p class="hint">Please enter this yourself rather than us adding the two numbers above — not everyone listed necessarily needs a donated meal.</p>
+    <input type="number" min="1" name="total_to_feed" id="total_to_feed" placeholder="e.g. 35" value="{{ form.get('total_to_feed', '') }}">
+    <p class="hint">Auto-calculated from the two numbers above — feel free to adjust it if the real number is different (e.g. not everyone listed needs a donated meal).</p>
   </div>
 
   <label>We don't specify meal types donors bring — but if you had the choice, what would suit your group best? (optional)</label>
@@ -243,6 +243,19 @@
   document.getElementById('center_type').addEventListener('change', updateInstitutionSection);
   document.querySelectorAll('input[name="target_group"]').forEach(el => el.addEventListener('change', updateInstitutionSection));
   updateInstitutionSection();
+
+  // Auto-calculate the suggested total whenever beneficiaries or staff change.
+  // The total field stays a normal editable input, so the person can still
+  // adjust it by hand afterward if the real number differs.
+  function updateTotalSuggestion() {
+    var beneficiaries = parseInt(document.getElementById('beneficiaries').value, 10) || 0;
+    var staff = parseInt(document.getElementById('staff_members').value, 10) || 0;
+    var sum = beneficiaries + staff;
+    if (sum > 0) {
+      document.getElementById('total_to_feed').value = sum;
+    }
+  }
+  document.getElementById('beneficiaries').addEventListener('input', updateTotalSuggestion);
+  document.getElementById('staff_members').addEventListener('input', updateTotalSuggestion);
 </script>
 {% endblock %}
-
