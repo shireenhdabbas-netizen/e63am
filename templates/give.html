@@ -1,141 +1,141 @@
 {% extends "base.html" %}
-{% block title %}I have food to give{% endblock %}
+{% block title %}عندي أكل أديه{% endblock %}
 {% block content %}
-<a class="back-link" href="{{ url_for('home') }}">&larr; Back</a>
-<h1>I have food to give</h1>
-<p class="subtitle">Fill this in and we'll match it with a nearby trusted center</p>
+<a class="back-link" href="{{ url_for('home') }}">&rarr; رجوع</a>
+<h1>عندي أكل أديه</h1>
+<p class="subtitle">املا البيانات وهنوصّلك بمكان موثوق قريب منك</p>
 
 <form method="POST">
   {% if user %}
-  <div class="info-box" style="margin-bottom:16px;">Signed in as {{ user.get('Nickname') or user.get('Real Name') }} — <a href="{{ url_for('logout') }}">not you?</a></div>
+  <div class="info-box" style="margin-bottom:16px;">مسجّل دخول كـ {{ user.get('Nickname') or user.get('Real Name') }} — <a href="{{ url_for('logout') }}">مش انت؟</a></div>
   {% endif %}
 
-  <label>Are you an individual or a restaurant/business? *</label>
+  <label>انت فرد ولا مطعم/منشأة؟ *</label>
   <select name="giver_type" required>
-    <option value="Individual">Individual</option>
-    <option value="Restaurant / Business">Restaurant / Business</option>
+    <option value="Individual">فرد</option>
+    <option value="Restaurant / Business">مطعم / منشأة</option>
   </select>
 
-  <label>Your name *</label>
+  <label>اسمك *</label>
   <input type="text" name="name" value="{{ form.get('name') or (user.get('Real Name') if user else '') }}" required>
 
-  <label>Phone number *</label>
+  <label>رقم التليفون *</label>
   <input type="tel" name="phone" value="{{ form.get('phone') or (user.get('Phone') if user else '') }}" required>
 
-  <label>Email (optional)</label>
-  <input type="email" name="email" placeholder="So we can notify you if no center matches yet" value="{{ form.get('email') or (user.get('Email') if user else '') }}">
+  <label>الإيميل (اختياري)</label>
+  <input type="email" name="email" placeholder="عشان نبعتلك إشعار لو مفيش مكان متاح دلوقتي" value="{{ form.get('email') or (user.get('Email') if user else '') }}">
 
-  <label>Governorate *</label>
+  <label>المحافظة *</label>
   <select name="governorate" id="governorate" required>
-    <option value="">Select...</option>
-    <option value="Cairo">Cairo</option>
-    <option value="Giza">Giza</option>
+    <option value="">اختار...</option>
+    <option value="Cairo">القاهرة</option>
+    <option value="Giza">الجيزة</option>
   </select>
 
-  <label>Area *</label>
+  <label>المنطقة *</label>
   <select name="area" id="area" required>
-    <option value="">Select governorate first...</option>
+    <option value="">اختار المحافظة الأول...</option>
   </select>
-  <input type="text" name="area_other" placeholder="If your area isn't listed, specify it here" value="{{ form.get('area_other', '') }}">
-  <p class="hint">Where you are / where the food is ready.</p>
+  <input type="text" name="area_other" placeholder="لو منطقتك مش موجودة، اكتبها هنا" value="{{ form.get('area_other', '') }}">
+  <p class="hint">فين انت / فين الأكل هيكون جاهز.</p>
 
-  <label>Are you limited to your own area, or open to deliver elsewhere?</label>
+  <label>منطقتك بس ولا مستعد توصّل لمناطق تانية؟</label>
   <select name="area_flexibility" id="area_flexibility">
-    <option value="Limited">Just my area</option>
-    <option value="Open">I'm open to other areas too</option>
+    <option value="Limited">منطقتي بس</option>
+    <option value="Open">مستعد لمناطق تانية كمان</option>
   </select>
 
   <div id="additional-areas-section" class="conditional-section">
-    <label>Which other areas could you deliver to?</label>
-    <p class="hint">Select any you'd be willing to travel to</p>
+    <label>هتوصّل لأنهي مناطق كمان؟</label>
+    <p class="hint">اختار أي منطقة مستعد تروحلها</p>
     <div class="checkbox-row" id="additional-areas-list"></div>
   </div>
 
-  <label>Food type</label>
+  <label>نوع الأكل</label>
   <select name="food_type" id="food_type">
-    <option value="Hot meal">Hot meal</option>
-    <option value="Cold meal">Cold meal</option>
-    <option value="Groceries">Groceries</option>
+    <option value="Hot meal">وجبة سخنة</option>
+    <option value="Cold meal">وجبة باردة</option>
+    <option value="Groceries">مواد غذائية</option>
   </select>
 
   <div id="time-preference-wrapper" class="conditional-section visible">
-    <label>Do you have a specific time, or are you flexible based on what the center needs?</label>
+    <label>عندك وقت محدد ولا مرن حسب احتياج المكان؟</label>
     <select name="time_preference" id="time_preference">
-      <option value="Flexible">I'm flexible — I'll adjust to the center's need</option>
-      <option value="Specific">I have a specific time slot</option>
+      <option value="Flexible">مرن — هظبط نفسي على احتياج المكان</option>
+      <option value="Specific">عندي فترة محددة</option>
     </select>
 
     <div id="meal-slot-section" class="conditional-section">
-      <label>Which time slot is this for?</label>
+      <label>الفترة دي إمتى؟</label>
       <select name="meal_slot">
-        <option value="Breakfast (9-11)">Breakfast (9-11)</option>
-        <option value="Late breakfast (12-2)">Late breakfast (12-2)</option>
-        <option value="Lunch (4-6)">Lunch (4-6)</option>
-        <option value="Dinner (8-10)">Dinner (8-10)</option>
+        <option value="Breakfast (9-11)">فطار (9-11)</option>
+        <option value="Late breakfast (12-2)">فطار متأخر (12-2)</option>
+        <option value="Lunch (4-6)">غدا (4-6)</option>
+        <option value="Dinner (8-10)">عشا (8-10)</option>
       </select>
     </div>
   </div>
 
-  <label>Maximum you can give *</label>
-  <input type="number" min="1" name="quantity_number" placeholder="e.g. 20" value="{{ form.get('quantity_number', '') }}" required>
+  <label>أقصى كمية تقدر تديها *</label>
+  <input type="number" min="1" name="quantity_number" placeholder="مثلاً 20" value="{{ form.get('quantity_number', '') }}" required>
   <select name="quantity_unit">
-    <option value="meals">meals</option>
-    <option value="portions">portions</option>
-    <option value="kg">kg</option>
-    <option value="boxes">boxes</option>
-    <option value="items">items</option>
+    <option value="meals">وجبة</option>
+    <option value="portions">حصة</option>
+    <option value="kg">كجم</option>
+    <option value="boxes">كرتونة</option>
+    <option value="items">قطعة</option>
   </select>
-  <p class="hint">This is your ceiling — once we find a matching center, you'll see what they actually need and can confirm the exact amount then.</p>
+  <p class="hint">ده الحد الأقصى — أول ما نلاقيلك مكان مناسب، هتشوف احتياجه الفعلي وتأكد الكمية بالظبط وقتها.</p>
 
-  <label>What date will it be ready? *</label>
+  <label>هيكون جاهز إمتى؟ *</label>
   <input type="date" name="ready_date" value="{{ form.get('ready_date', '') }}" required>
-  <p class="hint">Must be at least tomorrow, so a center can be arranged and notified ahead of time.</p>
+  <p class="hint">لازم يكون بكرة على الأقل، عشان نقدر نظبط مكان ونبلغه بدري.</p>
 
-  <label>Is this a recurring / standing offer?</label>
+  <label>ده عرض متكرر؟</label>
   <select name="recurring" id="recurring">
-    <option value="No">No, this is one-time</option>
-    <option value="Yes">Yes, this repeats regularly</option>
+    <option value="No">لأ، مرة واحدة بس</option>
+    <option value="Yes">أيوه، بيتكرر بانتظام</option>
   </select>
 
   <div id="recurring-section" class="conditional-section">
-    <label>Which days do you donate?</label>
+    <label>بتدّي في أنهي أيام؟</label>
     <div class="checkbox-row">
-      <label class="checkbox-label"><input type="checkbox" name="recurring_days" value="Saturday"> Sat</label>
-      <label class="checkbox-label"><input type="checkbox" name="recurring_days" value="Sunday"> Sun</label>
-      <label class="checkbox-label"><input type="checkbox" name="recurring_days" value="Monday"> Mon</label>
-      <label class="checkbox-label"><input type="checkbox" name="recurring_days" value="Tuesday"> Tue</label>
-      <label class="checkbox-label"><input type="checkbox" name="recurring_days" value="Wednesday"> Wed</label>
-      <label class="checkbox-label"><input type="checkbox" name="recurring_days" value="Thursday"> Thu</label>
-      <label class="checkbox-label"><input type="checkbox" name="recurring_days" value="Friday"> Fri</label>
+      <label class="checkbox-label"><input type="checkbox" name="recurring_days" value="Saturday"> السبت</label>
+      <label class="checkbox-label"><input type="checkbox" name="recurring_days" value="Sunday"> الأحد</label>
+      <label class="checkbox-label"><input type="checkbox" name="recurring_days" value="Monday"> الإتنين</label>
+      <label class="checkbox-label"><input type="checkbox" name="recurring_days" value="Tuesday"> التلات</label>
+      <label class="checkbox-label"><input type="checkbox" name="recurring_days" value="Wednesday"> الأربع</label>
+      <label class="checkbox-label"><input type="checkbox" name="recurring_days" value="Thursday"> الخميس</label>
+      <label class="checkbox-label"><input type="checkbox" name="recurring_days" value="Friday"> الجمعة</label>
     </div>
   </div>
 
-  <p class="hint">By submitting, you're committing to deliver this yourself to the matched center — pickup/volunteer delivery isn't available yet in this early phase.</p>
+  <p class="hint">بإرسالك الطلب، انت بتلتزم إنك توصّل بنفسك للمكان اللي هتتوصّل بيه — التوصيل عن طريق حد تاني لسه مش متاح في المرحلة دي.</p>
 
-  <label>Will you be the one the center contacts about this delivery, or someone else? *</label>
+  <label>المكان هيتواصل مع مين بخصوص التوصيل — انت ولا حد تاني؟ *</label>
   <select name="delivery_contact_who" id="delivery_contact_who" required>
-    <option value="Me">Me</option>
-    <option value="Someone else">Someone else</option>
+    <option value="Me">أنا</option>
+    <option value="Someone else">حد تاني</option>
   </select>
 
   <div id="other-contact-section" class="conditional-section">
-    <label>Their name *</label>
-    <input type="text" name="delivery_contact_name" id="delivery_contact_name" placeholder="Name" value="{{ form.get('delivery_contact_name', '') }}">
-    <label>Their phone number *</label>
-    <input type="tel" name="delivery_contact_phone" id="delivery_contact_phone" placeholder="Phone number" value="{{ form.get('delivery_contact_phone', '') }}">
+    <label>اسمه *</label>
+    <input type="text" name="delivery_contact_name" id="delivery_contact_name" placeholder="الاسم" value="{{ form.get('delivery_contact_name', '') }}">
+    <label>رقم تليفونه *</label>
+    <input type="tel" name="delivery_contact_phone" id="delivery_contact_phone" placeholder="رقم التليفون" value="{{ form.get('delivery_contact_phone', '') }}">
   </div>
 
-  <label>Backup phone number (optional)</label>
-  <input type="tel" name="backup_phone" placeholder="In case the main number doesn't answer" value="{{ form.get('backup_phone', '') }}">
+  <label>رقم احتياطي (اختياري)</label>
+  <input type="tel" name="backup_phone" placeholder="لو الرقم الأساسي ما ردش" value="{{ form.get('backup_phone', '') }}">
 
-  <button type="submit">Submit</button>
+  <button type="submit">إرسال</button>
 </form>
 
 <style>
   .checkbox-row { display: flex; flex-wrap: wrap; gap: 10px 16px; margin: 6px 0 4px; }
   .checkbox-label { display: flex; align-items: center; gap: 6px; font-size: 13px; color: #333; margin: 0; }
   .checkbox-label input { width: auto; }
-  .conditional-section { display: none; border-left: 2px solid #2f7d5c; padding-left: 12px; margin: 8px 0 16px; }
+  .conditional-section { display: none; border-right: 2px solid #2f7d5c; padding-right: 12px; margin: 8px 0 16px; }
   .conditional-section.visible { display: block; }
 </style>
 <script>
@@ -157,22 +157,48 @@
     ]
   };
 
+  // Arabic display names for each area value - the value submitted stays
+  // English (matches the sheet/matching logic), only the visible label changes.
+  var AREA_NAMES_AR = {
+    "Shubra": "شبرا", "El-Zawia El-Hamra": "الزاوية الحمراء", "Hadayek El-Kobba": "حدائق القبة",
+    "Rod El-Farg": "روض الفرج", "El-Sharabia": "الشرابية", "El-Sahel": "الساحل",
+    "El-Zaiton": "الزيتون", "Al-Ameria": "الأميرية", "Masr El-Qadima": "مصر القديمة",
+    "El-Khalifa": "الخليفة", "El-Moqattam": "المقطم", "El-Basatin": "البساتين",
+    "Dar El-Salam": "دار السلام", "El-Sayeda Zeinab": "السيدة زينب", "El-Tebin": "التبين",
+    "Helwan": "حلوان", "El-Maasara": "المعصرة", "El-Maadi": "المعادي", "Tora": "طرة",
+    "15 May": "15 مايو", "Manshaet Naser": "منشأة ناصر", "El-Waily": "الوايلي",
+    "Wast El-Qahira (Downtown)": "وسط القاهرة", "Boulak": "بولاق", "Gharb El-Qahira": "غرب القاهرة",
+    "Abdeen": "عابدين", "Azbakia": "الأزبكية", "Moski": "الموسكي", "Bab El-Shaaria": "باب الشعرية",
+    "Misr El-Gadidah (Heliopolis)": "مصر الجديدة (هليوبوليس)", "El-Nozha": "النزهة",
+    "Sharq Madinet Nasr": "شرق مدينة نصر", "Gharb Madinet Nasr": "غرب مدينة نصر",
+    "El-Salam Awal": "السلام أول", "El-Salam Thani": "السلام ثاني", "El-Mataria": "المطرية",
+    "Ain Shams": "عين شمس", "El-Marg": "المرج", "Zamalek": "الزمالك", "Garden City": "جاردن سيتي",
+    "New Cairo": "القاهرة الجديدة", "Katameya": "القطامية",
+    "Dokki": "الدقي", "Agouza / Mohandessin": "العجوزة / المهندسين", "Omraniya": "العمرانية",
+    "Haram": "الهرم", "Boulak El Dakrour": "بولاق الدكرور", "El Warraq": "الوراق",
+    "North Giza": "شمال الجيزة", "South Giza": "جنوب الجيزة", "6th of October": "السادس من أكتوبر",
+    "Sheikh Zayed": "الشيخ زايد", "Imbaba": "إمبابة", "Faisal": "فيصل", "Giza Square": "ميدان الجيزة",
+    "Al-Ayyat": "العياط", "Atfih": "أطفيح", "Awsim": "أوسيم", "Al-Badrashin": "البدرشين",
+    "Al-Hawamdiya": "الحوامدية", "Al-Saff": "الصف", "Kerdasa": "كرداسة",
+    "Manshaat El Qanater": "منشأة القناطر", "Other": "تاني"
+  };
+
   function updateAreaOptions() {
     var gov = document.getElementById('governorate').value;
     var areaSelect = document.getElementById('area');
     areaSelect.innerHTML = "";
     if (!gov || !AREAS_BY_GOVERNORATE[gov]) {
-      areaSelect.innerHTML = '<option value="">Select governorate first...</option>';
+      areaSelect.innerHTML = '<option value="">اختار المحافظة الأول...</option>';
       return;
     }
     var placeholder = document.createElement('option');
     placeholder.value = "";
-    placeholder.textContent = "Select...";
+    placeholder.textContent = "اختار...";
     areaSelect.appendChild(placeholder);
     AREAS_BY_GOVERNORATE[gov].forEach(function(area) {
       var opt = document.createElement('option');
       opt.value = area;
-      opt.textContent = area;
+      opt.textContent = AREA_NAMES_AR[area] || area;
       areaSelect.appendChild(opt);
     });
   }
@@ -184,16 +210,16 @@
   // individual checkboxes - matching still happens at the exact-area level
   // underneath, this is just an easier way to pick which ones.
   var AREA_CLUSTERS = [
-    { name: "Central Cairo", areas: ["Zamalek", "Garden City", "Dokki", "Agouza / Mohandessin"] },
-    { name: "Downtown & Old Cairo", areas: ["Wast El-Qahira (Downtown)", "Boulak", "Gharb El-Qahira", "Abdeen", "Azbakia", "Moski", "Bab El-Shaaria", "Manshaet Naser", "El-Waily"] },
-    { name: "Heliopolis & Nasr City", areas: ["Misr El-Gadidah (Heliopolis)", "El-Nozha", "Sharq Madinet Nasr", "Gharb Madinet Nasr"] },
-    { name: "Shubra & North Cairo", areas: ["Shubra", "El-Zawia El-Hamra", "Hadayek El-Kobba", "Rod El-Farg", "El-Sharabia", "El-Sahel", "El-Zaiton", "Al-Ameria"] },
-    { name: "Maadi & South Cairo", areas: ["Masr El-Qadima", "El-Khalifa", "El-Moqattam", "El-Basatin", "Dar El-Salam", "El-Sayeda Zeinab", "El-Tebin", "Helwan", "El-Maasara", "El-Maadi", "Tora", "15 May"] },
-    { name: "Ain Shams & East Cairo", areas: ["El-Salam Awal", "El-Salam Thani", "El-Mataria", "Ain Shams", "El-Marg"] },
-    { name: "New Cairo", areas: ["New Cairo", "Katameya"] },
-    { name: "Giza & West Bank", areas: ["Haram", "Boulak El Dakrour", "El Warraq", "North Giza", "South Giza", "Faisal", "Imbaba", "Giza Square", "Omraniya"] },
-    { name: "6th of October & Sheikh Zayed", areas: ["6th of October", "Sheikh Zayed"] },
-    { name: "Outer Giza", areas: ["Al-Ayyat", "Atfih", "Awsim", "Al-Badrashin", "Al-Hawamdiya", "Al-Saff", "Kerdasa", "Manshaat El Qanater"] }
+    { name: "وسط القاهرة", areas: ["Zamalek", "Garden City", "Dokki", "Agouza / Mohandessin"] },
+    { name: "وسط البلد والقاهرة القديمة", areas: ["Wast El-Qahira (Downtown)", "Boulak", "Gharb El-Qahira", "Abdeen", "Azbakia", "Moski", "Bab El-Shaaria", "Manshaet Naser", "El-Waily"] },
+    { name: "مصر الجديدة ومدينة نصر", areas: ["Misr El-Gadidah (Heliopolis)", "El-Nozha", "Sharq Madinet Nasr", "Gharb Madinet Nasr"] },
+    { name: "شبرا وشمال القاهرة", areas: ["Shubra", "El-Zawia El-Hamra", "Hadayek El-Kobba", "Rod El-Farg", "El-Sharabia", "El-Sahel", "El-Zaiton", "Al-Ameria"] },
+    { name: "المعادي وجنوب القاهرة", areas: ["Masr El-Qadima", "El-Khalifa", "El-Moqattam", "El-Basatin", "Dar El-Salam", "El-Sayeda Zeinab", "El-Tebin", "Helwan", "El-Maasara", "El-Maadi", "Tora", "15 May"] },
+    { name: "عين شمس وشرق القاهرة", areas: ["El-Salam Awal", "El-Salam Thani", "El-Mataria", "Ain Shams", "El-Marg"] },
+    { name: "القاهرة الجديدة", areas: ["New Cairo", "Katameya"] },
+    { name: "الجيزة والضفة الغربية", areas: ["Haram", "Boulak El Dakrour", "El Warraq", "North Giza", "South Giza", "Faisal", "Imbaba", "Giza Square", "Omraniya"] },
+    { name: "السادس من أكتوبر والشيخ زايد", areas: ["6th of October", "Sheikh Zayed"] },
+    { name: "أطراف الجيزة", areas: ["Al-Ayyat", "Atfih", "Awsim", "Al-Badrashin", "Al-Hawamdiya", "Al-Saff", "Kerdasa", "Manshaat El Qanater"] }
   ];
 
   function populateAdditionalAreas() {
