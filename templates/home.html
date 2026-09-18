@@ -1,27 +1,27 @@
 {% extends "base.html" %}
-{% block title %}افكر اطعام{% endblock %}
+{% block title %}مما تحبون {% endblock %}
 {% block content %}
-<h1>افكر اطعام</h1>
-<p class="subtitle">Connecting surplus food with trusted local centers</p>
+<h1>مما تحبون </h1>
+<p class="subtitle">بنربط الناس اللي حابين يقدموا اطعام مع الناس اللي بتستحقه</p>
 
 {% if user %}
 <p style="font-size:13px;margin:-8px 0 18px;">
-  Hi {{ user.get('Nickname') or user.get('Real Name') }} —
-  <a href="{{ url_for('my_activity') }}">my activity</a>
+  أهلاً {{ user.get('Nickname') or user.get('Real Name') }} —
+  <a href="{{ url_for('my_activity') }}">نشاطي</a>
 </p>
 {% else %}
 <p style="font-size:13px;margin:-8px 0 18px;">
-  <a href="{{ url_for('login') }}">Sign in</a> to save your history
+  <a href="{{ url_for('login') }}">سجّل دخول</a> عشان تحتفظ بسجل تبرعاتك
 </p>
 {% endif %}
 
 <a class="card" href="{{ url_for('give_food') }}">
-  <p class="card-title">🍲 I have food to give</p>
-  <p class="card-sub">Meals or groceries</p>
+  <p class="card-title">🍲 عندي أكل أديه</p>
+  <p class="card-sub">وجبات أو مواد غذائية</p>
 </a>
 
 <a class="card" href="{{ url_for('register_center') }}">
-  <p class="card-title">🕌 Register a center</p>
-  <p class="card-sub">Mosque, church, community center</p>
+  <p class="card-title">🕌 سجّل مكان استقبال</p>
+  <p class="card-sub">مسجد، كنيسة، أو مركز خدمة مجتمعي</p>
 </a>
 {% endblock %}
