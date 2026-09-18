@@ -80,9 +80,9 @@
   </select>
   <p class="hint">This is your ceiling — once we find a matching center, you'll see what they actually need and can confirm the exact amount then.</p>
 
-  <label>Ready time *</label>
-  <input type="datetime-local" name="ready_time" value="{{ form.get('ready_time', '') }}" required>
-  <p class="hint">Must be at least 24 hours from now, so a center can be arranged and notified ahead of time.</p>
+  <label>What date will it be ready? *</label>
+  <input type="date" name="ready_date" value="{{ form.get('ready_date', '') }}" required>
+  <p class="hint">Must be at least tomorrow, so a center can be arranged and notified ahead of time.</p>
 
   <label>Is this a recurring / standing offer?</label>
   <select name="recurring" id="recurring">
@@ -105,10 +105,21 @@
 
   <p class="hint">By submitting, you're committing to deliver this yourself to the matched center — pickup/volunteer delivery isn't available yet in this early phase.</p>
 
-  <label>Who should the center contact about this delivery? *</label>
-  <input type="text" name="delivery_contact_name" placeholder="Name" value="{{ form.get('delivery_contact_name', '') }}" required>
-  <input type="tel" name="delivery_contact_phone" placeholder="Phone number" value="{{ form.get('delivery_contact_phone', '') }}" required>
-  <p class="hint">If that's you, just repeat your name and number above. If someone else will actually be there (e.g. staff dropping it off), put their details instead.</p>
+  <label>Will you be the one the center contacts about this delivery, or someone else? *</label>
+  <select name="delivery_contact_who" id="delivery_contact_who" required>
+    <option value="Me">Me</option>
+    <option value="Someone else">Someone else</option>
+  </select>
+
+  <div id="other-contact-section" class="conditional-section">
+    <label>Their name *</label>
+    <input type="text" name="delivery_contact_name" id="delivery_contact_name" placeholder="Name" value="{{ form.get('delivery_contact_name', '') }}">
+    <label>Their phone number *</label>
+    <input type="tel" name="delivery_contact_phone" id="delivery_contact_phone" placeholder="Phone number" value="{{ form.get('delivery_contact_phone', '') }}">
+  </div>
+
+  <label>Backup phone number (optional)</label>
+  <input type="tel" name="backup_phone" placeholder="In case the main number doesn't answer" value="{{ form.get('backup_phone', '') }}">
 
   <button type="submit">Submit</button>
 </form>
@@ -162,26 +173,53 @@
   updateAreaOptions();
 
   // Combined list (both governorates) for "open to other areas" selection,
-  // since a giver might be willing to cross governorate lines too.
-  var ALL_AREAS = [].concat(AREAS_BY_GOVERNORATE['Cairo'], AREAS_BY_GOVERNORATE['Giza'])
-    .filter(function(a, i, arr) { return a !== 'Other' && arr.indexOf(a) === i; });
+  // grouped into broader clusters so the person isn't choosing from 40+
+  // individual checkboxes - matching still happens at the exact-area level
+  // underneath, this is just an easier way to pick which ones.
+  var AREA_CLUSTERS = [
+    { name: "Central Cairo", areas: ["Zamalek", "Garden City", "Dokki", "Agouza / Mohandessin"] },
+    { name: "Downtown & Old Cairo", areas: ["Wast El-Qahira (Downtown)", "Boulak", "Gharb El-Qahira", "Abdeen", "Azbakia", "Moski", "Bab El-Shaaria", "Manshaet Naser", "El-Waily"] },
+    { name: "Heliopolis & Nasr City", areas: ["Misr El-Gadidah (Heliopolis)", "El-Nozha", "Sharq Madinet Nasr", "Gharb Madinet Nasr"] },
+    { name: "Shubra & North Cairo", areas: ["Shubra", "El-Zawia El-Hamra", "Hadayek El-Kobba", "Rod El-Farg", "El-Sharabia", "El-Sahel", "El-Zaiton", "Al-Ameria"] },
+    { name: "Maadi & South Cairo", areas: ["Masr El-Qadima", "El-Khalifa", "El-Moqattam", "El-Basatin", "Dar El-Salam", "El-Sayeda Zeinab", "El-Tebin", "Helwan", "El-Maasara", "El-Maadi", "Tora", "15 May"] },
+    { name: "Ain Shams & East Cairo", areas: ["El-Salam Awal", "El-Salam Thani", "El-Mataria", "Ain Shams", "El-Marg"] },
+    { name: "New Cairo", areas: ["New Cairo", "Katameya"] },
+    { name: "Giza & West Bank", areas: ["Haram", "Boulak El Dakrour", "El Warraq", "North Giza", "South Giza", "Faisal", "Imbaba", "Giza Square", "Omraniya"] },
+    { name: "6th of October & Sheikh Zayed", areas: ["6th of October", "Sheikh Zayed"] },
+    { name: "Outer Giza", areas: ["Al-Ayyat", "Atfih", "Awsim", "Al-Badrashin", "Al-Hawamdiya", "Al-Saff", "Kerdasa", "Manshaat El Qanater"] }
+  ];
 
   function populateAdditionalAreas() {
     var container = document.getElementById('additional-areas-list');
     container.innerHTML = '';
-    ALL_AREAS.forEach(function(area) {
+    AREA_CLUSTERS.forEach(function(cluster) {
       var label = document.createElement('label');
       label.className = 'checkbox-label';
       var input = document.createElement('input');
       input.type = 'checkbox';
-      input.name = 'additional_areas';
-      input.value = area;
+      input.className = 'area-cluster-checkbox';
+      input.setAttribute('data-areas', cluster.areas.join(','));
       label.appendChild(input);
-      label.appendChild(document.createTextNode(' ' + area));
+      label.appendChild(document.createTextNode(' ' + cluster.name));
       container.appendChild(label);
     });
   }
   populateAdditionalAreas();
+
+  // Right before submitting, expand any checked clusters into hidden
+  // "additional_areas" inputs for each area they contain - the backend
+  // still just works with a flat list of area names.
+  document.querySelector('form').addEventListener('submit', function() {
+    document.querySelectorAll('.area-cluster-checkbox:checked').forEach(function(cb) {
+      cb.getAttribute('data-areas').split(',').forEach(function(area) {
+        var hidden = document.createElement('input');
+        hidden.type = 'hidden';
+        hidden.name = 'additional_areas';
+        hidden.value = area;
+        cb.closest('form').appendChild(hidden);
+      });
+    });
+  });
 
   function updateAdditionalAreasVisibility() {
     var flexibility = document.getElementById('area_flexibility').value;
@@ -210,5 +248,15 @@
   }
   document.getElementById('recurring').addEventListener('change', updateRecurringSection);
   updateRecurringSection();
+
+  function updateDeliveryContactSection() {
+    var who = document.getElementById('delivery_contact_who').value;
+    var showOther = (who === 'Someone else');
+    document.getElementById('other-contact-section').classList.toggle('visible', showOther);
+    document.getElementById('delivery_contact_name').required = showOther;
+    document.getElementById('delivery_contact_phone').required = showOther;
+  }
+  document.getElementById('delivery_contact_who').addEventListener('change', updateDeliveryContactSection);
+  updateDeliveryContactSection();
 </script>
 {% endblock %}
