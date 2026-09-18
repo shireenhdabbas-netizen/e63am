@@ -6,43 +6,80 @@
 <p class="subtitle">Fill this in and we'll match it with a nearby trusted center</p>
 
 <form method="POST">
+  <label>Are you an individual or a restaurant/business? *</label>
+  <select name="giver_type" required>
+    <option value="Individual">Individual</option>
+    <option value="Restaurant / Business">Restaurant / Business</option>
+  </select>
+
   <label>Your name *</label>
   <input type="text" name="name" value="{{ form.get('name', '') }}" required>
 
   <label>Phone number *</label>
   <input type="tel" name="phone" value="{{ form.get('phone', '') }}" required>
 
+  <label>Governorate *</label>
+  <select name="governorate" id="governorate" required>
+    <option value="">Select...</option>
+    <option value="Cairo">Cairo</option>
+    <option value="Giza">Giza</option>
+  </select>
+
   <label>Area *</label>
-  <input type="text" name="area" placeholder="e.g. Maadi" value="{{ form.get('area', '') }}" required>
+  <select name="area" id="area" required>
+    <option value="">Select governorate first...</option>
+  </select>
+  <input type="text" name="area_other" placeholder="If your area isn't listed, specify it here" value="{{ form.get('area_other', '') }}">
 
   <label>Food type</label>
-  <select name="food_type">
+  <select name="food_type" id="food_type">
     <option value="Hot meal">Hot meal</option>
     <option value="Cold meal">Cold meal</option>
     <option value="Groceries">Groceries</option>
   </select>
 
-  <label>Meal category</label>
-  <select name="meal_category">
-    <option value="Breakfast">Breakfast</option>
-    <option value="Lunch">Lunch</option>
-    <option value="Dinner">Dinner</option>
-    <option value="Snack">Snack</option>
-    <option value="N/A">N/A (groceries)</option>
-  </select>
+  <div id="meal-slot-section" class="conditional-section visible">
+    <label>Which time slot is this for?</label>
+    <select name="meal_slot">
+      <option value="Breakfast (9-11)">Breakfast (9-11)</option>
+      <option value="Late breakfast (12-2)">Late breakfast (12-2)</option>
+      <option value="Lunch (4-6)">Lunch (4-6)</option>
+      <option value="Dinner (8-10)">Dinner (8-10)</option>
+    </select>
+  </div>
 
   <label>Quantity *</label>
-  <input type="text" name="quantity" placeholder="e.g. 20 meals" value="{{ form.get('quantity', '') }}" required>
+  <input type="number" min="1" name="quantity_number" placeholder="e.g. 20" value="{{ form.get('quantity_number', '') }}" required>
+  <select name="quantity_unit">
+    <option value="meals">meals</option>
+    <option value="portions">portions</option>
+    <option value="kg">kg</option>
+    <option value="boxes">boxes</option>
+    <option value="items">items</option>
+  </select>
 
   <label>Ready time *</label>
   <input type="datetime-local" name="ready_time" value="{{ form.get('ready_time', '') }}" required>
   <p class="hint">Must be at least 24 hours from now, so a center can be arranged and notified ahead of time.</p>
 
   <label>Is this a recurring / standing offer?</label>
-  <select name="recurring">
+  <select name="recurring" id="recurring">
     <option value="No">No, this is one-time</option>
     <option value="Yes">Yes, this repeats regularly</option>
   </select>
+
+  <div id="recurring-section" class="conditional-section">
+    <label>Which days do you donate?</label>
+    <div class="checkbox-row">
+      <label class="checkbox-label"><input type="checkbox" name="recurring_days" value="Saturday"> Sat</label>
+      <label class="checkbox-label"><input type="checkbox" name="recurring_days" value="Sunday"> Sun</label>
+      <label class="checkbox-label"><input type="checkbox" name="recurring_days" value="Monday"> Mon</label>
+      <label class="checkbox-label"><input type="checkbox" name="recurring_days" value="Tuesday"> Tue</label>
+      <label class="checkbox-label"><input type="checkbox" name="recurring_days" value="Wednesday"> Wed</label>
+      <label class="checkbox-label"><input type="checkbox" name="recurring_days" value="Thursday"> Thu</label>
+      <label class="checkbox-label"><input type="checkbox" name="recurring_days" value="Friday"> Fri</label>
+    </div>
+  </div>
 
   <label>Can you deliver it yourself, or does it need pickup?</label>
   <select name="pickup">
@@ -57,4 +94,67 @@
 
   <button type="submit">Submit</button>
 </form>
+
+<style>
+  .checkbox-row { display: flex; flex-wrap: wrap; gap: 10px 16px; margin: 6px 0 4px; }
+  .checkbox-label { display: flex; align-items: center; gap: 6px; font-size: 13px; color: #333; margin: 0; }
+  .checkbox-label input { width: auto; }
+  .conditional-section { display: none; border-left: 2px solid #2f7d5c; padding-left: 12px; margin: 8px 0 16px; }
+  .conditional-section.visible { display: block; }
+</style>
+<script>
+  var AREAS_BY_GOVERNORATE = {
+    "Cairo": [
+      "Shubra", "El-Zawia El-Hamra", "Hadayek El-Kobba", "Rod El-Farg", "El-Sharabia", "El-Sahel", "El-Zaiton", "Al-Ameria",
+      "Masr El-Qadima", "El-Khalifa", "El-Moqattam", "El-Basatin", "Dar El-Salam", "El-Sayeda Zeinab", "El-Tebin", "Helwan", "El-Maasara", "El-Maadi", "Tora", "15 May",
+      "Manshaet Naser", "El-Waily", "Wast El-Qahira (Downtown)", "Boulak", "Gharb El-Qahira", "Abdeen", "Azbakia", "Moski", "Bab El-Shaaria",
+      "Misr El-Gadidah (Heliopolis)", "El-Nozha", "Sharq Madinet Nasr", "Gharb Madinet Nasr", "El-Salam Awal", "El-Salam Thani", "El-Mataria", "Ain Shams", "El-Marg",
+      "Zamalek", "Garden City", "New Cairo", "Katameya",
+      "Other"
+    ],
+    "Giza": [
+      "Dokki", "Agouza / Mohandessin", "Omraniya", "Haram", "Boulak El Dakrour", "El Warraq", "North Giza", "South Giza",
+      "6th of October", "Sheikh Zayed",
+      "Imbaba", "Faisal", "Giza Square",
+      "Al-Ayyat", "Atfih", "Awsim", "Al-Badrashin", "Al-Hawamdiya", "Al-Saff", "Kerdasa", "Manshaat El Qanater",
+      "Other"
+    ]
+  };
+
+  function updateAreaOptions() {
+    var gov = document.getElementById('governorate').value;
+    var areaSelect = document.getElementById('area');
+    areaSelect.innerHTML = "";
+    if (!gov || !AREAS_BY_GOVERNORATE[gov]) {
+      areaSelect.innerHTML = '<option value="">Select governorate first...</option>';
+      return;
+    }
+    var placeholder = document.createElement('option');
+    placeholder.value = "";
+    placeholder.textContent = "Select...";
+    areaSelect.appendChild(placeholder);
+    AREAS_BY_GOVERNORATE[gov].forEach(function(area) {
+      var opt = document.createElement('option');
+      opt.value = area;
+      opt.textContent = area;
+      areaSelect.appendChild(opt);
+    });
+  }
+  document.getElementById('governorate').addEventListener('change', updateAreaOptions);
+  updateAreaOptions();
+
+  function updateMealSlotSection() {
+    var foodType = document.getElementById('food_type').value;
+    document.getElementById('meal-slot-section').classList.toggle('visible', foodType !== 'Groceries');
+  }
+  document.getElementById('food_type').addEventListener('change', updateMealSlotSection);
+  updateMealSlotSection();
+
+  function updateRecurringSection() {
+    var recurring = document.getElementById('recurring').value;
+    document.getElementById('recurring-section').classList.toggle('visible', recurring === 'Yes');
+  }
+  document.getElementById('recurring').addEventListener('change', updateRecurringSection);
+  updateRecurringSection();
+</script>
 {% endblock %}
