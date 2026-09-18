@@ -50,6 +50,11 @@
     <option value="Yes">Needs pickup</option>
   </select>
 
+  <label>Who should the center contact about this delivery? *</label>
+  <input type="text" name="delivery_contact_name" placeholder="Name" value="{{ form.get('delivery_contact_name', '') }}" required>
+  <input type="tel" name="delivery_contact_phone" placeholder="Phone number" value="{{ form.get('delivery_contact_phone', '') }}" required>
+  <p class="hint">If that's you, just repeat your name and number above. If someone else will actually be there (e.g. staff dropping it off), put their details instead.</p>
+
   <button type="submit">Submit</button>
 </form>
 {% endblock %}
