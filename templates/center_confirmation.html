@@ -1,11 +1,11 @@
 {% extends "base.html" %}
-{% block title %}Center added{% endblock %}
+{% block title %}تم إضافة المكان{% endblock %}
 {% block content %}
 <div class="confirm-icon">📋</div>
-<h1>You're live</h1>
-<p class="subtitle">Thank you — <strong>{{ center_name }}</strong> is now visible to givers in your area.</p>
+<h1>المكان بقى ظاهر دلوقتي</h1>
+<p class="subtitle">شكرًا — <strong>{{ center_name }}</strong> بقى ظاهر للناس اللي هتدّي في منطقتك.</p>
 <div class="info-box">
-  It's shown as "Unverified" for now — once it receives its first donation, it automatically earns a "Verified" badge.
+  هيظهر كـ"لسه مش موثّق" دلوقتي — أول ما يستلم أول تبرّع، هياخد شارة "موثّق" أوتوماتيك.
 </div>
-<a class="back-link" href="{{ url_for('home') }}">&larr; Back to home</a>
+<a class="back-link" href="{{ url_for('home') }}">&rarr; رجوع للرئيسية</a>
 {% endblock %}
