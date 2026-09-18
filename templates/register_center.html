@@ -1,208 +1,223 @@
 {% extends "base.html" %}
-{% block title %}Register a center{% endblock %}
+{% block title %} اسجّل مكان استقبال للاطعام{% endblock %}
 {% block content %}
-<a class="back-link" href="{{ url_for('home') }}">&larr; Back</a>
-<h1>Register a center</h1>
-<p class="subtitle">Mosque, church, or community center that can receive and distribute food</p>
+<a class="back-link" href="{{ url_for('home') }}">&rarr; رجوع</a>
+<h1>سجّل مكان استقبال</h1>
+<p class="subtitle">مسجد، كنيسة، أو مركز خدمة مجتمعي يقدر يستقبل ويوزّع أكل</p>
 
 <form method="POST" enctype="multipart/form-data">
-  <label>Center name *</label>
+  <label>اسم المكان *</label>
   <input type="text" name="center_name" value="{{ form.get('center_name', '') }}" required>
 
-  <label>Tell givers about this place (optional)</label>
-  <textarea name="bio" rows="4" placeholder="What does this place do? Its mission, how long it's been serving the community, what makes it worth donating to...">{{ form.get('bio', '') }}</textarea>
-  <p class="hint">This is shown to givers browsing centers to choose from — helps them understand who they're supporting.</p>
+  <label>احكي للناس اللي هتدّي عن المكان ده (اختياري)</label>
+  <textarea name="bio" rows="4" placeholder="المكان ده بيعمل إيه؟ رسالته، من إمتى وهو بيخدم المنطقة، وليه يستاهل التبرّع...">{{ form.get('bio', '') }}</textarea>
+  <p class="hint">ده بيظهر للناس اللي بتتصفح الأماكن عشان تختار — بيساعدهم يفهموا هيدعموا مين.</p>
 
-  <label>Is this a governmental, private, or local NGO-run place? *</label>
+  <label>المكان حكومي، خاص، ولا منظمة أهلية؟ *</label>
   <select name="ownership_type" required>
-    <option value="">Select...</option>
-    <option value="Governmental">Governmental</option>
-    <option value="Private">Private</option>
-    <option value="Local NGO">Local NGO</option>
-    <option value="Independent / community-run">Independent / community-run</option>
-    <option value="Other">Other</option>
+    <option value="">اختار...</option>
+    <option value="Governmental">حكومي</option>
+    <option value="Private">خاص</option>
+    <option value="Local NGO">منظمة أهلية</option>
+    <option value="Independent / community-run">مستقل / أهلي</option>
+    <option value="Other">تاني</option>
   </select>
-  <input type="text" name="ownership_type_other" placeholder="If Other, please specify" value="{{ form.get('ownership_type_other', '') }}">
-  <p class="hint">Helps with verification and helps givers know what they're choosing.</p>
+  <input type="text" name="ownership_type_other" placeholder="لو اخترت تاني، حدد" value="{{ form.get('ownership_type_other', '') }}">
+  <p class="hint">بيساعد في التوثيق وبيوضّح للناس هيختاروا إيه.</p>
 
-  <label>Type</label>
+  <label>نوع المكان</label>
   <select name="center_type" id="center_type">
-    <option value="Mosque">Mosque</option>
-    <option value="Church">Church</option>
-    <option value="Community center">Community center</option>
-    <option value="Orphanage">Orphanage</option>
-    <option value="Elderly home">Elderly home</option>
-    <option value="Shop">Shop</option>
-    <option value="Local NGO / Community organization">Local NGO / Community organization</option>
-    <option value="Ma'edet Rahman (community meal table)">Ma'edet Rahman (community meal table)</option>
-    <option value="Homeless outreach point">Homeless outreach point</option>
-    <option value="Other">Other</option>
+    <option value="Mosque">مسجد</option>
+    <option value="Church">كنيسة</option>
+    <option value="Community center">مركز خدمة مجتمعي</option>
+    <option value="Orphanage">دار أيتام</option>
+    <option value="Elderly home">دار مسنين</option>
+    <option value="Shop">محل</option>
+    <option value="Local NGO / Community organization">منظمة أهلية محلية</option>
+    <option value="Ma'edet Rahman (community meal table)">مائدة رحمن</option>
+    <option value="Homeless outreach point">نقطة دعم للمشردين</option>
+    <option value="Other">تاني</option>
   </select>
-  <input type="text" name="center_type_other" placeholder="If Other, please specify" value="{{ form.get('center_type_other', '') }}">
+  <input type="text" name="center_type_other" placeholder="لو اخترت تاني، حدد" value="{{ form.get('center_type_other', '') }}">
 
-  <label>Governorate *</label>
+  <label>المحافظة *</label>
   <select name="governorate" id="governorate" required>
-    <option value="">Select...</option>
-    <option value="Cairo">Cairo</option>
-    <option value="Giza">Giza</option>
+    <option value="">اختار...</option>
+    <option value="Cairo">القاهرة</option>
+    <option value="Giza">الجيزة</option>
   </select>
 
-  <label>Area *</label>
+  <label>المنطقة *</label>
   <select name="area" id="area" required>
-    <option value="">Select governorate first...</option>
+    <option value="">اختار المحافظة الأول...</option>
   </select>
-  <input type="text" name="area_other" placeholder="If your area isn't listed, specify it here" value="{{ form.get('area_other', '') }}">
+  <input type="text" name="area_other" placeholder="لو منطقتك مش موجودة، اكتبها هنا" value="{{ form.get('area_other', '') }}">
 
-  <label>Physical address *</label>
-  <input type="text" name="address" placeholder="Street, building, landmark" value="{{ form.get('address', '') }}" required>
+  <label>العنوان بالتفصيل *</label>
+  <input type="text" name="address" placeholder="الشارع، المبنى، علامة مميزة" value="{{ form.get('address', '') }}" required>
 
-  <label>Google Maps link (optional)</label>
-  <input type="text" name="maps_link" placeholder="Paste a Google Maps link" value="{{ form.get('maps_link', '') }}">
-  <p class="hint">Open the location in Google Maps, tap Share, copy the link, paste it here.</p>
+  <label>لينك جوجل ماب (اختياري)</label>
+  <input type="text" name="maps_link" placeholder="حط لينك من جوجل ماب" value="{{ form.get('maps_link', '') }}">
+  <p class="hint">افتح المكان في جوجل ماب، دوس مشاركة، انسخ اللينك، والصقه هنا.</p>
 
-  <label>Social media page (optional)</label>
-  <input type="text" name="social_link" placeholder="Facebook, Instagram, or other page link" value="{{ form.get('social_link', '') }}">
-  <p class="hint">Helps givers see the center is real and active.</p>
+  <label>صفحة السوشيال ميديا (اختياري)</label>
+  <input type="text" name="social_link" placeholder="فيسبوك، إنستجرام، أو أي صفحة تانية" value="{{ form.get('social_link', '') }}">
+  <p class="hint">بيساعد الناس تتأكد إن المكان حقيقي وفعّال.</p>
 
-  <label>Who do you serve? (optional, select any that apply)</label>
+  <label>مين بتخدموا؟ (اختياري، اختار أي حاجة تنطبق)</label>
   <div class="checkbox-row">
-    <label class="checkbox-label"><input type="checkbox" name="target_group" value="Elderly"> Elderly</label>
-    <label class="checkbox-label"><input type="checkbox" name="target_group" value="Elderly with chronic illness"> Elderly with chronic illness</label>
-    <label class="checkbox-label"><input type="checkbox" name="target_group" value="Children"> Children</label>
-    <label class="checkbox-label"><input type="checkbox" name="target_group" value="Children with disabilities"> Children with disabilities</label>
-    <label class="checkbox-label"><input type="checkbox" name="target_group" value="People with disabilities"> People with disabilities</label>
-    <label class="checkbox-label"><input type="checkbox" name="target_group" value="Widows"> Widows</label>
-    <label class="checkbox-label"><input type="checkbox" name="target_group" value="Families in need"> Families in need</label>
-    <label class="checkbox-label"><input type="checkbox" name="target_group" value="Orphans"> Orphans</label>
-    <label class="checkbox-label"><input type="checkbox" name="target_group" value="Homeless"> Homeless</label>
+    <label class="checkbox-label"><input type="checkbox" name="target_group" value="Elderly"> مسنين</label>
+    <label class="checkbox-label"><input type="checkbox" name="target_group" value="Elderly with chronic illness"> مسنين بأمراض مزمنة</label>
+    <label class="checkbox-label"><input type="checkbox" name="target_group" value="Children"> أطفال</label>
+    <label class="checkbox-label"><input type="checkbox" name="target_group" value="Children with disabilities"> أطفال ذوي إعاقة</label>
+    <label class="checkbox-label"><input type="checkbox" name="target_group" value="People with disabilities"> ذوي إعاقة</label>
+    <label class="checkbox-label"><input type="checkbox" name="target_group" value="Widows"> أرامل</label>
+    <label class="checkbox-label"><input type="checkbox" name="target_group" value="Families in need"> أسر محتاجة</label>
+    <label class="checkbox-label"><input type="checkbox" name="target_group" value="Orphans"> أيتام</label>
+    <label class="checkbox-label"><input type="checkbox" name="target_group" value="Homeless"> مشردين</label>
   </div>
-  <input type="text" name="target_group_other" placeholder="Other (specify)" value="{{ form.get('target_group_other', '') }}">
+  <input type="text" name="target_group_other" placeholder="تاني (حدد)" value="{{ form.get('target_group_other', '') }}">
 
   <div id="institution-section" class="conditional-section">
-    <label>Number of beneficiaries (residents / people cared for)</label>
-    <input type="number" min="1" name="beneficiaries" id="beneficiaries" placeholder="e.g. 30" value="{{ form.get('beneficiaries', '') }}">
+    <label>عدد المستفيدين (المقيمين / اللي بترعاهم)</label>
+    <input type="number" min="1" name="beneficiaries" id="beneficiaries" placeholder="مثلاً 30" value="{{ form.get('beneficiaries', '') }}">
 
-    <label>Number of staff (supervisors, teachers, carers, etc.)</label>
-    <input type="number" min="1" name="staff_members" id="staff_members" placeholder="e.g. 8" value="{{ form.get('staff_members', '') }}">
+    <label>عدد فريق العمل (مشرفين، مدرّسين، مقدّمين رعاية، إلخ)</label>
+    <input type="number" min="1" name="staff_members" id="staff_members" placeholder="مثلاً 8" value="{{ form.get('staff_members', '') }}">
 
-    <label>Total number of people you'd like meals to cover</label>
-    <input type="number" min="1" name="total_to_feed" id="total_to_feed" placeholder="e.g. 35" value="{{ form.get('total_to_feed', '') }}">
-    <p class="hint">Auto-calculated from the two numbers above — feel free to adjust it if the real number is different (e.g. not everyone listed needs a donated meal).</p>
+    <label>إجمالي عدد الناس عايزين الوجبات تغطيهم</label>
+    <input type="number" min="1" name="total_to_feed" id="total_to_feed" placeholder="مثلاً 35" value="{{ form.get('total_to_feed', '') }}">
+    <p class="hint">بيتحسب أوتوماتيك من الرقمين فوق — عدّله لو الرقم الحقيقي مختلف (مثلاً مش كل الناس المذكورين محتاجين وجبة تبرّع).</p>
   </div>
 
-  <label>We don't specify meal types donors bring — but if you had the choice, what would suit your group best? (optional)</label>
-  <input type="text" name="preferred_meal_type" placeholder="e.g. soft food for elderly with chewing difficulty, no nuts" value="{{ form.get('preferred_meal_type', '') }}">
+  <label>احنا مش بنحدد نوع الأكل اللي المتبرعين بيجيبوه — بس لو كان عندك اختيار، إيه الأنسب لمجموعتك؟ (اختياري)</label>
+  <input type="text" name="preferred_meal_type" placeholder="مثلاً أكل طري للمسنين اللي بيصعب عليهم المضغ، من غير مكسرات" value="{{ form.get('preferred_meal_type', '') }}">
 
-  <label>What do you receive? *</label>
+  <label>بتستقبلوا إيه؟ *</label>
   <div class="checkbox-row">
-    <label class="checkbox-label"><input type="checkbox" name="receives" value="Meals"> Fresh / hot meals</label>
-    <label class="checkbox-label"><input type="checkbox" name="receives" value="Groceries"> Groceries</label>
+    <label class="checkbox-label"><input type="checkbox" name="receives" value="Meals"> وجبات طازة / سخنة</label>
+    <label class="checkbox-label"><input type="checkbox" name="receives" value="Groceries"> مواد غذائية</label>
   </div>
 
   <div id="meals-section" class="conditional-section">
-    <label>Which time slots can you receive meals in?</label>
+    <label>في أنهي فترات بتستقبلوا وجبات؟</label>
     <div class="checkbox-row">
-      <label class="checkbox-label"><input type="checkbox" name="meal_slots" value="Breakfast (9-11)"> Breakfast (9-11)</label>
-      <label class="checkbox-label"><input type="checkbox" name="meal_slots" value="Late breakfast (12-2)"> Late breakfast (12-2)</label>
-      <label class="checkbox-label"><input type="checkbox" name="meal_slots" value="Lunch (4-6)"> Lunch (4-6)</label>
-      <label class="checkbox-label"><input type="checkbox" name="meal_slots" value="Dinner (8-10)"> Dinner (8-10)</label>
+      <label class="checkbox-label"><input type="checkbox" name="meal_slots" value="Breakfast (9-11)"> فطار (9-11)</label>
+      <label class="checkbox-label"><input type="checkbox" name="meal_slots" value="Late breakfast (12-2)"> فطار متأخر (12-2)</label>
+      <label class="checkbox-label"><input type="checkbox" name="meal_slots" value="Lunch (4-6)"> غدا (4-6)</label>
+      <label class="checkbox-label"><input type="checkbox" name="meal_slots" value="Dinner (8-10)"> عشا (8-10)</label>
     </div>
 
-    <label>Which days are you open to receiving meal donations?</label>
+    <label>في أنهي أيام مستعدين تستقبلوا تبرعات وجبات؟</label>
     <div class="checkbox-row">
-      <label class="checkbox-label"><input type="checkbox" name="days_open" value="Saturday"> Sat</label>
-      <label class="checkbox-label"><input type="checkbox" name="days_open" value="Sunday"> Sun</label>
-      <label class="checkbox-label"><input type="checkbox" name="days_open" value="Monday"> Mon</label>
-      <label class="checkbox-label"><input type="checkbox" name="days_open" value="Tuesday"> Tue</label>
-      <label class="checkbox-label"><input type="checkbox" name="days_open" value="Wednesday"> Wed</label>
-      <label class="checkbox-label"><input type="checkbox" name="days_open" value="Thursday"> Thu</label>
-      <label class="checkbox-label"><input type="checkbox" name="days_open" value="Friday"> Fri</label>
+      <label class="checkbox-label"><input type="checkbox" name="days_open" value="Saturday"> السبت</label>
+      <label class="checkbox-label"><input type="checkbox" name="days_open" value="Sunday"> الأحد</label>
+      <label class="checkbox-label"><input type="checkbox" name="days_open" value="Monday"> الإتنين</label>
+      <label class="checkbox-label"><input type="checkbox" name="days_open" value="Tuesday"> التلات</label>
+      <label class="checkbox-label"><input type="checkbox" name="days_open" value="Wednesday"> الأربع</label>
+      <label class="checkbox-label"><input type="checkbox" name="days_open" value="Thursday"> الخميس</label>
+      <label class="checkbox-label"><input type="checkbox" name="days_open" value="Friday"> الجمعة</label>
     </div>
   </div>
 
   <div id="groceries-section" class="conditional-section">
-    <label>What hours can you receive groceries?</label>
-    <input type="text" name="grocery_hours" placeholder="e.g. Daily 10am-6pm" value="{{ form.get('grocery_hours', '') }}">
+    <label>في أنهي مواعيد تقدروا تستقبلوا مواد غذائية؟</label>
+    <input type="text" name="grocery_hours" placeholder="مثلاً يوميًا من 10 الصبح لـ 6 المغرب" value="{{ form.get('grocery_hours', '') }}">
   </div>
 
-  <label>Additional schedule notes (optional)</label>
-  <input type="text" name="ritual_schedule" placeholder="e.g. Daily iftar during Ramadan" value="{{ form.get('ritual_schedule', '') }}">
+  <label>ملاحظات إضافية عن المواعيد (اختياري)</label>
+  <input type="text" name="ritual_schedule" placeholder="مثلاً إفطار جماعي يومي في رمضان" value="{{ form.get('ritual_schedule', '') }}">
 
   <div id="capacity-section" class="conditional-section visible">
-    <label>Do you have a fixed capacity per meal slot?</label>
+    <label>عندكم سقف ثابت لكل فترة؟</label>
     <select name="has_capacity_limit">
-      <option value="No">No — open, can take any amount</option>
-      <option value="Yes">Yes — fixed number per slot</option>
+      <option value="No">لأ — مفتوح، نقدر نستقبل أي كمية</option>
+      <option value="Yes">أيوه — رقم ثابت لكل فترة</option>
     </select>
 
-    <label>If yes, how many meals per slot?</label>
-    <input type="number" min="1" name="capacity_per_slot" placeholder="e.g. 30" value="{{ form.get('capacity_per_slot', '') }}">
-    <p class="hint">Leave blank if you selected "No" above — e.g. an open table serving anyone who comes.</p>
+    <label>لو أيوه، كام وجبة في الفترة؟</label>
+    <input type="number" min="1" name="capacity_per_slot" placeholder="مثلاً 30" value="{{ form.get('capacity_per_slot', '') }}">
+    <p class="hint">سيبها فاضية لو اخترت "لأ" فوق — مثلاً مائدة مفتوحة لأي حد بييجي.</p>
   </div>
 
-  <label>Photos of the center (optional, up to 10)</label>
+  <label>صور المكان (اختياري، لحد 10 صور)</label>
   <input type="file" name="photos" accept="image/*" multiple id="photos-input">
   <p class="hint" id="photos-count-hint"></p>
-  <p class="hint">Optional, but centers with a photo are shown higher to givers. Show the space, the food, or the activity — not identifiable people. Centers that post photos of individuals (especially children) will be flagged and removed.</p>
+  <p class="hint">اختياري، بس الأماكن اللي عندها صور بتظهر الأول للناس. اعرض المكان، الأكل، أو النشاط — من غير أشخاص ظاهرين. الأماكن اللي بتنشر صور أشخاص (خصوصًا أطفال) هتتشال.</p>
 
   <hr style="margin:20px 0;border:none;border-top:1px solid #eee;">
 
-  <label>Are you part of this center's staff, or just sharing info on their behalf? *</label>
+  <label>انت من فريق المكان، ولا بس بتشارك معلومات عنه؟ *</label>
   <select name="submitter_role" required>
-    <option value="Staff">I'm part of this center</option>
-    <option value="Info-only">I'm sharing info on their behalf (not staff)</option>
+    <option value="Staff">أنا من فريق المكان</option>
+    <option value="Info-only">بشارك معلومات بس (مش من الفريق)</option>
   </select>
 
-  <label>Your name *</label>
+  <label>اسمك *</label>
   <input type="text" name="submitter_name" value="{{ form.get('submitter_name', '') }}" required>
 
-  <label>Your phone number *</label>
+  <label>رقم تليفونك *</label>
   <input type="tel" name="submitter_phone" value="{{ form.get('submitter_phone', '') }}" required>
 
-  <label>Center contact person (Sheikh / Priest / Admin) *</label>
+  <label>الشخص المسؤول في المكان (شيخ / كاهن / مسؤول) *</label>
   <input type="text" name="contact_name" value="{{ form.get('contact_name', '') }}" required>
 
-  <label>Center contact phone *</label>
+  <label>تليفون المكان *</label>
   <input type="tel" name="contact_phone" value="{{ form.get('contact_phone', '') }}" required>
-  <p class="hint">The person actually reachable at the center — may be different from you.</p>
+  <p class="hint">الشخص اللي ممكن يترد عليه فعلاً في المكان — ممكن يكون مختلف عنك.</p>
 
-  <button type="submit">Submit</button>
-  <p class="hint" style="text-align:center;margin-top:10px;">Your center goes live right away — it earns a "Verified" badge automatically once it receives its first donation.</p>
+  <button type="submit">إرسال</button>
+  <p class="hint" style="text-align:center;margin-top:10px;">المكان بيظهر للناس فورًا — وهياخد شارة "موثّق" أوتوماتيك أول ما يستلم أول تبرّع.</p>
 </form>
 
 <style>
   .checkbox-row { display: flex; flex-wrap: wrap; gap: 10px 16px; margin: 6px 0 4px; }
   .checkbox-label { display: flex; align-items: center; gap: 6px; font-size: 13px; color: #333; margin: 0; }
   .checkbox-label input { width: auto; }
-  .conditional-section { display: none; border-left: 2px solid #2f7d5c; padding-left: 12px; margin: 8px 0 16px; }
+  .conditional-section { display: none; border-right: 2px solid #2f7d5c; padding-right: 12px; margin: 8px 0 16px; }
   .conditional-section.visible { display: block; }
 </style>
 <script>
   var AREAS_BY_GOVERNORATE = {
     "Cairo": [
-      // North Area
       "Shubra", "El-Zawia El-Hamra", "Hadayek El-Kobba", "Rod El-Farg", "El-Sharabia", "El-Sahel", "El-Zaiton", "Al-Ameria",
-      // South Area
       "Masr El-Qadima", "El-Khalifa", "El-Moqattam", "El-Basatin", "Dar El-Salam", "El-Sayeda Zeinab", "El-Tebin", "Helwan", "El-Maasara", "El-Maadi", "Tora", "15 May",
-      // West Area
       "Manshaet Naser", "El-Waily", "Wast El-Qahira (Downtown)", "Boulak", "Gharb El-Qahira", "Abdeen", "Azbakia", "Moski", "Bab El-Shaaria",
-      // East Area
       "Misr El-Gadidah (Heliopolis)", "El-Nozha", "Sharq Madinet Nasr", "Gharb Madinet Nasr", "El-Salam Awal", "El-Salam Thani", "El-Mataria", "Ain Shams", "El-Marg",
-      // Commonly used newer/informal names not in the official 38
       "Zamalek", "Garden City", "New Cairo", "Katameya",
       "Other"
     ],
     "Giza": [
-      // Giza City's official districts
       "Dokki", "Agouza / Mohandessin", "Omraniya", "Haram", "Boulak El Dakrour", "El Warraq", "North Giza", "South Giza",
-      // Major new cities within Giza governorate
       "6th of October", "Sheikh Zayed",
-      // Other well-known areas
       "Imbaba", "Faisal", "Giza Square",
-      // Regional centers (markaz) covering semi-rural/outer Giza
       "Al-Ayyat", "Atfih", "Awsim", "Al-Badrashin", "Al-Hawamdiya", "Al-Saff", "Kerdasa", "Manshaat El Qanater",
       "Other"
     ]
+  };
+
+  var AREA_NAMES_AR = {
+    "Shubra": "شبرا", "El-Zawia El-Hamra": "الزاوية الحمراء", "Hadayek El-Kobba": "حدائق القبة",
+    "Rod El-Farg": "روض الفرج", "El-Sharabia": "الشرابية", "El-Sahel": "الساحل",
+    "El-Zaiton": "الزيتون", "Al-Ameria": "الأميرية", "Masr El-Qadima": "مصر القديمة",
+    "El-Khalifa": "الخليفة", "El-Moqattam": "المقطم", "El-Basatin": "البساتين",
+    "Dar El-Salam": "دار السلام", "El-Sayeda Zeinab": "السيدة زينب", "El-Tebin": "التبين",
+    "Helwan": "حلوان", "El-Maasara": "المعصرة", "El-Maadi": "المعادي", "Tora": "طرة",
+    "15 May": "15 مايو", "Manshaet Naser": "منشأة ناصر", "El-Waily": "الوايلي",
+    "Wast El-Qahira (Downtown)": "وسط القاهرة", "Boulak": "بولاق", "Gharb El-Qahira": "غرب القاهرة",
+    "Abdeen": "عابدين", "Azbakia": "الأزبكية", "Moski": "الموسكي", "Bab El-Shaaria": "باب الشعرية",
+    "Misr El-Gadidah (Heliopolis)": "مصر الجديدة (هليوبوليس)", "El-Nozha": "النزهة",
+    "Sharq Madinet Nasr": "شرق مدينة نصر", "Gharb Madinet Nasr": "غرب مدينة نصر",
+    "El-Salam Awal": "السلام أول", "El-Salam Thani": "السلام ثاني", "El-Mataria": "المطرية",
+    "Ain Shams": "عين شمس", "El-Marg": "المرج", "Zamalek": "الزمالك", "Garden City": "جاردن سيتي",
+    "New Cairo": "القاهرة الجديدة", "Katameya": "القطامية",
+    "Dokki": "الدقي", "Agouza / Mohandessin": "العجوزة / المهندسين", "Omraniya": "العمرانية",
+    "Haram": "الهرم", "Boulak El Dakrour": "بولاق الدكرور", "El Warraq": "الوراق",
+    "North Giza": "شمال الجيزة", "South Giza": "جنوب الجيزة", "6th of October": "السادس من أكتوبر",
+    "Sheikh Zayed": "الشيخ زايد", "Imbaba": "إمبابة", "Faisal": "فيصل", "Giza Square": "ميدان الجيزة",
+    "Al-Ayyat": "العياط", "Atfih": "أطفيح", "Awsim": "أوسيم", "Al-Badrashin": "البدرشين",
+    "Al-Hawamdiya": "الحوامدية", "Al-Saff": "الصف", "Kerdasa": "كرداسة",
+    "Manshaat El Qanater": "منشأة القناطر", "Other": "تاني"
   };
 
   function updateAreaOptions() {
@@ -210,17 +225,17 @@
     var areaSelect = document.getElementById('area');
     areaSelect.innerHTML = "";
     if (!gov || !AREAS_BY_GOVERNORATE[gov]) {
-      areaSelect.innerHTML = '<option value="">Select governorate first...</option>';
+      areaSelect.innerHTML = '<option value="">اختار المحافظة الأول...</option>';
       return;
     }
     var placeholder = document.createElement('option');
     placeholder.value = "";
-    placeholder.textContent = "Select...";
+    placeholder.textContent = "اختار...";
     areaSelect.appendChild(placeholder);
     AREAS_BY_GOVERNORATE[gov].forEach(function(area) {
       var opt = document.createElement('option');
       opt.value = area;
-      opt.textContent = area;
+      opt.textContent = AREA_NAMES_AR[area] || area;
       areaSelect.appendChild(opt);
     });
   }
@@ -267,9 +282,9 @@
     var count = this.files.length;
     var hint = document.getElementById('photos-count-hint');
     if (count > 10) {
-      hint.textContent = count + ' selected — only the first 10 will be uploaded.';
+      hint.textContent = count + ' صورة متختارة — أول 10 بس هيترفعوا.';
     } else if (count > 0) {
-      hint.textContent = count + ' photo' + (count !== 1 ? 's' : '') + ' selected.';
+      hint.textContent = count + ' صورة متختارة.';
     } else {
       hint.textContent = '';
     }
