@@ -1,27 +1,27 @@
 {% extends "base.html" %}
-{% block title %}Complete your profile{% endblock %}
+{% block title %}إكمال الملف الشخصي{% endblock %}
 {% block content %}
-<h1>Welcome — one more step</h1>
-<p class="subtitle">This is your first time signing in with this number</p>
+<h1>أهلاً بيك — خطوة أخيرة</h1>
+<p class="subtitle">دي أول مرة تسجّل بيها بالرقم ده</p>
 
 <form method="POST" action="{{ url_for('complete_profile') }}">
   <input type="hidden" name="phone" value="{{ phone }}">
   <input type="hidden" name="remember_me" value="{{ 'on' if remember_me else '' }}">
 
-  <label>Your name *</label>
+  <label>اسمك *</label>
   <input type="text" name="real_name" value="{{ form.get('real_name', '') if form else '' }}" required>
-  <p class="hint">Used for actual delivery coordination — always visible to centers you give to.</p>
+  <p class="hint">بيتستخدم للتنسيق الفعلي للتوصيل — بيظهر دايمًا للأماكن اللي بتدي ليها.</p>
 
-  <label>Email (optional)</label>
-  <input type="email" name="email" placeholder="For notifications about your donations" value="{{ form.get('email', '') if form else '' }}">
+  <label>الإيميل (اختياري)</label>
+  <input type="email" name="email" placeholder="عشان نبعتلك إشعارات عن تبرعاتك" value="{{ form.get('email', '') if form else '' }}">
 
-  <label>How should we show you publicly? (e.g. on future badges/leaderboards)</label>
+  <label>عايزين نظهرك ازاي للناس؟ (مثلاً في شارات أو لوحة الصدارة لاحقًا)</label>
   <select name="nickname_choice">
-    <option value="real_name">Use my real name</option>
-    <option value="anonymous">Give me an anonymous nickname instead</option>
+    <option value="real_name">استخدم اسمي الحقيقي</option>
+    <option value="anonymous">اديني اسم مستعار</option>
   </select>
-  <p class="hint">This is just your public display name — your real name and phone stay visible to centers either way, for delivery purposes.</p>
+  <p class="hint">ده بس الاسم اللي بيظهر للناس — اسمك الحقيقي ورقمك بيفضلوا ظاهرين للأماكن اللي بتدي ليها، عشان التوصيل.</p>
 
-  <button type="submit">Finish</button>
+  <button type="submit">تم</button>
 </form>
 {% endblock %}
