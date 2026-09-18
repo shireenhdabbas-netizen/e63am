@@ -1,9 +1,9 @@
 {% extends "base.html" %}
-{% block title %}Choose a center{% endblock %}
+{% block title %}اختار مكان{% endblock %}
 {% block content %}
-<a class="back-link" href="{{ url_for('give_food') }}">&larr; Back</a>
-<h1>Choose where to give</h1>
-<p class="subtitle">{{ centers|length }} center{{ 's' if centers|length != 1 }} available near you</p>
+<a class="back-link" href="{{ url_for('give_food') }}">&rarr; رجوع</a>
+<h1>اختار فين تدّي</h1>
+<p class="subtitle">{{ centers|length }} مكان متاح قريب منك</p>
 
 {% for center in centers %}
 <div class="center-card">
@@ -20,23 +20,23 @@
     <div class="center-card-header">
       <p class="card-title" style="margin:0;">{{ center.get('Center Name') }}</p>
       {% if center.get('Status') == 'Verified' %}
-      <span class="badge badge-verified">✓ Verified</span>
+      <span class="badge badge-verified">✓ موثّق</span>
       {% else %}
-      <span class="badge badge-unverified">Unverified</span>
+      <span class="badge badge-unverified">لسه مش موثّق</span>
       {% endif %}
     </div>
-    <p class="card-sub" style="margin:2px 0 8px;">{{ center.get('Center Type') }} · {{ center.get('Area') }}</p>
+    <p class="card-sub" style="margin:2px 0 8px;">{{ center.get('Center Type')|ar }} · {{ center.get('Area')|ar }}</p>
 
     {% if center.get('Bio') %}
     <p style="font-size:13px;color:#444;margin:0 0 8px;">{{ center.get('Bio') }}</p>
     {% endif %}
 
     <div class="center-meta">
-      {% if center.get('Visits') and center.get('Visits')|int > 0 %}<span>{{ center.get('Visits') }} donation{{ 's' if center.get('Visits')|int != 1 }} received</span>{% else %}<span>Not yet received a donation</span>{% endif %}
-      {% if center.get('Capacity Per Slot') %}<span>· needs up to {{ center.get('Capacity Per Slot') }}/slot</span>{% endif %}
+      {% if center.get('Visits') and center.get('Visits')|int > 0 %}<span>استقبل {{ center.get('Visits') }} تبرّع</span>{% else %}<span>لسه ما استقبلش تبرّع</span>{% endif %}
+      {% if center.get('Capacity Per Slot') %}<span>· محتاج لحد {{ center.get('Capacity Per Slot') }}/فترة</span>{% endif %}
     </div>
 
-    <a class="choose-btn" href="{{ url_for('choose_center', center_row=center._row) }}">I want to give here</a>
+    <a class="choose-btn" href="{{ url_for('choose_center', center_row=center._row) }}">عايز أدّي هنا</a>
   </div>
 </div>
 {% endfor %}
