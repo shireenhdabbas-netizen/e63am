@@ -1,5 +1,7 @@
 import os
 import json
+import random
+import requests
 from datetime import datetime, date, timedelta
 from flask import Flask, render_template, request, redirect, url_for, flash, session
 
@@ -8,10 +10,15 @@ from google.oauth2.service_account import Credentials
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "dev-secret-change-me")
+app.permanent_session_lifetime = timedelta(days=90)
 
 SHEET_ID = os.environ.get("SHEET_ID")
 GIVERS_TAB = "givers"
 CENTERS_TAB = "centers"
+USERS_TAB = "users"
+
+RESEND_API_KEY = os.environ.get("RESEND_API_KEY")
+FROM_EMAIL = os.environ.get("FROM_EMAIL", "Afker Atem <onboarding@resend.dev>")
 
 SCOPES = [
     "https://www.googleapis.com/auth/spreadsheets",
@@ -62,7 +69,7 @@ def get_worksheet(tab_name, header_row):
 
 
 GIVERS_HEADER = [
-    "Timestamp", "Giver Type", "Name", "Phone", "Governorate", "Area",
+    "Timestamp", "Giver Type", "Name", "Phone", "Email", "Governorate", "Area",
     "Area Flexibility", "Additional Areas",
     "Food Type", "Time Preference", "Meal Slot",
     "Quantity Max", "Quantity Confirmed", "Quantity Unit",
@@ -70,6 +77,8 @@ GIVERS_HEADER = [
     "Delivery Contact Who", "Delivery Contact Name", "Delivery Contact Phone", "Backup Phone",
     "Status", "Matched Center", "Matched Center Row"
 ]
+
+USERS_HEADER = ["Phone", "Real Name", "Nickname", "Email", "Created At"]
 
 CENTERS_HEADER = [
     "Timestamp", "Center Name", "Bio", "Center Type", "Governorate", "Ownership Type",
@@ -106,6 +115,65 @@ def col_index(header, col_name):
         return header.index(col_name) + 1
     except ValueError:
         return None
+
+
+def send_email(to_email, subject, html_body):
+    """
+    Sends a notification email via Resend. Fails silently (logs to stdout)
+    if RESEND_API_KEY isn't set or the request fails - email is a nice-to-have
+    notification, not something that should ever break the actual donation flow.
+    """
+    if not RESEND_API_KEY or not to_email:
+        return
+    try:
+        requests.post(
+            "https://api.resend.com/emails",
+            headers={"Authorization": f"Bearer {RESEND_API_KEY}"},
+            json={"from": FROM_EMAIL, "to": [to_email], "subject": subject, "html": html_body},
+            timeout=10,
+        )
+    except requests.RequestException as e:
+        print(f"Email send failed to {to_email}: {e}")
+
+
+ANONYMOUS_ADJECTIVES = [
+    "Kind", "Generous", "Bright", "Gentle", "Warm", "Quiet", "Steady",
+    "Hopeful", "Caring", "Humble", "Faithful", "Cheerful", "Patient", "Wise",
+]
+ANONYMOUS_NOUNS = [
+    "Falcon", "Sparrow", "Olive", "Lotus", "River", "Cedar", "Dove",
+    "Lantern", "Compass", "Harbor", "Meadow", "Star", "Palm", "Jasmine",
+]
+
+
+def generate_anonymous_nickname():
+    """Generates a random display name like 'Kind Falcon 42' for givers who'd rather stay anonymous."""
+    return f"{random.choice(ANONYMOUS_ADJECTIVES)} {random.choice(ANONYMOUS_NOUNS)} {random.randint(10, 99)}"
+
+
+def get_user_by_phone(phone):
+    """Returns the user's row as a dict, or None if this phone hasn't signed in before."""
+    ws = get_worksheet(USERS_TAB, USERS_HEADER)
+    header = ensure_columns(ws, USERS_HEADER)
+    phone_i = col_index(header, "Phone")
+    all_values = ws.get_all_values()
+    for row_num, row in enumerate(all_values[1:], start=2):
+        if len(row) >= phone_i and row[phone_i - 1].strip() == phone.strip():
+            return read_row(ws, header, row_num)
+    return None
+
+
+def create_user(phone, real_name, nickname, email):
+    ws = get_worksheet(USERS_TAB, USERS_HEADER)
+    ws.append_row([phone, real_name, nickname, email, datetime.now().isoformat(timespec="seconds")])
+
+
+def current_user():
+    """Returns the logged-in user's account dict, or None if signed out."""
+    phone = session.get("user_phone")
+    if not phone:
+        return None
+    return get_user_by_phone(phone)
 
 
 def read_row(ws, header, row_number):
@@ -187,9 +255,120 @@ def apply_confirmed_match(giver_row_number, center_row_number, final_quantity):
     givers_ws.update_cell(giver_row_number, col_index(givers_header, "Status"), "Matched")
 
 
+def notify_pending_givers_in_area(area, center_name):
+    """
+    When a new center registers, emails any giver who's been sitting with
+    Status="Pending" (no center was available when they submitted) whose
+    area or additional-areas list includes this one, so they know to come
+    back rather than having to check manually.
+    """
+    givers_ws = get_worksheet(GIVERS_TAB, GIVERS_HEADER)
+    givers_header = ensure_columns(givers_ws, GIVERS_HEADER)
+    all_values = givers_ws.get_all_values()
+    if len(all_values) <= 1:
+        return
+
+    status_i = col_index(givers_header, "Status")
+    area_i = col_index(givers_header, "Area")
+    additional_areas_i = col_index(givers_header, "Additional Areas")
+    email_i = col_index(givers_header, "Email")
+    name_i = col_index(givers_header, "Name")
+    target_area = area.strip().lower()
+
+    for row in all_values[1:]:
+        status = row[status_i - 1] if len(row) >= status_i else ""
+        if status != "Pending":
+            continue
+        row_area = row[area_i - 1].strip().lower() if len(row) >= area_i else ""
+        row_additional = row[additional_areas_i - 1].lower() if len(row) >= additional_areas_i else ""
+        if target_area != row_area and target_area not in [a.strip() for a in row_additional.split(",")]:
+            continue
+        email = row[email_i - 1] if len(row) >= email_i else ""
+        giver_name = row[name_i - 1] if len(row) >= name_i else "there"
+        if email:
+            send_email(
+                email,
+                f"{center_name} just joined in your area!",
+                f"<p>Hi {giver_name},</p>"
+                f"<p><strong>{center_name}</strong> just registered in {area} — "
+                f"the area you offered to give in. Come back and submit your donation again "
+                f"so it can be matched.</p>"
+                f"<p>— افكر اطعام</p>",
+            )
+
+
 @app.route("/")
 def home():
-    return render_template("home.html")
+    return render_template("home.html", user=current_user())
+
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if request.method == "POST":
+        phone = request.form.get("phone", "").strip()
+        remember_me = request.form.get("remember_me") == "on"
+
+        if not phone:
+            flash("Please enter your phone number.")
+            return render_template("login.html", form=request.form)
+
+        user = get_user_by_phone(phone)
+        if user:
+            session["user_phone"] = phone
+            session.permanent = remember_me
+            return redirect(url_for("home"))
+
+        # New phone number - collect a bit more before creating the account
+        return render_template("complete_profile.html", phone=phone, remember_me=remember_me)
+
+    return render_template("login.html", form={})
+
+
+@app.route("/complete-profile", methods=["POST"])
+def complete_profile():
+    phone = request.form.get("phone", "").strip()
+    real_name = request.form.get("real_name", "").strip()
+    email = request.form.get("email", "").strip()
+    nickname_choice = request.form.get("nickname_choice", "real_name")
+    remember_me = request.form.get("remember_me") == "on"
+
+    if not phone or not real_name:
+        flash("Please fill in your name.")
+        return render_template("complete_profile.html", phone=phone, remember_me=remember_me,
+                                form=request.form)
+
+    nickname = generate_anonymous_nickname() if nickname_choice == "anonymous" else real_name
+
+    create_user(phone, real_name, nickname, email)
+    session["user_phone"] = phone
+    session.permanent = remember_me
+    return redirect(url_for("home"))
+
+
+@app.route("/logout")
+def logout():
+    session.pop("user_phone", None)
+    return redirect(url_for("home"))
+
+
+@app.route("/my-activity")
+def my_activity():
+    user = current_user()
+    if not user:
+        return redirect(url_for("login"))
+
+    givers_ws = get_worksheet(GIVERS_TAB, GIVERS_HEADER)
+    givers_header = ensure_columns(givers_ws, GIVERS_HEADER)
+    all_values = givers_ws.get_all_values()
+    phone_i = col_index(givers_header, "Phone")
+
+    my_donations = []
+    for row_num, row in enumerate(all_values[1:], start=2):
+        if len(row) >= phone_i and row[phone_i - 1].strip() == user["Phone"].strip():
+            my_donations.append(read_row(givers_ws, givers_header, row_num))
+    my_donations.reverse()  # most recent first
+
+    return render_template("my_activity.html", user=user, donations=my_donations)
 
 
 @app.route("/give", methods=["GET", "POST"])
@@ -198,6 +377,7 @@ def give_food():
         giver_type = request.form.get("giver_type", "")
         name = request.form.get("name", "").strip()
         phone = request.form.get("phone", "").strip()
+        email = request.form.get("email", "").strip()
         governorate = request.form.get("governorate", "").strip()
         area = request.form.get("area", "").strip()
         area_other = request.form.get("area_other", "").strip()
@@ -253,12 +433,12 @@ def give_food():
         if errors:
             for e in errors:
                 flash(e)
-            return render_template("give.html", form=request.form)
+            return render_template("give.html", form=request.form, user=current_user())
 
         # Stash the validated submission and move to browsing centers -
         # nothing is written to the sheet until the giver actually picks one.
         session["pending_giver"] = {
-            "giver_type": giver_type, "name": name, "phone": phone,
+            "giver_type": giver_type, "name": name, "phone": phone, "email": email,
             "governorate": governorate, "area": area,
             "area_flexibility": area_flexibility, "additional_areas": additional_areas,
             "food_type": food_type, "time_preference": time_preference, "meal_slot": meal_slot,
@@ -272,7 +452,7 @@ def give_food():
         }
         return redirect(url_for("browse_centers"))
 
-    return render_template("give.html", form={})
+    return render_template("give.html", form={}, user=current_user())
 
 
 @app.route("/browse-centers")
@@ -289,7 +469,7 @@ def browse_centers():
         ws = get_worksheet(GIVERS_TAB, GIVERS_HEADER)
         ws.append_row([
             datetime.now().isoformat(timespec="seconds"),
-            pending["giver_type"], pending["name"], pending["phone"],
+            pending["giver_type"], pending["name"], pending["phone"], pending.get("email", ""),
             pending["governorate"], pending["area"],
             pending["area_flexibility"], ", ".join(pending.get("additional_areas", [])),
             pending["food_type"], pending["time_preference"], pending["meal_slot"],
@@ -299,6 +479,16 @@ def browse_centers():
             pending["backup_phone"],
             "Pending", "", "",
         ])
+        if pending.get("email"):
+            send_email(
+                pending["email"],
+                "We'll let you know when a center joins your area",
+                f"<p>Hi {pending['name']},</p>"
+                f"<p>Thanks for offering to give {pending['quantity_max']} {pending['quantity_unit']} "
+                f"in {pending['area']}. There's no registered center there yet, but we'll email you "
+                f"the moment one joins so you can come back and give.</p>"
+                f"<p>— افكر اطعام</p>",
+            )
         session.pop("pending_giver", None)
         return render_template("give_confirmation.html", area=pending["area"],
                                 quantity_number=pending["quantity_max"], quantity_unit=pending["quantity_unit"],
@@ -322,7 +512,7 @@ def choose_center(center_row):
     ws = get_worksheet(GIVERS_TAB, GIVERS_HEADER)
     ws.append_row([
         datetime.now().isoformat(timespec="seconds"),
-        pending["giver_type"], pending["name"], pending["phone"],
+        pending["giver_type"], pending["name"], pending["phone"], pending.get("email", ""),
         pending["governorate"], pending["area"],
         pending["area_flexibility"], ", ".join(pending.get("additional_areas", [])),
         pending["food_type"], pending["time_preference"], pending["meal_slot"],
@@ -473,6 +663,8 @@ def register_center():
             has_capacity_limit, capacity_per_slot,
             photo_url, "Unverified", "", 0,
         ])
+
+        notify_pending_givers_in_area(area, center_name)
 
         return render_template("center_confirmation.html", center_name=center_name)
 
