@@ -7,7 +7,7 @@
 <p class="subtitle">Matched with a nearby center</p>
 <div class="info-box">
   <strong>{{ quantity_number }} {{ quantity_unit }}</strong> · {{ food_type }}{% if meal_slot %} · {{ meal_slot }}{% endif %}<br>
-  {{ area }} · {{ ready_time.strftime('%b %d, %Y %I:%M %p') }}
+  {{ area }} · {{ ready_date.strftime('%b %d, %Y') }}
 </div>
 <div class="info-box">
   🕌 <strong>{{ matched_center }}</strong> — we'll reach out on your phone number to confirm the details and arrange delivery.
@@ -16,7 +16,7 @@
 <p class="subtitle">Thank you — we've received this</p>
 <div class="info-box">
   <strong>{{ quantity_number }} {{ quantity_unit }}</strong> · {{ food_type }}{% if meal_slot %} · {{ meal_slot }}{% endif %}<br>
-  {{ area }} · {{ ready_time.strftime('%b %d, %Y %I:%M %p') }}
+  {{ area }} · {{ ready_date.strftime('%b %d, %Y') }}
 </div>
 <div class="info-box">
   There's no registered center in your area yet — our team will follow up with you directly on the phone number you gave us.
