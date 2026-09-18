@@ -1,112 +1,27 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>{% block title %}افكر اطعام{% endblock %}</title>
-<style>
-  * { box-sizing: border-box; }
-  body {
-    font-family: 'Segoe UI', Tahoma, -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
-    background: #f7f5f2;
-    color: #2b2b2b;
-    margin: 0;
-    padding: 0;
-    display: flex;
-    justify-content: center;
-    text-align: right;
-  }
-  .wrap {
-    width: 100%;
-    max-width: 420px;
-    padding: 24px 20px 60px;
-  }
-  h1 { font-size: 20px; margin: 0 0 4px; }
-  p.subtitle { color: #777; font-size: 13px; margin: 0 0 24px; }
-  .card {
-    background: #fff;
-    border: 1px solid #eee;
-    border-radius: 14px;
-    padding: 18px;
-    margin-bottom: 14px;
-    text-decoration: none;
-    color: inherit;
-    display: block;
-  }
-  .card:active { background: #fafafa; }
-  .card-title { font-weight: 600; font-size: 15px; margin: 0 0 2px; }
-  .card-sub { font-size: 12px; color: #888; margin: 0; }
-  label {
-    display: block;
-    font-size: 12px;
-    color: #666;
-    margin: 14px 0 4px;
-  }
-  input, select, textarea {
-    width: 100%;
-    padding: 10px 12px;
-    border-radius: 8px;
-    border: 1px solid #ddd;
-    font-size: 14px;
-    font-family: inherit;
-    background: #fff;
-    text-align: right;
-  }
-  .hint { font-size: 11px; color: #999; margin-top: 4px; }
-  button {
-    width: 100%;
-    margin-top: 22px;
-    padding: 13px;
-    border: none;
-    border-radius: 10px;
-    background: #2f7d5c;
-    color: #fff;
-    font-size: 15px;
-    font-weight: 600;
-    font-family: inherit;
-  }
-  .errors {
-    background: #fdecea;
-    border: 1px solid #f5c2be;
-    color: #a33;
-    border-radius: 8px;
-    padding: 10px 12px;
-    font-size: 13px;
-    margin-bottom: 12px;
-  }
-  .back-link {
-    display: inline-block;
-    margin-bottom: 16px;
-    font-size: 13px;
-    color: #2f7d5c;
-    text-decoration: none;
-  }
-  .confirm-icon { font-size: 32px; margin-bottom: 8px; }
-  .info-box {
-    background: #fff;
-    border: 1px solid #eee;
-    border-radius: 10px;
-    padding: 12px;
-    margin: 10px 0;
-    font-size: 13px;
-  }
-  .timeline-item { display: flex; gap: 10px; padding-bottom: 14px; }
-  .dot { width: 8px; height: 8px; border-radius: 50%; background: #ccc; margin-top: 5px; flex-shrink: 0; }
-  .timeline-item.next .dot { background: #2f7d5c; }
-  .timeline-title { font-size: 13px; font-weight: 600; margin: 0; }
-  .timeline-sub { font-size: 12px; color: #888; margin: 0; }
-</style>
-</head>
-<body>
-<div class="wrap">
-  {% with messages = get_flashed_messages() %}
-    {% if messages %}
-      <div class="errors">
-        {% for m in messages %}<div>{{ m }}</div>{% endfor %}
-      </div>
-    {% endif %}
-  {% endwith %}
-  {% block content %}{% endblock %}
-</div>
-</body>
-</html>
+{% extends "base.html" %}
+{% block title %}افكر اطعام{% endblock %}
+{% block content %}
+<h1>مما تحبون </h1>
+<p class="subtitle">بنربط اللي بيعملوا خير مع الناس اللي بتستاهله</p>
+
+{% if user %}
+<p style="font-size:13px;margin:-8px 0 18px;">
+  أهلاً {{ user.get('Nickname') or user.get('Real Name') }} —
+  <a href="{{ url_for('my_activity') }}">نشاطي</a>
+</p>
+{% else %}
+<p style="font-size:13px;margin:-8px 0 18px;">
+  <a href="{{ url_for('login') }}">سجّل دخول</a> عشان تحتفظ بسجل تبرعاتك
+</p>
+{% endif %}
+
+<a class="card" href="{{ url_for('give_food') }}">
+  <p class="card-title">🍲 حابب اوزع اطعام</p>
+  <p class="card-sub">وجبات أو مواد غذائية</p>
+</a>
+
+<a class="card" href="{{ url_for('register_center') }}">
+  <p class="card-title">🕌 حابب اسجل مكان مستحق</p>
+  <p class="card-sub">مسجد، كنيسة، أو مركز خدمة مجتمعي</p>
+</a>
+{% endblock %}
