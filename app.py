@@ -171,7 +171,7 @@ CENTERS_HEADER = [
     "Area", "Address", "Maps Link", "Social Link",
     "Target Group", "Beneficiaries", "Staff Members", "Total To Feed", "Preferred Meal Type",
     "Submitter Role", "Submitter Name", "Submitter Phone",
-    "Contact Name", "Contact Phone", "Ritual Schedule",
+    "Contact Name", "Contact Phone", "Contact Email", "Ritual Schedule",
     "Receives Meals", "Meal Slots", "Days Open",
     "Receives Groceries", "Grocery Hours",
     "Has Capacity Limit", "Capacity Per Slot",
@@ -448,6 +448,103 @@ def home():
     return render_template("home.html", user=current_user())
 
 
+@app.route("/browse-maedet-rahman")
+def browse_maedet_rahman():
+    governorate = request.args.get("governorate", "")
+    area = request.args.get("area", "")
+    results = None
+    if area:
+        all_centers = find_candidate_centers([area])
+        results = [c for c in all_centers if c.get("Center Type") == "Ma'edet Rahman (community meal table)"]
+    return render_template("browse_maedet_rahman.html", governorate=governorate, area=area, results=results)
+
+
+@app.route("/give-to-place/<int:center_row>", methods=["GET", "POST"])
+def give_to_place(center_row):
+    centers_ws = get_worksheet(CENTERS_TAB, CENTERS_HEADER)
+    centers_header = ensure_columns(centers_ws, CENTERS_HEADER)
+    center = read_row(centers_ws, centers_header, center_row)
+    if not center.get("Center Name"):
+        return redirect(url_for("browse_maedet_rahman"))
+
+    if request.method == "POST":
+        giver_type = request.form.get("giver_type", "")
+        name = request.form.get("name", "").strip()
+        phone = request.form.get("phone", "").strip()
+        email = request.form.get("email", "").strip()
+        food_type = request.form.get("food_type", "")
+        time_preference = request.form.get("time_preference", "Flexible") if food_type != "Groceries" else ""
+        meal_slot = request.form.get("meal_slot", "") if (food_type != "Groceries" and time_preference == "Specific") else ""
+        quantity_number = request.form.get("quantity_number", "").strip()
+        quantity_unit = request.form.get("quantity_unit", "")
+        ready_date_raw = request.form.get("ready_date", "")
+        recurring = request.form.get("recurring", "No")
+        recurring_days = ", ".join(request.form.getlist("recurring_days"))
+
+        delivery_contact_who = request.form.get("delivery_contact_who", "Me")
+        if delivery_contact_who == "Someone else":
+            delivery_contact_name = request.form.get("delivery_contact_name", "").strip()
+            delivery_contact_phone = request.form.get("delivery_contact_phone", "").strip()
+        else:
+            delivery_contact_name = name
+            delivery_contact_phone = phone
+        backup_phone = request.form.get("backup_phone", "").strip()
+
+        errors = []
+        if not giver_type or not name or not phone or not quantity_number:
+            errors.append("من فضلك املا كل الحقول المطلوبة.")
+        if delivery_contact_who == "Someone else" and (not delivery_contact_name or not delivery_contact_phone):
+            errors.append("من فضلك اكتب اسم ورقم الشخص اللي هيتواصل معاه المكان.")
+
+        ready_date = None
+        if ready_date_raw:
+            try:
+                ready_date = date.fromisoformat(ready_date_raw)
+            except ValueError:
+                errors.append("صيغة التاريخ غير صحيحة.")
+        else:
+            errors.append("من فضلك اختار تاريخ.")
+        if ready_date and recurring != "Yes":
+            if ready_date < date.today() + timedelta(days=1):
+                errors.append("التاريخ لازم يكون بكرة على الأقل.")
+
+        if errors:
+            for e in errors:
+                flash(e)
+            return render_template("give_to_place.html", center=center, form=request.form)
+
+        givers_ws = get_worksheet(GIVERS_TAB, GIVERS_HEADER)
+        ensure_columns(givers_ws, GIVERS_HEADER)
+        givers_ws.append_row([
+            datetime.now().isoformat(timespec="seconds"),
+            giver_type, name, phone, email,
+            center.get("Governorate", ""), center.get("Area", ""),
+            "Limited", "",
+            food_type, time_preference, meal_slot,
+            quantity_number, "", quantity_unit,
+            ready_date.isoformat(), recurring, recurring_days, "No",
+            delivery_contact_who, delivery_contact_name, delivery_contact_phone, backup_phone,
+            "Pending Confirmation", center.get("Center Name", ""), center_row,
+        ])
+        giver_row_number = len(givers_ws.get_all_values())
+
+        try:
+            final_quantity = int(quantity_number)
+        except ValueError:
+            final_quantity = 1
+        apply_confirmed_match(giver_row_number, center_row, final_quantity)
+
+        giver_row = read_row(givers_ws, ensure_columns(givers_ws, GIVERS_HEADER), giver_row_number)
+        notify_center_of_match(center, giver_row, final_quantity)
+
+        return render_template("give_confirmation.html", area=center.get("Area", ""),
+                                quantity_number=final_quantity, quantity_unit=quantity_unit,
+                                food_type=food_type, meal_slot=meal_slot,
+                                ready_date=ready_date, matched_center=center.get("Center Name"))
+
+    return render_template("give_to_place.html", center=center, form={})
+
+
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
@@ -511,7 +608,9 @@ def my_activity():
     my_donations = []
     for row_num, row in enumerate(all_values[1:], start=2):
         if len(row) >= phone_i and row[phone_i - 1].strip() == user["Phone"].strip():
-            my_donations.append(read_row(givers_ws, givers_header, row_num))
+            donation = read_row(givers_ws, givers_header, row_num)
+            donation["_row"] = row_num
+            my_donations.append(donation)
     my_donations.reverse()  # most recent first
 
     return render_template("my_activity.html", user=user, donations=my_donations)
@@ -613,6 +712,7 @@ def browse_centers():
     if not centers:
         # No centers anywhere in range yet - write an honest "no match yet" row.
         ws = get_worksheet(GIVERS_TAB, GIVERS_HEADER)
+        ensure_columns(ws, GIVERS_HEADER)
         ws.append_row([
             datetime.now().isoformat(timespec="seconds"),
             pending["giver_type"], pending["name"], pending["phone"], pending.get("email", ""),
@@ -657,6 +757,7 @@ def choose_center(center_row):
     center = read_row(centers_ws, centers_header, center_row)
 
     ws = get_worksheet(GIVERS_TAB, GIVERS_HEADER)
+    ensure_columns(ws, GIVERS_HEADER)
     ws.append_row([
         datetime.now().isoformat(timespec="seconds"),
         pending["giver_type"], pending["name"], pending["phone"], pending.get("email", ""),
@@ -673,6 +774,32 @@ def choose_center(center_row):
     session.pop("pending_giver", None)
 
     return redirect(url_for("confirm_match", row_number=giver_row_number))
+
+
+def notify_center_of_match(center, giver, final_quantity):
+    """Emails the center with everything they need once a giver confirms a match."""
+    center_email = center.get("Contact Email")
+    if not center_email:
+        return
+    delivery_who = giver.get("Delivery Contact Name") or giver.get("Name")
+    delivery_phone = giver.get("Delivery Contact Phone") or giver.get("Phone")
+    backup_phone = giver.get("Backup Phone")
+    send_email(
+        center_email,
+        f"حد هيبعتلكم أكل — {final_quantity} {AR_LABELS.get(giver.get('Quantity Unit'), giver.get('Quantity Unit'))}",
+        f'<div dir="rtl" style="text-align:right;font-family:Tahoma,Arial,sans-serif;">'
+        f"<p>أهلاً،</p>"
+        f"<p>حد أكّد إنه هيبعتلكم أكل من خلال مما تحبون:</p>"
+        f"<ul>"
+        f"<li>الكمية: <strong>{final_quantity} {AR_LABELS.get(giver.get('Quantity Unit'), giver.get('Quantity Unit'))}</strong></li>"
+        f"<li>النوع: {AR_LABELS.get(giver.get('Food Type'), giver.get('Food Type'))}"
+        f"{' — ' + AR_LABELS.get(giver.get('Meal Slot'), giver.get('Meal Slot')) if giver.get('Meal Slot') else ''}</li>"
+        f"<li>هيكون جاهز يوم: {giver.get('Ready Date')}</li>"
+        f"<li>هيتواصل معاكم: <strong>{delivery_who}</strong> — {delivery_phone}"
+        f"{' (رقم احتياطي: ' + backup_phone + ')' if backup_phone else ''}</li>"
+        f"</ul>"
+        f"<p>— مما تحبون</p></div>",
+    )
 
 
 @app.route("/confirm-match/<int:row_number>", methods=["GET", "POST"])
@@ -711,6 +838,7 @@ def confirm_match(row_number):
                                     row_number=row_number)
 
         apply_confirmed_match(row_number, center_row, final_quantity)
+        notify_center_of_match(center, giver, final_quantity)
 
         return render_template("give_confirmation.html", area=giver.get("Area"),
                                 quantity_number=final_quantity, quantity_unit=giver.get("Quantity Unit"),
@@ -761,6 +889,7 @@ def register_center():
         submitter_phone = request.form.get("submitter_phone", "").strip()
         contact_name = request.form.get("contact_name", "").strip()
         contact_phone = request.form.get("contact_phone", "").strip()
+        contact_email = request.form.get("contact_email", "").strip()
         ritual_schedule = request.form.get("ritual_schedule", "").strip()
 
         receives = request.form.getlist("receives")
@@ -805,13 +934,14 @@ def register_center():
             return render_template("register_center.html", form=request.form)
 
         ws = get_worksheet(CENTERS_TAB, CENTERS_HEADER)
+        ensure_columns(ws, CENTERS_HEADER)
         ws.append_row([
             datetime.now().isoformat(timespec="seconds"),
             center_name, bio, center_type, governorate, ownership_type,
             area, address, maps_link, social_link,
             target_group, beneficiaries, staff_members, total_to_feed, preferred_meal_type,
             submitter_role, submitter_name, submitter_phone,
-            contact_name, contact_phone, ritual_schedule,
+            contact_name, contact_phone, contact_email, ritual_schedule,
             receives_meals, meal_slots, days_open,
             receives_groceries, grocery_hours,
             has_capacity_limit, capacity_per_slot,
@@ -824,6 +954,101 @@ def register_center():
         return render_template("center_confirmation.html", center_name=center_name)
 
     return render_template("register_center.html", form={})
+
+
+@app.route("/register-maedet-rahman", methods=["GET", "POST"])
+def register_maedet_rahman():
+    if request.method == "POST":
+        center_name = request.form.get("center_name", "").strip()
+        bio = request.form.get("bio", "").strip()
+        center_type = "Ma'edet Rahman (community meal table)"
+
+        governorate = request.form.get("governorate", "").strip()
+        ownership_type = request.form.get("ownership_type", "").strip()
+        ownership_type_other = request.form.get("ownership_type_other", "").strip()
+        if ownership_type == "Other" and ownership_type_other:
+            ownership_type = ownership_type_other
+
+        area = request.form.get("area", "").strip()
+        area_other = request.form.get("area_other", "").strip()
+        if area == "Other" and area_other:
+            area = area_other
+        address = request.form.get("address", "").strip()
+        maps_link = request.form.get("maps_link", "").strip()
+        social_link = request.form.get("social_link", "").strip()
+        # An open table has no defined beneficiary list, so these stay blank -
+        # they're specific to limited-beneficiary institutions (register_center).
+        target_group = ""
+        beneficiaries = ""
+        staff_members = ""
+        total_to_feed = ""
+        preferred_meal_type = ""
+
+        submitter_role = request.form.get("submitter_role", "")
+        submitter_name = request.form.get("submitter_name", "").strip()
+        submitter_phone = request.form.get("submitter_phone", "").strip()
+        contact_name = request.form.get("contact_name", "").strip()
+        contact_phone = request.form.get("contact_phone", "").strip()
+        contact_email = request.form.get("contact_email", "").strip()
+        ritual_schedule = request.form.get("ritual_schedule", "").strip()
+
+        receives = request.form.getlist("receives")
+        receives_meals = "Yes" if "Meals" in receives else "No"
+        receives_groceries = "Yes" if "Groceries" in receives else "No"
+        meal_slots = ", ".join(request.form.getlist("meal_slots"))
+        days_open = ", ".join(request.form.getlist("days_open"))
+        grocery_hours = request.form.get("grocery_hours", "").strip()
+
+        has_capacity_limit = request.form.get("has_capacity_limit", "No")
+        capacity_per_slot = request.form.get("capacity_per_slot", "").strip()
+
+        photo_files = request.files.getlist("photos")[:10]
+        photo_urls = []
+        for f in photo_files:
+            if f and f.filename:
+                url = upload_image_to_drive(f)
+                if url:
+                    photo_urls.append(url)
+        photo_url = ", ".join(photo_urls)
+
+        errors = []
+        if not center_name or not governorate or not ownership_type or not area or not address:
+            errors.append("من فضلك املا كل حقول الموقع المطلوبة.")
+        if not submitter_role or not submitter_name or not submitter_phone:
+            errors.append("من فضلك اكتب اسمك، رقمك، ودورك.")
+        if not contact_name or not contact_phone:
+            errors.append("من فضلك اكتب اسم ورقم الشخص المسؤول في المكان.")
+        if not receives:
+            errors.append("من فضلك اختار إيه اللي المائدة بتستقبله: وجبات، مواد غذائية، أو الاتنين.")
+        if has_capacity_limit == "Yes" and not capacity_per_slot:
+            errors.append("من فضلك اكتب السقف التقريبي، أو اختار \"لأ\" لو المائدة مفتوحة من غير سقف.")
+
+        if errors:
+            for e in errors:
+                flash(e)
+            return render_template("register_maedet_rahman.html", form=request.form)
+
+        ws = get_worksheet(CENTERS_TAB, CENTERS_HEADER)
+        ensure_columns(ws, CENTERS_HEADER)
+        ws.append_row([
+            datetime.now().isoformat(timespec="seconds"),
+            center_name, bio, center_type, governorate, ownership_type,
+            area, address, maps_link, social_link,
+            target_group, beneficiaries, staff_members, total_to_feed, preferred_meal_type,
+            submitter_role, submitter_name, submitter_phone,
+            contact_name, contact_phone, contact_email, ritual_schedule,
+            receives_meals, meal_slots, days_open,
+            receives_groceries, grocery_hours,
+            has_capacity_limit, capacity_per_slot,
+            photo_url, "Unverified", "", 0,
+        ])
+        new_center_row = len(ws.get_all_values())
+
+        notify_pending_givers_in_area(area, center_name, new_center_row)
+
+        return render_template("center_confirmation.html", center_name=center_name)
+
+    return render_template("register_maedet_rahman.html", form={})
 
 
 if __name__ == "__main__":
