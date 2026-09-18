@@ -7,10 +7,12 @@ from flask import Flask, render_template, request, redirect, url_for, flash, ses
 
 import gspread
 from google.oauth2.service_account import Credentials
+from google.auth.transport.requests import Request as GoogleAuthRequest
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "dev-secret-change-me")
 app.permanent_session_lifetime = timedelta(days=90)
+app.config["MAX_CONTENT_LENGTH"] = 25 * 1024 * 1024  # 25MB cap on uploads
 
 SHEET_ID = os.environ.get("SHEET_ID")
 GIVERS_TAB = "givers"
@@ -89,7 +91,7 @@ CENTERS_HEADER = [
     "Receives Meals", "Meal Slots", "Days Open",
     "Receives Groceries", "Grocery Hours",
     "Has Capacity Limit", "Capacity Per Slot",
-    "Photo URL", "Status", "Last Matched", "Visits"
+    "Photo URLs", "Status", "Last Matched", "Visits"
 ]
 
 
@@ -114,6 +116,53 @@ def col_index(header, col_name):
     try:
         return header.index(col_name) + 1
     except ValueError:
+        return None
+
+
+def get_drive_access_token():
+    """Reuses the same Google service account already set up for Sheets to get a Drive API access token."""
+    creds_json = os.environ.get("GOOGLE_CREDENTIALS_JSON")
+    creds_dict = json.loads(creds_json)
+    creds = Credentials.from_service_account_info(creds_dict, scopes=SCOPES)
+    creds.refresh(GoogleAuthRequest())
+    return creds.token
+
+
+def upload_image_to_drive(file_storage):
+    """
+    Uploads one uploaded image file to Google Drive under the app's service
+    account, makes it viewable by anyone with the link, and returns a
+    direct-view URL usable in an <img> tag. Returns None on failure (a
+    photo upload failing shouldn't block the rest of the registration).
+    """
+    try:
+        access_token = get_drive_access_token()
+        metadata = {"name": file_storage.filename}
+        files = {
+            "data": (None, json.dumps(metadata), "application/json"),
+            "file": (file_storage.filename, file_storage.stream, file_storage.mimetype),
+        }
+        resp = requests.post(
+            "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart",
+            headers={"Authorization": f"Bearer {access_token}"},
+            files=files,
+            timeout=30,
+        )
+        resp.raise_for_status()
+        file_id = resp.json()["id"]
+
+        # Make it viewable by anyone with the link (service-account uploads
+        # are private by default)
+        requests.post(
+            f"https://www.googleapis.com/drive/v3/files/{file_id}/permissions",
+            headers={"Authorization": f"Bearer {access_token}"},
+            json={"role": "reader", "type": "anyone"},
+            timeout=15,
+        )
+
+        return f"https://drive.google.com/uc?export=view&id={file_id}"
+    except Exception as e:
+        print(f"Drive image upload failed for {file_storage.filename}: {e}")
         return None
 
 
@@ -255,12 +304,14 @@ def apply_confirmed_match(giver_row_number, center_row_number, final_quantity):
     givers_ws.update_cell(giver_row_number, col_index(givers_header, "Status"), "Matched")
 
 
-def notify_pending_givers_in_area(area, center_name):
+def notify_pending_givers_in_area(area, center_name, center_row):
     """
-    When a new center registers, emails any giver who's been sitting with
-    Status="Pending" (no center was available when they submitted) whose
-    area or additional-areas list includes this one, so they know to come
-    back rather than having to check manually.
+    When a new center registers, re-matches any giver who's been sitting
+    with Status="Pending" (no center was available when they submitted)
+    whose area or additional-areas list includes this one - updates their
+    row to "Pending Confirmation" pointing at this center, and emails them
+    a direct link to confirm the quantity (skipping needing to resubmit
+    the whole form).
     """
     givers_ws = get_worksheet(GIVERS_TAB, GIVERS_HEADER)
     givers_header = ensure_columns(givers_ws, GIVERS_HEADER)
@@ -273,9 +324,11 @@ def notify_pending_givers_in_area(area, center_name):
     additional_areas_i = col_index(givers_header, "Additional Areas")
     email_i = col_index(givers_header, "Email")
     name_i = col_index(givers_header, "Name")
+    matched_center_i = col_index(givers_header, "Matched Center")
+    matched_center_row_i = col_index(givers_header, "Matched Center Row")
     target_area = area.strip().lower()
 
-    for row in all_values[1:]:
+    for row_num, row in enumerate(all_values[1:], start=2):
         status = row[status_i - 1] if len(row) >= status_i else ""
         if status != "Pending":
             continue
@@ -283,16 +336,24 @@ def notify_pending_givers_in_area(area, center_name):
         row_additional = row[additional_areas_i - 1].lower() if len(row) >= additional_areas_i else ""
         if target_area != row_area and target_area not in [a.strip() for a in row_additional.split(",")]:
             continue
+
+        # Re-match: point this giver at the new center and flip their status,
+        # same state as if they'd just chosen it from the browse list.
+        givers_ws.update_cell(row_num, status_i, "Pending Confirmation")
+        givers_ws.update_cell(row_num, matched_center_i, center_name)
+        givers_ws.update_cell(row_num, matched_center_row_i, center_row)
+
         email = row[email_i - 1] if len(row) >= email_i else ""
         giver_name = row[name_i - 1] if len(row) >= name_i else "there"
         if email:
+            confirm_link = url_for("confirm_match", row_number=row_num, _external=True)
             send_email(
                 email,
                 f"{center_name} just joined in your area!",
                 f"<p>Hi {giver_name},</p>"
                 f"<p><strong>{center_name}</strong> just registered in {area} — "
-                f"the area you offered to give in. Come back and submit your donation again "
-                f"so it can be matched.</p>"
+                f"the area you offered to give in. You've been matched with them — "
+                f'<a href="{confirm_link}">click here to confirm the details</a>.</p>'
                 f"<p>— افكر اطعام</p>",
             )
 
@@ -631,7 +692,14 @@ def register_center():
         if total_to_feed and not capacity_per_slot:
             has_capacity_limit = "Yes"
             capacity_per_slot = total_to_feed
-        photo_url = request.form.get("photo_url", "").strip()
+        photo_files = request.files.getlist("photos")[:10]
+        photo_urls = []
+        for f in photo_files:
+            if f and f.filename:
+                url = upload_image_to_drive(f)
+                if url:
+                    photo_urls.append(url)
+        photo_url = ", ".join(photo_urls)
 
         errors = []
         if not center_name or not governorate or not ownership_type or not area or not address:
@@ -663,8 +731,9 @@ def register_center():
             has_capacity_limit, capacity_per_slot,
             photo_url, "Unverified", "", 0,
         ])
+        new_center_row = len(ws.get_all_values())
 
-        notify_pending_givers_in_area(area, center_name)
+        notify_pending_givers_in_area(area, center_name, new_center_row)
 
         return render_template("center_confirmation.html", center_name=center_name)
 
