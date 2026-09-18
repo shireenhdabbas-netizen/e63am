@@ -4,6 +4,17 @@
 <h1>افكر اطعام</h1>
 <p class="subtitle">Connecting surplus food with trusted local centers</p>
 
+{% if user %}
+<p style="font-size:13px;margin:-8px 0 18px;">
+  Hi {{ user.get('Nickname') or user.get('Real Name') }} —
+  <a href="{{ url_for('my_activity') }}">my activity</a>
+</p>
+{% else %}
+<p style="font-size:13px;margin:-8px 0 18px;">
+  <a href="{{ url_for('login') }}">Sign in</a> to save your history
+</p>
+{% endif %}
+
 <a class="card" href="{{ url_for('give_food') }}">
   <p class="card-title">🍲 I have food to give</p>
   <p class="card-sub">Meals or groceries</p>
