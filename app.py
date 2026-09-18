@@ -62,8 +62,9 @@ def get_worksheet(tab_name, header_row):
 
 
 GIVERS_HEADER = [
-    "Timestamp", "Name", "Phone", "Area", "Food Type", "Meal Category",
-    "Quantity", "Ready Time", "Recurring?", "Pickup Available?",
+    "Timestamp", "Giver Type", "Name", "Phone", "Governorate", "Area",
+    "Food Type", "Meal Slot", "Quantity Number", "Quantity Unit",
+    "Ready Time", "Recurring?", "Recurring Days", "Pickup Available?",
     "Delivery Contact Name", "Delivery Contact Phone", "Status", "Matched Center"
 ]
 
@@ -185,21 +186,29 @@ def home():
 @app.route("/give", methods=["GET", "POST"])
 def give_food():
     if request.method == "POST":
+        giver_type = request.form.get("giver_type", "")
         name = request.form.get("name", "").strip()
         phone = request.form.get("phone", "").strip()
+        governorate = request.form.get("governorate", "").strip()
         area = request.form.get("area", "").strip()
+        area_other = request.form.get("area_other", "").strip()
+        if area == "Other" and area_other:
+            area = area_other
+
         food_type = request.form.get("food_type", "")
-        meal_category = request.form.get("meal_category", "")
-        quantity = request.form.get("quantity", "").strip()
+        meal_slot = request.form.get("meal_slot", "") if food_type != "Groceries" else ""
+        quantity_number = request.form.get("quantity_number", "").strip()
+        quantity_unit = request.form.get("quantity_unit", "")
         ready_time_raw = request.form.get("ready_time", "")
         recurring = request.form.get("recurring", "No")
+        recurring_days = ", ".join(request.form.getlist("recurring_days"))
         pickup = request.form.get("pickup", "No")
         delivery_contact_name = request.form.get("delivery_contact_name", "").strip()
         delivery_contact_phone = request.form.get("delivery_contact_phone", "").strip()
 
         errors = []
 
-        if not name or not phone or not area or not quantity:
+        if not giver_type or not name or not phone or not governorate or not area or not quantity_number:
             errors.append("Please fill in all required fields.")
         if not delivery_contact_name or not delivery_contact_phone:
             errors.append("Please fill in who the center should contact about this delivery.")
@@ -229,17 +238,20 @@ def give_food():
         ws = get_worksheet(GIVERS_TAB, GIVERS_HEADER)
         ws.append_row([
             datetime.now().isoformat(timespec="seconds"),
-            name, phone, area, food_type, meal_category,
-            quantity, ready_time.isoformat(timespec="minutes"),
-            recurring, pickup, delivery_contact_name, delivery_contact_phone,
+            giver_type, name, phone, governorate, area,
+            food_type, meal_slot, quantity_number, quantity_unit,
+            ready_time.isoformat(timespec="minutes"),
+            recurring, recurring_days, pickup,
+            delivery_contact_name, delivery_contact_phone,
             "Pending", "",
         ])
         giver_row_number = len(ws.get_all_values())
 
         matched_center = find_and_apply_match(area, giver_row_number)
 
-        return render_template("give_confirmation.html", area=area, quantity=quantity,
-                                food_type=food_type, meal_category=meal_category,
+        return render_template("give_confirmation.html", area=area,
+                                quantity_number=quantity_number, quantity_unit=quantity_unit,
+                                food_type=food_type, meal_slot=meal_slot,
                                 ready_time=ready_time, matched_center=matched_center)
 
     return render_template("give.html", form={})
