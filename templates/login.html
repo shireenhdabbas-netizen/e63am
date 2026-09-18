@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Sign in{% endblock %}
+{% block content %}
+<a class="back-link" href="{{ url_for('home') }}">&larr; Back</a>
+<h1>Sign in</h1>
+<p class="subtitle">See your past donations and use a saved nickname</p>
+
+<form method="POST">
+  <label>Phone number</label>
+  <input type="tel" name="phone" value="{{ form.get('phone', '') }}" required>
+
+  <label class="checkbox-label" style="margin-top:14px;">
+    <input type="checkbox" name="remember_me" checked> Remember me on this device
+  </label>
+
+  <button type="submit">Continue</button>
+</form>
+
+<style>
+  .checkbox-label { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #333; }
+  .checkbox-label input { width: auto; }
+</style>
+{% endblock %}
