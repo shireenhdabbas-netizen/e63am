@@ -1,27 +1,27 @@
 {% extends "base.html" %}
-{% block title %}Submitted{% endblock %}
+{% block title %}تم الإرسال{% endblock %}
 {% block content %}
 <div class="confirm-icon">✅</div>
-<h1>Submitted</h1>
+<h1>تم الإرسال</h1>
 {% if matched_center %}
-<p class="subtitle">Matched with a nearby center</p>
+<p class="subtitle">تم التوصيل بمكان قريب</p>
 <div class="info-box">
-  <strong>{{ quantity_number }} {{ quantity_unit }}</strong> · {{ food_type }}{% if meal_slot %} · {{ meal_slot }}{% endif %}<br>
-  {{ area }} · {{ ready_date.strftime('%b %d, %Y') }}
+  <strong>{{ quantity_number }} {{ quantity_unit|ar }}</strong> · {{ food_type|ar }}{% if meal_slot %} · {{ meal_slot|ar }}{% endif %}<br>
+  {{ area|ar }} · {{ ready_date.strftime('%d/%m/%Y') }}
 </div>
 <div class="info-box">
-  🕌 <strong>{{ matched_center }}</strong> — we'll reach out on your phone number to confirm the details and arrange delivery.
+  🕌 <strong>{{ matched_center }}</strong> — هنتواصل معاك على رقمك عشان نأكّد التفاصيل ونظبط التوصيل.
 </div>
 {% else %}
-<p class="subtitle">Thank you — we've received this</p>
+<p class="subtitle">شكرًا — استلمنا طلبك</p>
 <div class="info-box">
-  <strong>{{ quantity_number }} {{ quantity_unit }}</strong> · {{ food_type }}{% if meal_slot %} · {{ meal_slot }}{% endif %}<br>
-  {{ area }} · {{ ready_date.strftime('%b %d, %Y') }}
+  <strong>{{ quantity_number }} {{ quantity_unit|ar }}</strong> · {{ food_type|ar }}{% if meal_slot %} · {{ meal_slot|ar }}{% endif %}<br>
+  {{ area|ar }} · {{ ready_date.strftime('%d/%m/%Y') }}
 </div>
 <div class="info-box">
-  There's no registered center in your area yet — our team will follow up with you directly on the phone number you gave us.
+  لسه مفيش مكان مسجّل في منطقتك — هنتواصل معاك على ايميلك أول ما مكان ينضم، أو عشان نظبط حاجة معاك مباشرة و ارجع على صفحتك هنا علشان تشوف لو ظهرت حاجة تانية مناسبة .
 </div>
 {% endif %}
 
-<a class="back-link" href="{{ url_for('home') }}">&larr; Back to home</a>
+<a class="back-link" href="{{ url_for('home') }}">&rarr; رجوع للرئيسية</a>
 {% endblock %}
