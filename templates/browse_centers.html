@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}Choose a center{% endblock %}
+{% block content %}
+<a class="back-link" href="{{ url_for('give_food') }}">&larr; Back</a>
+<h1>Choose where to give</h1>
+<p class="subtitle">{{ centers|length }} center{{ 's' if centers|length != 1 }} available near you</p>
+
+{% for center in centers %}
+<div class="center-card">
+  {% if center.get('Photo URL') %}
+  <img src="{{ center.get('Photo URL') }}" alt="" class="center-photo">
+  {% endif %}
+
+  <div class="center-card-body">
+    <div class="center-card-header">
+      <p class="card-title" style="margin:0;">{{ center.get('Center Name') }}</p>
+      {% if center.get('Status') == 'Verified' %}
+      <span class="badge badge-verified">✓ Verified</span>
+      {% else %}
+      <span class="badge badge-unverified">Unverified</span>
+      {% endif %}
+    </div>
+    <p class="card-sub" style="margin:2px 0 8px;">{{ center.get('Center Type') }} · {{ center.get('Area') }}</p>
+
+    {% if center.get('Bio') %}
+    <p style="font-size:13px;color:#444;margin:0 0 8px;">{{ center.get('Bio') }}</p>
+    {% endif %}
+
+    <div class="center-meta">
+      {% if center.get('Visits') and center.get('Visits')|int > 0 %}<span>{{ center.get('Visits') }} donation{{ 's' if center.get('Visits')|int != 1 }} received</span>{% else %}<span>Not yet received a donation</span>{% endif %}
+      {% if center.get('Capacity Per Slot') %}<span>· needs up to {{ center.get('Capacity Per Slot') }}/slot</span>{% endif %}
+    </div>
+
+    <a class="choose-btn" href="{{ url_for('choose_center', center_row=center._row) }}">I want to give here</a>
+  </div>
+</div>
+{% endfor %}
+
+<style>
+  .center-card {
+    background: #fff;
+    border: 1px solid #eee;
+    border-radius: 14px;
+    overflow: hidden;
+    margin-bottom: 14px;
+  }
+  .center-photo { width: 100%; height: 140px; object-fit: cover; display: block; }
+  .center-card-body { padding: 14px; }
+  .center-card-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .badge { font-size: 11px; padding: 2px 8px; border-radius: 20px; white-space: nowrap; }
+  .badge-verified { background: #e3f3ec; color: #2f7d5c; }
+  .badge-unverified { background: #f2f2f2; color: #888; }
+  .center-meta { font-size: 12px; color: #888; margin-bottom: 10px; }
+  .choose-btn {
+    display: block;
+    text-align: center;
+    background: #2f7d5c;
+    color: #fff;
+    text-decoration: none;
+    padding: 10px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+  }
+</style>
+{% endblock %}
