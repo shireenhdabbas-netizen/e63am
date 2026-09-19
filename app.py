@@ -23,95 +23,19 @@ WAITLIST_TAB = "waitlist"
 RESEND_API_KEY = os.environ.get("RESEND_API_KEY")
 FROM_EMAIL = os.environ.get("FROM_EMAIL", "Mama Tuhibbun <onboarding@resend.dev>")
 
-MAEDET_RAHMAN_TYPE = "Ma'edet Rahman (community meal table)"
+# All enum-style values (governorate, area, type, status, yes/no, etc.) are
+# stored as their actual Egyptian Arabic text directly in the sheet - not an
+# English key translated for display. This makes the raw sheet readable to
+# a human without hurting the system's ability to filter/sort/extract data
+# (string comparisons work identically regardless of which language the
+# string happens to be in, as long as it's used consistently).
+MAEDET_RAHMAN_TYPE = "مائدة رحمن"
+OTHER = "تاني"
 
 SCOPES = [
     "https://www.googleapis.com/auth/spreadsheets",
     "https://www.googleapis.com/auth/drive",
 ]
-
-# Stored/matched values stay in English (so matching logic and the sheet
-# stay stable and simple to work with) - this dict translates them to
-# Egyptian Arabic wherever they're displayed back to a person. Used via
-# the `ar` Jinja filter below, and mirrored in the registration forms' JS
-# for the two area dropdowns.
-AR_LABELS = {
-    # Governorates
-    "Cairo": "القاهرة", "Giza": "الجيزة",
-    # Cairo areas
-    "Shubra": "شبرا", "El-Zawia El-Hamra": "الزاوية الحمراء", "Hadayek El-Kobba": "حدائق القبة",
-    "Rod El-Farg": "روض الفرج", "El-Sharabia": "الشرابية", "El-Sahel": "الساحل",
-    "El-Zaiton": "الزيتون", "Al-Ameria": "الأميرية", "Masr El-Qadima": "مصر القديمة",
-    "El-Khalifa": "الخليفة", "El-Moqattam": "المقطم", "El-Basatin": "البساتين",
-    "Dar El-Salam": "دار السلام", "El-Sayeda Zeinab": "السيدة زينب", "El-Tebin": "التبين",
-    "Helwan": "حلوان", "El-Maasara": "المعصرة", "El-Maadi": "المعادي", "Tora": "طرة",
-    "15 May": "15 مايو", "Manshaet Naser": "منشأة ناصر", "El-Waily": "الوايلي",
-    "Wast El-Qahira (Downtown)": "وسط القاهرة", "Boulak": "بولاق", "Gharb El-Qahira": "غرب القاهرة",
-    "Abdeen": "عابدين", "Azbakia": "الأزبكية", "Moski": "الموسكي", "Bab El-Shaaria": "باب الشعرية",
-    "Misr El-Gadidah (Heliopolis)": "مصر الجديدة (هليوبوليس)", "El-Nozha": "النزهة",
-    "Sharq Madinet Nasr": "شرق مدينة نصر", "Gharb Madinet Nasr": "غرب مدينة نصر",
-    "El-Salam Awal": "السلام أول", "El-Salam Thani": "السلام ثاني", "El-Mataria": "المطرية",
-    "Ain Shams": "عين شمس", "El-Marg": "المرج", "Zamalek": "الزمالك", "Garden City": "جاردن سيتي",
-    "New Cairo": "القاهرة الجديدة", "Katameya": "القطامية",
-    # Giza areas
-    "Dokki": "الدقي", "Agouza / Mohandessin": "العجوزة / المهندسين", "Omraniya": "العمرانية",
-    "Haram": "الهرم", "Boulak El Dakrour": "بولاق الدكرور", "El Warraq": "الوراق",
-    "North Giza": "شمال الجيزة", "South Giza": "جنوب الجيزة", "6th of October": "السادس من أكتوبر",
-    "Sheikh Zayed": "الشيخ زايد", "Imbaba": "إمبابة", "Faisal": "فيصل", "Giza Square": "ميدان الجيزة",
-    "Al-Ayyat": "العياط", "Atfih": "أطفيح", "Awsim": "أوسيم", "Al-Badrashin": "البدرشين",
-    "Al-Hawamdiya": "الحوامدية", "Al-Saff": "الصف", "Kerdasa": "كرداسة",
-    "Manshaat El Qanater": "منشأة القناطر", "Other": "تاني",
-    # Giver type
-    "Individual": "فرد", "Restaurant / Business": "مطعم / منشأة",
-    # Food type
-    "Hot meal": "وجبة سخنة", "Cold meal": "وجبة باردة", "Groceries": "مواد غذائية",
-    # Time preference
-    "Flexible": "مرن حسب احتياج المكان", "Specific": "وقت محدد",
-    # Meal slots
-    "Breakfast (9-11)": "فطار (9-11)", "Late breakfast (12-2)": "فطار متأخر (12-2)",
-    "Lunch (4-6)": "غدا (4-6)", "Dinner (8-10)": "عشا (8-10)",
-    # Quantity units
-    "meals": "وجبة", "portions": "حصة", "kg": "كجم", "boxes": "كرتونة", "items": "قطعة",
-    # Yes/No (recurring, capacity limit, etc.)
-    "Yes": "أيوه", "No": "لأ",
-    # Days
-    "Saturday": "السبت", "Sunday": "الأحد", "Monday": "الإتنين", "Tuesday": "التلات",
-    "Wednesday": "الأربع", "Thursday": "الخميس", "Friday": "الجمعة",
-    # Delivery contact who
-    "Me": "أنا", "Someone else": "حد تاني",
-    # Status
-    "Matched": "مؤمّنة", "Verified": "موثّق", "Unverified": "لسه مش موثّق", "Rejected": "مرفوض",
-    # Center type
-    "Mosque": "مسجد", "Church": "كنيسة", "Community center": "مركز خدمة مجتمعي",
-    "Orphanage": "دار أيتام", "Elderly home": "دار مسنين", "Shop": "محل",
-    "Local NGO / Community organization": "منظمة أهلية محلية",
-    MAEDET_RAHMAN_TYPE: "مائدة رحمن", "Homeless outreach point": "نقطة دعم للمشردين",
-    # Ownership type
-    "Governmental": "حكومي", "Private": "خاص", "Local NGO": "منظمة أهلية",
-    "Independent / community-run": "مستقل / أهلي",
-    # Target groups served
-    "Elderly": "مسنين", "Elderly with chronic illness": "مسنين بأمراض مزمنة", "Children": "أطفال",
-    "Children with disabilities": "أطفال ذوي إعاقة", "People with disabilities": "ذوي إعاقة",
-    "Widows": "أرامل", "Families in need": "أسر محتاجة", "Orphans": "أيتام", "Homeless": "مشردين",
-    # Submitter role
-    "Staff": "من فريق المكان", "Info-only": "بشارك معلومات بس",
-    # Place type (waitlist)
-    "Center": "جهة استقبال", "Ma'edet Rahman": "مائدة رحمن",
-}
-
-
-@app.template_filter("ar")
-def ar_label(value):
-    """
-    Translates a stored English value (or a comma-joined list of them, e.g.
-    "Elderly, Children") to Egyptian Arabic for display, using AR_LABELS.
-    Falls back to the original value if there's no translation on file.
-    """
-    if not value:
-        return value
-    if isinstance(value, str) and ", " in value:
-        return "، ".join(AR_LABELS.get(p.strip(), p.strip()) for p in value.split(", "))
-    return AR_LABELS.get(value, value)
 
 
 def get_sheet_client():
@@ -315,14 +239,16 @@ def read_row(ws, header, row_number):
     return {col: (values[i] if i < len(values) else "") for i, col in enumerate(header)}
 
 
-def find_candidate_places(areas, only_maedet_rahman=False):
+def find_candidate_places(governorate, area, only_maedet_rahman=False):
     """
-    Returns every eligible place (center or ma'edet rahman) across the given
-    areas, sorted for browsing: Verified first, then within each group the
-    one matched least recently (so it spreads out rather than always
-    hitting the same place). Unverified places are still included - a
-    giver choosing one becomes its first real "visit" (crowd-sourced
-    trust, no admin gate).
+    Returns every eligible place (center or ma'edet rahman) within the
+    given governorate, sorted for browsing: places in the exact same area
+    first (closest, since real distance isn't calculated yet), then
+    Verified places before unverified, then within each group the one
+    matched least recently (so it spreads out rather than always hitting
+    the same place). Unverified places are still included - a giver
+    choosing one becomes its first real "visit" (crowd-sourced trust, no
+    admin gate).
     only_maedet_rahman=True restricts to open tables; False restricts to
     everything else (limited-beneficiary institutions).
     Returns a list of dicts, each the full place row plus its sheet row
@@ -334,18 +260,20 @@ def find_candidate_places(areas, only_maedet_rahman=False):
     if len(all_values) <= 1:
         return []
 
+    gov_i = col_index(centers_header, "Governorate")
     area_i = col_index(centers_header, "Area")
     status_i = col_index(centers_header, "Status")
     type_i = col_index(centers_header, "Center Type")
 
-    target_areas = set(a.strip().lower() for a in areas if a.strip())
+    target_governorate = governorate.strip()
+    target_area = area.strip()
     candidates = []
     for row_num, row in enumerate(all_values[1:], start=2):
-        row_area = row[area_i - 1].strip().lower() if len(row) >= area_i else ""
-        if row_area not in target_areas:
+        row_governorate = row[gov_i - 1].strip() if len(row) >= gov_i else ""
+        if row_governorate != target_governorate:
             continue
         status = row[status_i - 1] if len(row) >= status_i else ""
-        if status == "Rejected":
+        if status == "مرفوض":
             continue
         row_type = row[type_i - 1] if len(row) >= type_i else ""
         is_maedet_rahman = (row_type == MAEDET_RAHMAN_TYPE)
@@ -355,18 +283,23 @@ def find_candidate_places(areas, only_maedet_rahman=False):
         info["_row"] = row_num
         candidates.append(info)
 
-    # Verified first; within each group, least-recently-matched first
+    # Same area first (closest, since real distance isn't calculated yet);
+    # then Verified before unverified; then least-recently-matched first
     # (empty "Last Matched" sorts first, i.e. never-matched places surface early)
-    candidates.sort(key=lambda c: (c.get("Status") != "Verified", c.get("Last Matched", "")))
+    candidates.sort(key=lambda c: (
+        c.get("Area", "").strip() != target_area,
+        c.get("Status") != "موثّق",
+        c.get("Last Matched", ""),
+    ))
     return candidates
 
 
 def apply_confirmed_match(giver_row_number, center_row_number):
     """
-    Finalizes a match: flips the giver's row to "Matched" (quantity was
-    already written when the row was created, since browsing now always
-    happens before committing) and updates the place's visit count /
-    last-matched timestamp / auto-verification.
+    Finalizes a match: flips the giver's row to "مؤمّنة" (Matched) - quantity
+    was already written when the row was created, since browsing now
+    always happens before committing - and updates the place's visit
+    count / last-matched timestamp / auto-verification.
     """
     centers_ws = get_worksheet(CENTERS_TAB, CENTERS_HEADER)
     centers_header = ensure_columns(centers_ws, CENTERS_HEADER)
@@ -387,11 +320,11 @@ def apply_confirmed_match(giver_row_number, center_row_number):
         # First-ever match auto-verifies the place (crowd-sourced trust,
         # no admin gate) instead of requiring manual review.
         if new_visits == 1:
-            centers_ws.update_cell(center_row_number, status_i, "Verified")
+            centers_ws.update_cell(center_row_number, status_i, "موثّق")
 
     givers_ws = get_worksheet(GIVERS_TAB, GIVERS_HEADER)
     givers_header = ensure_columns(givers_ws, GIVERS_HEADER)
-    givers_ws.update_cell(giver_row_number, col_index(givers_header, "Status"), "Matched")
+    givers_ws.update_cell(giver_row_number, col_index(givers_header, "Status"), "مؤمّنة")
 
 
 def notify_center_of_match(center, giver):
@@ -400,7 +333,7 @@ def notify_center_of_match(center, giver):
     if not center_email:
         return
     quantity = giver.get("Quantity")
-    unit = AR_LABELS.get(giver.get("Quantity Unit"), giver.get("Quantity Unit"))
+    unit = giver.get("Quantity Unit")
     delivery_who = giver.get("Delivery Contact Name") or giver.get("Name")
     delivery_phone = giver.get("Delivery Contact Phone") or giver.get("Phone")
     backup_phone = giver.get("Backup Phone")
@@ -412,8 +345,8 @@ def notify_center_of_match(center, giver):
         f"<p>حد أمّن إنه هيبعتلكم أكل من خلال مما تحبون:</p>"
         f"<ul>"
         f"<li>الكمية: <strong>{quantity} {unit}</strong></li>"
-        f"<li>النوع: {AR_LABELS.get(giver.get('Food Type'), giver.get('Food Type'))}"
-        f"{' — ' + AR_LABELS.get(giver.get('Meal Slot'), giver.get('Meal Slot')) if giver.get('Meal Slot') else ''}</li>"
+        f"<li>النوع: {giver.get('Food Type')}"
+        f"{' — ' + giver.get('Meal Slot') if giver.get('Meal Slot') else ''}</li>"
         f"<li>هيكون جاهز يوم: {giver.get('Ready Date')}</li>"
         f"<li>هيتواصل معاكم: <strong>{delivery_who}</strong> — {delivery_phone}"
         f"{' (رقم احتياطي: ' + backup_phone + ')' if backup_phone else ''}</li>"
@@ -445,13 +378,13 @@ def notify_waitlist_for_area(area, place_name, place_type):
     email_i = col_index(header, "Email")
     area_i = col_index(header, "Area")
     type_i = col_index(header, "Place Type")
-    target_area = area.strip().lower()
+    target_area = area.strip()
 
-    browse_route = "browse_maedet_rahman" if place_type == "Ma'edet Rahman" else "browse_places"
+    browse_route = "browse_maedet_rahman" if place_type == MAEDET_RAHMAN_TYPE else "browse_places"
     browse_link = url_for(browse_route, _external=True)
 
     for row in all_values[1:]:
-        row_area = row[area_i - 1].strip().lower() if len(row) >= area_i else ""
+        row_area = row[area_i - 1].strip() if len(row) >= area_i else ""
         row_type = row[type_i - 1] if len(row) >= type_i else ""
         if row_area != target_area or row_type != place_type:
             continue
@@ -462,7 +395,7 @@ def notify_waitlist_for_area(area, place_name, place_type):
                 f"{place_name} انضم في منطقتك!",
                 f'<div dir="rtl" style="text-align:right;font-family:Tahoma,Arial,sans-serif;">'
                 f"<p>أهلاً،</p>"
-                f"<p><strong>{place_name}</strong> سجّل دلوقتي في {AR_LABELS.get(area, area)} — "
+                f"<p><strong>{place_name}</strong> سجّل دلوقتي في {area} — "
                 f'رجع <a href="{browse_link}">هنا</a> عشان تأمّن الوجبة.</p>'
                 f"<p>— مما تحبون</p></div>",
             )
@@ -479,7 +412,7 @@ def browse_places():
     area = request.args.get("area", "")
     results = None
     if area:
-        results = find_candidate_places([area], only_maedet_rahman=False)
+        results = find_candidate_places(governorate, area, only_maedet_rahman=False)
     return render_template("browse_places.html", governorate=governorate, area=area, results=results)
 
 
@@ -489,7 +422,7 @@ def browse_maedet_rahman():
     area = request.args.get("area", "")
     results = None
     if area:
-        results = find_candidate_places([area], only_maedet_rahman=True)
+        results = find_candidate_places(governorate, area, only_maedet_rahman=True)
     return render_template("browse_maedet_rahman.html", governorate=governorate, area=area, results=results)
 
 
@@ -497,10 +430,10 @@ def browse_maedet_rahman():
 def notify_me():
     email = request.form.get("email", "").strip()
     area = request.form.get("area", "").strip()
-    place_type = request.form.get("place_type", "Center")
+    place_type = request.form.get("place_type", "جهة استقبال")
     add_to_waitlist(email, area, place_type)
     flash("تمام، هنبلغك أول ما مكان يتسجّل في المنطقة دي.")
-    if place_type == "Ma'edet Rahman":
+    if place_type == MAEDET_RAHMAN_TYPE:
         return redirect(url_for("browse_maedet_rahman", governorate=request.form.get("governorate", ""), area=area))
     return redirect(url_for("browse_places", governorate=request.form.get("governorate", ""), area=area))
 
@@ -521,16 +454,16 @@ def give_to_place(center_row):
         phone = request.form.get("phone", "").strip()
         email = request.form.get("email", "").strip()
         food_type = request.form.get("food_type", "")
-        time_preference = request.form.get("time_preference", "Flexible") if food_type != "Groceries" else ""
-        meal_slot = request.form.get("meal_slot", "") if (food_type != "Groceries" and time_preference == "Specific") else ""
+        time_preference = request.form.get("time_preference", "مرن حسب احتياج المكان") if food_type != "مواد غذائية" else ""
+        meal_slot = request.form.get("meal_slot", "") if (food_type != "مواد غذائية" and time_preference == "وقت محدد") else ""
         quantity = request.form.get("quantity_number", "").strip()
         quantity_unit = request.form.get("quantity_unit", "")
         ready_date_raw = request.form.get("ready_date", "")
-        recurring = request.form.get("recurring", "No")
+        recurring = request.form.get("recurring", "لأ")
         recurring_days = ", ".join(request.form.getlist("recurring_days"))
 
-        delivery_contact_who = request.form.get("delivery_contact_who", "Me")
-        if delivery_contact_who == "Someone else":
+        delivery_contact_who = request.form.get("delivery_contact_who", "أنا")
+        if delivery_contact_who == "حد تاني":
             delivery_contact_name = request.form.get("delivery_contact_name", "").strip()
             delivery_contact_phone = request.form.get("delivery_contact_phone", "").strip()
         else:
@@ -541,7 +474,7 @@ def give_to_place(center_row):
         errors = []
         if not giver_type or not name or not phone or not quantity:
             errors.append("من فضلك املا كل الحقول المطلوبة.")
-        if delivery_contact_who == "Someone else" and (not delivery_contact_name or not delivery_contact_phone):
+        if delivery_contact_who == "حد تاني" and (not delivery_contact_name or not delivery_contact_phone):
             errors.append("من فضلك اكتب اسم ورقم الشخص اللي هيتواصل معاه المكان.")
 
         ready_date = None
@@ -552,7 +485,7 @@ def give_to_place(center_row):
                 errors.append("صيغة التاريخ غير صحيحة.")
         else:
             errors.append("من فضلك اختار تاريخ.")
-        if ready_date and recurring != "Yes":
+        if ready_date and recurring != "أيوه":
             if ready_date < date.today() + timedelta(days=1):
                 errors.append("التاريخ لازم يكون بكرة على الأقل.")
 
@@ -571,7 +504,7 @@ def give_to_place(center_row):
             quantity, quantity_unit,
             ready_date.isoformat(), recurring, recurring_days,
             delivery_contact_who, delivery_contact_name, delivery_contact_phone, backup_phone,
-            "Matched", center.get("Center Name", ""), center_row,
+            "مؤمّنة", center.get("Center Name", ""), center_row,
         ])
         giver_row_number = len(givers_ws.get_all_values())
 
@@ -666,18 +599,18 @@ def register_center():
         bio = request.form.get("bio", "").strip()
         center_type = request.form.get("center_type", "")
         center_type_other = request.form.get("center_type_other", "").strip()
-        if center_type == "Other" and center_type_other:
+        if center_type == OTHER and center_type_other:
             center_type = center_type_other
 
         governorate = request.form.get("governorate", "").strip()
         ownership_type = request.form.get("ownership_type", "").strip()
         ownership_type_other = request.form.get("ownership_type_other", "").strip()
-        if ownership_type == "Other" and ownership_type_other:
+        if ownership_type == OTHER and ownership_type_other:
             ownership_type = ownership_type_other
 
         area = request.form.get("area", "").strip()
         area_other = request.form.get("area_other", "").strip()
-        if area == "Other" and area_other:
+        if area == OTHER and area_other:
             area = area_other
         address = request.form.get("address", "").strip()
         maps_link = request.form.get("maps_link", "").strip()
@@ -701,19 +634,19 @@ def register_center():
         ritual_schedule = request.form.get("ritual_schedule", "").strip()
 
         receives = request.form.getlist("receives")
-        receives_meals = "Yes" if "Meals" in receives else "No"
-        receives_groceries = "Yes" if "Groceries" in receives else "No"
+        receives_meals = "أيوه" if "وجبات" in receives else "لأ"
+        receives_groceries = "أيوه" if "مواد غذائية" in receives else "لأ"
         meal_slots = ", ".join(request.form.getlist("meal_slots"))
         days_open = ", ".join(request.form.getlist("days_open"))
         grocery_hours = request.form.get("grocery_hours", "").strip()
 
-        has_capacity_limit = request.form.get("has_capacity_limit", "No")
+        has_capacity_limit = request.form.get("has_capacity_limit", "لأ")
         capacity_per_slot = request.form.get("capacity_per_slot", "").strip()
         # If they went through the institution fields (beneficiaries/staff/total)
         # instead of the capacity question, use their stated total as the capacity
         # rather than asking the same thing twice.
         if total_to_feed and not capacity_per_slot:
-            has_capacity_limit = "Yes"
+            has_capacity_limit = "أيوه"
             capacity_per_slot = total_to_feed
         photo_files = request.files.getlist("photos")[:10]
         photo_urls = []
@@ -733,7 +666,7 @@ def register_center():
             errors.append("من فضلك اكتب اسم ورقم الشخص المسؤول في المكان.")
         if not receives:
             errors.append("من فضلك اختار إيه اللي المكان بيستقبله: وجبات، مواد غذائية، أو الاتنين.")
-        if has_capacity_limit == "Yes" and not capacity_per_slot:
+        if has_capacity_limit == "أيوه" and not capacity_per_slot:
             errors.append("من فضلك اكتب السقف لكل فترة، أو اختار \"لأ\" لو مفيش سقف ثابت.")
 
         if errors:
@@ -753,11 +686,11 @@ def register_center():
             receives_meals, meal_slots, days_open,
             receives_groceries, grocery_hours,
             has_capacity_limit, capacity_per_slot,
-            photo_url, "Unverified", "", 0,
+            photo_url, "لسه مش موثّق", "", 0,
         ])
         new_center_row = len(ws.get_all_values())
 
-        notify_waitlist_for_area(area, center_name, "Center")
+        notify_waitlist_for_area(area, center_name, "جهة استقبال")
 
         return render_template("center_confirmation.html", center_name=center_name)
 
@@ -774,12 +707,12 @@ def register_maedet_rahman():
         governorate = request.form.get("governorate", "").strip()
         ownership_type = request.form.get("ownership_type", "").strip()
         ownership_type_other = request.form.get("ownership_type_other", "").strip()
-        if ownership_type == "Other" and ownership_type_other:
+        if ownership_type == OTHER and ownership_type_other:
             ownership_type = ownership_type_other
 
         area = request.form.get("area", "").strip()
         area_other = request.form.get("area_other", "").strip()
-        if area == "Other" and area_other:
+        if area == OTHER and area_other:
             area = area_other
         address = request.form.get("address", "").strip()
         maps_link = request.form.get("maps_link", "").strip()
@@ -801,13 +734,13 @@ def register_maedet_rahman():
         ritual_schedule = request.form.get("ritual_schedule", "").strip()
 
         receives = request.form.getlist("receives")
-        receives_meals = "Yes" if "Meals" in receives else "No"
-        receives_groceries = "Yes" if "Groceries" in receives else "No"
+        receives_meals = "أيوه" if "وجبات" in receives else "لأ"
+        receives_groceries = "أيوه" if "مواد غذائية" in receives else "لأ"
         meal_slots = ", ".join(request.form.getlist("meal_slots"))
         days_open = ", ".join(request.form.getlist("days_open"))
         grocery_hours = request.form.get("grocery_hours", "").strip()
 
-        has_capacity_limit = request.form.get("has_capacity_limit", "No")
+        has_capacity_limit = request.form.get("has_capacity_limit", "لأ")
         capacity_per_slot = request.form.get("capacity_per_slot", "").strip()
 
         photo_files = request.files.getlist("photos")[:10]
@@ -828,7 +761,7 @@ def register_maedet_rahman():
             errors.append("من فضلك اكتب اسم ورقم الشخص المسؤول في المكان.")
         if not receives:
             errors.append("من فضلك اختار إيه اللي المائدة بتستقبله: وجبات، مواد غذائية، أو الاتنين.")
-        if has_capacity_limit == "Yes" and not capacity_per_slot:
+        if has_capacity_limit == "أيوه" and not capacity_per_slot:
             errors.append("من فضلك اكتب السقف التقريبي، أو اختار \"لأ\" لو المائدة مفتوحة من غير سقف.")
 
         if errors:
@@ -848,11 +781,11 @@ def register_maedet_rahman():
             receives_meals, meal_slots, days_open,
             receives_groceries, grocery_hours,
             has_capacity_limit, capacity_per_slot,
-            photo_url, "Unverified", "", 0,
+            photo_url, "لسه مش موثّق", "", 0,
         ])
         new_center_row = len(ws.get_all_values())
 
-        notify_waitlist_for_area(area, center_name, "Ma'edet Rahman")
+        notify_waitlist_for_area(area, center_name, MAEDET_RAHMAN_TYPE)
 
         return render_template("center_confirmation.html", center_name=center_name)
 

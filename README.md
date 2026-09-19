@@ -7,10 +7,21 @@ it, backed by a Google Sheet — no database. Two kinds of places:
   limited number of beneficiaries.
 - **Ma'edet Rahman** — open community meal tables anyone can walk up to.
 
-A giver browses places in their area, picks one, and the match is
-finalized immediately (no separate admin approval step). If no place is
-registered yet in someone's area, they can join a waitlist and get
+A giver browses by governorate + area, picks a place (same-area matches
+surface first, then Verified, then least-recently-matched), and the match
+is finalized immediately (no separate admin approval step). If no place
+is registered yet in someone's area, they can join a waitlist and get
 emailed once one signs up there.
+
+All enum-style values (governorate, area, center type, status, yes/no,
+etc.) are stored as their actual Egyptian Arabic text directly in the
+sheet, not as an English key translated for display — so the raw sheet is
+readable to a human on its own. **This means values are matched by exact
+string, including in the sheet** — if you already have rows from an older
+version of this app that used English values (`Cairo`, `Verified`, ...),
+they won't match new filters/lookups until you update them to their
+Arabic equivalents (see `AR_LABELS`'s old mapping in git history, or the
+option values in the templates) or re-register.
 
 ## Local setup
 

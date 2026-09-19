@@ -5,8 +5,8 @@
 <h1>الوجبة مؤمّنة</h1>
 <p class="subtitle">تم تأمينها مع {{ matched_center }}</p>
 <div class="info-box">
-  <strong>{{ quantity_number }} {{ quantity_unit|ar }}</strong> · {{ food_type|ar }}{% if meal_slot %} · {{ meal_slot|ar }}{% endif %}<br>
-  {{ area|ar }} · {{ ready_date.strftime('%d/%m/%Y') }}
+  <strong>{{ quantity_number }} {{ quantity_unit }}</strong> · {{ food_type }}{% if meal_slot %} · {{ meal_slot }}{% endif %}<br>
+  {{ area }} · {{ ready_date.strftime('%d/%m/%Y') }}
 </div>
 <div class="info-box">
   🕌 <strong>{{ matched_center }}</strong> — هنتواصل معاك على رقمك عشان نأكّد التفاصيل ونظبط التوصيل.

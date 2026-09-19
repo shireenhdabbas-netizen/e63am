@@ -7,11 +7,11 @@
 
 {% for d in donations %}
 <div class="info-box" style="margin-bottom:10px;">
-  <strong>{{ d.get('Quantity') }} {{ d.get('Quantity Unit')|ar }}</strong>
-  · {{ d.get('Food Type')|ar }}<br>
-  {{ d.get('Area')|ar }} · {{ d.get('Ready Date') }}<br>
+  <strong>{{ d.get('Quantity') }} {{ d.get('Quantity Unit') }}</strong>
+  · {{ d.get('Food Type') }}<br>
+  {{ d.get('Area') }} · {{ d.get('Ready Date') }}<br>
   {% if d.get('Matched Center') %}→ {{ d.get('Matched Center') }}{% endif %}
-  <span style="float:left;color:#888;font-size:12px;">{{ d.get('Status')|ar }}</span>
+  <span style="float:left;color:#888;font-size:12px;">{{ d.get('Status') }}</span>
 </div>
 {% else %}
 <p style="color:#888;font-size:14px;">لسه مفيش حاجة — <a href="{{ url_for('browse_places') }}">أمّن أول وجبة</a>.</p>
