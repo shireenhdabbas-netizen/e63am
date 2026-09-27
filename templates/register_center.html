@@ -2,10 +2,10 @@
 {% block title %}سجّل مكان استقبال{% endblock %}
 {% block content %}
 <a class="back-link" href="{{ url_for('home') }}">&rarr; رجوع</a>
-<h1>سجّل مكان استقبال</h1>
+<h1>{{ 'عدّل بيانات مكانك' if editing_row else 'سجّل مكان استقبال' }}</h1>
 <p class="subtitle">دار أيتام، دار مسنين، مركز خدمة مجتمعي، أو أي جهة بتخدم عدد محدد ومعروف من المستفيدين</p>
 
-<form method="POST" enctype="multipart/form-data">
+<form method="POST" enctype="multipart/form-data" action="{{ url_for('edit_place', row=editing_row) if editing_row else url_for('register_center') }}">
   <label>اسم المكان *</label>
   <input type="text" name="center_name" value="{{ form.get('center_name', '') }}" required>
 
@@ -164,12 +164,21 @@
   <input type="tel" name="contact_phone" value="{{ form.get('contact_phone', '') }}" required>
   <p class="hint">الشخص اللي ممكن يترد عليه فعلاً في المكان — ممكن يكون مختلف عنك.</p>
 
-  <label>إيميل المكان (اختياري بس مهم)</label>
-  <input type="email" name="contact_email" placeholder="عشان نبلغكم أول ما حد يأكد إنه هيبعتلكم أكل" value="{{ form.get('contact_email', '') }}">
-  <p class="hint">من غير إيميل، مش هينفعنا نبلغكم أوتوماتيك إن في أكل جاي — لازم تتابعوا بنفسكم.</p>
+  <label>إيميل المكان *</label>
+  <input type="email" name="contact_email" placeholder="عشان نبلغكم أول ما حد يأمّن إنه هيبعتلكم أكل" value="{{ form.get('contact_email', '') }}" required>
+  <p class="hint">مطلوب دلوقتي — بيه بس بنقدر نبلغكم أوتوماتيك إن في أكل جاي ونأكّد الاستلام.</p>
 
-  <button type="submit">إرسال</button>
+  {% if not editing_row %}
+  <label class="checkbox-label" style="margin-top:18px;">
+    <input type="checkbox" name="disclaimer_ack" required>
+    موافقين على <a href="{{ url_for('disclaimer') }}" target="_blank">إخلاء المسؤولية</a> — مما تحبون منصة تواصل بس بين الطرفين.
+  </label>
+  {% endif %}
+
+  <button type="submit">{{ 'حفظ التعديلات' if editing_row else 'إرسال' }}</button>
+  {% if not editing_row %}
   <p class="hint" style="text-align:center;margin-top:10px;">المكان بيظهر للناس فورًا — وهياخد شارة "موثّق" أوتوماتيك أول ما وجبة تتأمّن ليه.</p>
+  {% endif %}
 </form>
 
 <style>

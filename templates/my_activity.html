@@ -5,6 +5,13 @@
 <h1>{{ user.get('Nickname') or user.get('Real Name') }}</h1>
 <p class="subtitle">{{ donations|length }} وجبة مؤمّنة لحد دلوقتي</p>
 
+{% if blocked_until %}
+<div class="errors">
+  رقمك متوقف مؤقتًا لحد {{ blocked_until.strftime('%d/%m/%Y') }} بسبب وجبة سابقة ما اتأكدتش استلامها. لو ده غلط، تواصل معانا.
+</div>
+{% endif %}
+
+<h1 style="font-size:16px;margin-top:8px;">وجباتي</h1>
 {% for d in donations %}
 <div class="info-box" style="margin-bottom:10px;">
   <strong>{{ d.get('Quantity') }} {{ d.get('Quantity Unit') }}</strong>
@@ -12,9 +19,39 @@
   {{ d.get('Area') }} · {{ d.get('Ready Date') }}<br>
   {% if d.get('Matched Center') %}→ {{ d.get('Matched Center') }}{% endif %}
   <span style="float:left;color:#888;font-size:12px;">{{ d.get('Status') }}</span>
+  <div style="clear:both;"></div>
+
+  {% if d.get('Status') == 'مؤمّنة' %}
+    {% set is_past = d._ready_date_obj and d._ready_date_obj < today %}
+    {% if not is_past %}
+    <form method="POST" action="{{ url_for('cancel_commitment', giver_row=d._row) }}" style="margin-top:8px;">
+      <button type="submit" style="background:#c0392b;margin-top:6px;">إلغاء (مجاني لحد 24 ساعة قبل المعاد)</button>
+    </form>
+    {% endif %}
+    {% if d.get('Delivery Confirmed') != 'أيوه' %}
+    <form method="POST" action="{{ url_for('confirm_delivery', giver_row=d._row) }}" style="margin-top:8px;">
+      <button type="submit" style="margin-top:6px;">أكّد إنك وصّلت</button>
+    </form>
+    {% else %}
+    <p class="hint" style="margin-top:6px;">✓ أكّدت إنك وصّلت — مستنيين تأكيد المكان.</p>
+    {% endif %}
+  {% endif %}
 </div>
 {% else %}
 <p style="color:#888;font-size:14px;">لسه مفيش حاجة — <a href="{{ url_for('browse_places') }}">أمّن أول وجبة</a>.</p>
+{% endfor %}
+
+<h1 style="font-size:16px;margin-top:24px;">أماكني المسجّلة</h1>
+{% for p in places %}
+<div class="info-box" style="margin-bottom:10px;">
+  <strong>{{ p.get('Center Name') }}</strong> · {{ p.get('Center Type') }}<br>
+  {{ p.get('Area') }}
+  <span style="float:left;color:#888;font-size:12px;">{{ p.get('Status') }}</span>
+  <div style="clear:both;"></div>
+  <a class="back-link" href="{{ url_for('edit_place', row=p._row) }}" style="margin-top:8px;margin-bottom:0;">عدّل البيانات</a>
+</div>
+{% else %}
+<p style="color:#888;font-size:14px;">لسه مسجّلتش أي مكان — <a href="{{ url_for('register_center') }}">سجّل واحد</a>.</p>
 {% endfor %}
 
 <a class="back-link" href="{{ url_for('logout') }}" style="margin-top:16px;display:inline-block;">تسجيل خروج</a>

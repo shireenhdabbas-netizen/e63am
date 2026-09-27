@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}إخلاء المسؤولية وتواصل معنا{% endblock %}
+{% block content %}
+<a class="back-link" href="{{ url_for('home') }}">&rarr; رجوع</a>
+<h1>إخلاء المسؤولية</h1>
+<p class="subtitle">من فضلك اقرا الكلام ده قبل ما تستخدم المنصة</p>
+
+<div class="info-box">
+  {{ disclaimer_text }}
+</div>
+
+<h1 style="margin-top:28px;">تواصل معنا</h1>
+<p class="subtitle">لو عندك أي سؤال أو مشكلة، ابعتلنا إيميل وهنرد عليك بعناية</p>
+<div class="info-box">
+  📧 <a href="mailto:hello@mamatuhibbun.example">hello@mamatuhibbun.example</a>
+</div>
+{% endblock %}

@@ -1,8 +1,14 @@
 {% extends "base.html" %}
 {% block title %}مما تحبون{% endblock %}
 {% block content %}
-<h1>مما تحبون</h1>
-<p class="subtitle">بنوصّل اللي حابب يطعم بأماكن يثق فيها في منطقته</p>
+
+<div class="hero">
+  <h1 style="font-size:24px;">مما تحبون</h1>
+  <p class="subtitle" style="font-size:14px;line-height:1.7;">
+    كلنا بنحب نطعم من قلبنا — بس مش دايمًا عارفين مكان نثق فيه، أو الأكل بيوصل صح.
+    مما تحبون بتوصّلك بأماكن حقيقية في منطقتك، عشان تدّي بأمان وتطمن إن اللي بتدّيه بيوصل.
+  </p>
+</div>
 
 {% if user %}
 <p style="font-size:13px;margin:-8px 0 18px;">
@@ -15,7 +21,30 @@
 </p>
 {% endif %}
 
-<p style="font-size:13px;color:#888;margin:0 0 8px;">عايز تدّي؟</p>
+<h1 style="font-size:16px;margin-top:24px;">إزاي بيشتغل؟</h1>
+<div class="timeline-item next">
+  <div class="dot"></div>
+  <div>
+    <p class="timeline-title">1. دوّر على مكان في منطقتك</p>
+    <p class="timeline-sub">جهة استقبال بعدد محدد من المستفيدين، أو مائدة رحمن مفتوحة لأي حد</p>
+  </div>
+</div>
+<div class="timeline-item">
+  <div class="dot"></div>
+  <div>
+    <p class="timeline-title">2. أمّن وجبتك</p>
+    <p class="timeline-sub">اختار ميعاد وكمية، والتزم بالتوصيل بنفسك</p>
+  </div>
+</div>
+<div class="timeline-item">
+  <div class="dot"></div>
+  <div>
+    <p class="timeline-title">3. وصّل، وأكّد</p>
+    <p class="timeline-sub">لما توصّل، أكّد من نشاطك — والمكان بيأكّد الاستلام برضه</p>
+  </div>
+</div>
+
+<p style="font-size:13px;color:#888;margin:24px 0 8px;">عايز تدّي؟</p>
 <a class="card" href="{{ url_for('browse_places') }}">
   <p class="card-title">🏠 دوّر على جهة استقبال</p>
   <p class="card-sub">دار أيتام، دار مسنين، أو جهة بعدد مستفيدين محدد</p>
@@ -34,4 +63,48 @@
   <p class="card-title">📋 سجّل مائدة رحمن</p>
   <p class="card-sub">مفتوحة لأي حد بييجي</p>
 </a>
+
+{% if stories %}
+<h1 style="font-size:16px;margin-top:28px;">تجارب ناس زيك</h1>
+{% for s in stories %}
+<div class="info-box" style="margin-bottom:10px;">
+  <p style="margin:0 0 6px;font-style:italic;">"{{ s.get('Story Text') }}"</p>
+  <p class="hint" style="margin:0;">— {{ s.get('Author Name') }}{% if s.get('Center Name') %} · {{ s.get('Center Name') }}{% endif %}</p>
+</div>
+{% endfor %}
+{% endif %}
+
+<div class="info-box" style="margin-top:20px;background:#fdf6ec;border-color:#f0dfc0;">
+  <p style="margin:0;font-size:13px;line-height:1.7;">
+    بدأنا مما تحبون عشان نصدّق إن مافيش حد المفروض ينام جعان في مجتمعنا — مش عشان نتخلص من فايض أكل،
+    لكن عشان نسهّل على أي حد حابب يطعم من قلبه إنه يلاقي مكان يثق فيه، ويدّي بأمان وبانتظام.
+  </p>
+</div>
+
+<div class="stats-row">
+  <div class="stat-box">
+    <p class="stat-number">{{ stats.places }}</p>
+    <p class="stat-label">مكان مسجّل</p>
+  </div>
+  <div class="stat-box">
+    <p class="stat-number">{{ stats.meals_delivered }}</p>
+    <p class="stat-label">وجبة وصلت</p>
+  </div>
+  <div class="stat-box">
+    <p class="stat-number">{{ stats.unique_givers }}</p>
+    <p class="stat-label">شخص شارك بالعطاء</p>
+  </div>
+</div>
+
+<div class="info-box" style="margin-top:16px;text-align:center;">
+  <p style="margin:0 0 8px;font-size:13px;">شارك الخير — كل ما ناس أكتر تعرف، كل ما العطاء بقى أسهل.</p>
+  <a class="btn" href="https://wa.me/?text=جرّب%20مما%20تحبون" target="_blank" style="background:#25D366;">شارك على واتساب</a>
+</div>
+
+<style>
+  .stats-row { display: flex; gap: 8px; margin-top: 20px; }
+  .stat-box { flex: 1; background: #fff; border: 1px solid #eee; border-radius: 12px; padding: 14px 8px; text-align: center; }
+  .stat-number { font-size: 20px; font-weight: 700; color: #2f7d5c; margin: 0; }
+  .stat-label { font-size: 11px; color: #888; margin: 4px 0 0; }
+</style>
 {% endblock %}

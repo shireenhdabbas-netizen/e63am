@@ -3,7 +3,7 @@
 {% block content %}
 <a class="back-link" href="{{ url_for('home') }}">&rarr; رجوع</a>
 <h1>دوّر على جهة استقبال</h1>
-<p class="subtitle">اختار منطقتك عشان تشوف الجهات القريبة منك</p>
+<p class="subtitle">اختار منطقتك (تقدر تختار أكتر من منطقة) عشان تشوف الجهات القريبة منك</p>
 
 <form method="GET">
   <label>المحافظة</label>
@@ -13,19 +13,28 @@
     <option value="الجيزة" {{ 'selected' if governorate == 'الجيزة' }}>الجيزة</option>
   </select>
 
-  <label>المنطقة</label>
-  <select name="area" id="area" required>
-    <option value="">اختار المحافظة الأول...</option>
+  <label>المنطقة (تقدر تختار أكتر من واحدة)</label>
+  <div id="area-checkboxes" class="checkbox-col">
+    <p class="hint">اختار المحافظة الأول...</p>
+  </div>
+
+  <label>محتاج الأكل يوصل إمتى؟ (اختياري)</label>
+  <input type="date" name="date_needed" value="{{ date_needed }}">
+
+  <label>هتدّي كام؟ (اختياري)</label>
+  <input type="number" min="1" name="quantity_needed" value="{{ quantity_needed }}" placeholder="مثلاً 20">
+
+  <label>نوع الأكل (اختياري)</label>
+  <select name="food_type_filter">
+    <option value="" {{ 'selected' if food_type_filter == '' }}>أي حاجة</option>
+    <option value="وجبات" {{ 'selected' if food_type_filter == 'وجبات' }}>وجبات</option>
+    <option value="مواد غذائية" {{ 'selected' if food_type_filter == 'مواد غذائية' }}>مواد غذائية</option>
   </select>
 
   <button type="submit">ابحث</button>
 </form>
 
-{% if results is not none %}
-<div style="margin-top:24px;">
-{% if results %}
-<p class="subtitle">{{ results|length }} جهة لقيناها</p>
-{% for center in results %}
+{% macro place_card(center) %}
 <div class="center-card">
   {% set photos = (center.get('Photo URLs') or '').split(',') | map('trim') | select | list %}
   {% if photos %}
@@ -57,13 +66,21 @@
     <a class="choose-btn" href="{{ url_for('give_to_place', center_row=center._row) }}">أمّن وجبة هنا</a>
   </div>
 </div>
-{% endfor %}
+{% endmacro %}
+
+{% if matched is not none %}
+<div style="margin-top:24px;">
+  {% set compact = true %}
+  {% include "_meal_guideline.html" %}
+{% if matched %}
+<p class="subtitle">{{ matched|length }} جهة لقيناها في منطقتك</p>
+{% for center in matched %}{{ place_card(center) }}{% endfor %}
 {% else %}
 <div class="info-box">
   <p style="margin:0 0 10px;">لسه مفيش جهات مسجّلة في المنطقة دي.</p>
   <form method="POST" action="{{ url_for('notify_me') }}">
     <input type="hidden" name="governorate" value="{{ governorate }}">
-    <input type="hidden" name="area" value="{{ area }}">
+    <input type="hidden" name="area" value="{{ areas[0] if areas else '' }}">
     <input type="hidden" name="place_type" value="جهة استقبال">
     <label>عايز نبلغك أول ما جهة تتسجّل؟</label>
     <input type="email" name="email" placeholder="إيميلك" required>
@@ -71,10 +88,18 @@
   </form>
 </div>
 {% endif %}
+
+{% if other %}
+<h1 style="margin-top:28px;font-size:16px;">مناطق تانية في نفس المحافظة</h1>
+{% for center in other %}{{ place_card(center) }}{% endfor %}
+{% endif %}
 </div>
 {% endif %}
 
 <style>
+  .checkbox-col { display: flex; flex-wrap: wrap; gap: 8px 14px; margin: 6px 0 4px; max-height: 160px; overflow-y: auto; padding: 8px; border: 1px solid #eee; border-radius: 8px; }
+  .checkbox-col label.checkbox-label { display: flex; align-items: center; gap: 6px; font-size: 13px; color: #333; margin: 0; }
+  .checkbox-col input { width: auto; }
   .center-card { background: #fff; border: 1px solid #eee; border-radius: 14px; overflow: hidden; margin-bottom: 14px; }
   .center-photo-strip { display: flex; gap: 4px; overflow-x: auto; }
   .center-photo { width: 140px; height: 140px; object-fit: cover; display: block; flex-shrink: 0; }
@@ -101,26 +126,29 @@
       "العياط", "أطفيح", "أوسيم", "البدرشين", "الحوامدية", "الصف", "كرداسة", "منشأة القناطر", "تاني"
     ]
   };
-  function updateAreaOptions(preselect) {
+  var PRESELECTED_AREAS = {{ areas|tojson }};
+  function updateAreaOptions() {
     var gov = document.getElementById('governorate').value;
-    var areaSelect = document.getElementById('area');
-    areaSelect.innerHTML = "";
+    var container = document.getElementById('area-checkboxes');
+    container.innerHTML = "";
     if (!gov || !AREAS_BY_GOVERNORATE[gov]) {
-      areaSelect.innerHTML = '<option value="">اختار المحافظة الأول...</option>';
+      container.innerHTML = '<p class="hint">اختار المحافظة الأول...</p>';
       return;
     }
-    var placeholder = document.createElement('option');
-    placeholder.value = ""; placeholder.textContent = "اختار...";
-    areaSelect.appendChild(placeholder);
     AREAS_BY_GOVERNORATE[gov].forEach(function(area) {
-      var opt = document.createElement('option');
-      opt.value = area;
-      opt.textContent = area;
-      if (preselect && area === preselect) opt.selected = true;
-      areaSelect.appendChild(opt);
+      var label = document.createElement('label');
+      label.className = 'checkbox-label';
+      var input = document.createElement('input');
+      input.type = 'checkbox';
+      input.name = 'area';
+      input.value = area;
+      if (PRESELECTED_AREAS.indexOf(area) !== -1) input.checked = true;
+      label.appendChild(input);
+      label.appendChild(document.createTextNode(area));
+      container.appendChild(label);
     });
   }
-  document.getElementById('governorate').addEventListener('change', function() { updateAreaOptions(); });
-  updateAreaOptions("{{ area }}");
+  document.getElementById('governorate').addEventListener('change', updateAreaOptions);
+  updateAreaOptions();
 </script>
 {% endblock %}

@@ -1,0 +1,15 @@
+{# Shared meal-composition guideline, included on browse pages (compact) and
+   the give-to-place form (full, with packaging note). Set `compact` before
+   including: {% set compact = true %}{% include "_meal_guideline.html" %} #}
+{% if compact %}
+<div class="info-box" style="background:#fdf6ec;border-color:#f0dfc0;font-size:12px;">
+  <strong>عشان الوجبة تبقى متكاملة:</strong> بروتين + نشويات + خضار + مشروب + حاجة حلوة.
+</div>
+{% else %}
+<div class="info-box" style="background:#fdf6ec;border-color:#f0dfc0;">
+  <strong>عشان الوجبة تبقى متكاملة:</strong> {{ meal_guideline_text }}
+</div>
+<div class="info-box" style="background:#f3f6f4;border-color:#dbe6e0;">
+  <strong>قبل ما تبعت:</strong> {{ packaging_guideline_text }}
+</div>
+{% endif %}
