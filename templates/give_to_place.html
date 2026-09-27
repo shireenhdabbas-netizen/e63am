@@ -5,10 +5,10 @@
 <h1>أمّن وجبة لـ {{ center.get('Center Name') }}</h1>
 <p class="subtitle">{{ center.get('Area') }}{% if center.get('Bio') %} · {{ center.get('Bio') }}{% endif %}</p>
 
-{% if center.get('Total To Feed') and not uses_slots %}
-<div class="info-box">محتاجين يغطوا <strong>{{ center.get('Total To Feed') }}</strong> شخص.</div>
-{% elif center.get('Capacity Per Slot') and not uses_slots %}
-<div class="info-box">محتاجين لحد <strong>{{ center.get('Capacity Per Slot') }}</strong> في الفترة.</div>
+{% if center.get('Total To Feed') %}
+<div class="info-box need-box">📌 الجهة محتاجة تغطية <strong>{{ center.get('Total To Feed') }}</strong> شخص في كل فترة.</div>
+{% elif center.get('Capacity Per Slot') %}
+<div class="info-box need-box">📌 المكان محتاج <strong>{{ center.get('Capacity Per Slot') }}</strong> {{ 'شخص' if is_maedet_rahman else 'وجبة' }} في كل فترة.</div>
 {% endif %}
 {% if center.get('Preferred Meal Type') %}
 <div class="info-box">تفضيلهم، لو عندك اختيار: {{ center.get('Preferred Meal Type') }}</div>
@@ -42,32 +42,26 @@
   </select>
 
   {% if uses_slots %}
-  <label style="margin-top:18px;">اختار ميعاد متاح *</label>
   {% if slots %}
-  <div id="slots-list">
-    {% set ns = namespace(current_date=None) %}
-    {% for slot in slots %}
-      {% if slot._date_obj != ns.current_date %}
-        {% set ns.current_date = slot._date_obj %}
-        <p class="slot-date-heading">{{ slot._weekday_ar }} {{ slot._date_obj.strftime('%d/%m') }}</p>
-      {% endif %}
-      <label class="slot-block">
-        <input type="radio" name="slot_row" value="{{ slot._row }}"
-               data-remaining="{{ slot.Remaining }}"
-               {{ 'required' if loop.first and loop.index0 == 0 }}>
-        <span>{{ slot.get('Meal Slot') or 'الفترة المتاحة' }} — متبقي {{ slot.Remaining }}</span>
-      </label>
-    {% endfor %}
+  <label style="margin-top:18px;">1. اختار اليوم *</label>
+  <div id="date-blocks" class="block-grid"></div>
+
+  <div id="time-blocks-wrapper" style="display:none;">
+    <label>2. اختار الفترة *</label>
+    <div id="time-blocks" class="block-grid"></div>
   </div>
+
+  <input type="hidden" name="slot_row" id="slot_row_input" required>
+
   {% if is_maedet_rahman %}
   <div id="quantity-section" class="conditional-section">
     <label>هتدّي كام؟ *</label>
-    <input type="number" min="1" name="quantity_number" id="quantity_number" placeholder="اختار ميعاد الأول">
+    <input type="number" min="1" name="quantity_number" id="quantity_number" placeholder="اختار الفترة الأول">
     <p class="hint" id="remaining-hint"></p>
   </div>
   {% else %}
   <div class="info-box" id="full-coverage-note" style="display:none;">
-    الجهة دي محتاجة تغطية كاملة للفترة دي — لما تختار ميعاد، أنت بتلتزم بالعدد المتبقي كله (مش ممكن تدّي جزء بس).
+    الجهة دي محتاجة تغطية كاملة للفترة دي — لما تختار فترة، أنت بتلتزم بالعدد المتبقي كله (مش ممكن تدّي جزء بس).
   </div>
   {% endif %}
   {% else %}
@@ -155,32 +149,82 @@
   .checkbox-label input { width: auto; margin-top: 3px; }
   .conditional-section { display: none; border-right: 2px solid #2f7d5c; padding-right: 12px; margin: 8px 0 16px; }
   .conditional-section.visible { display: block; }
-  .slot-date-heading { font-size: 12px; font-weight: 600; color: #2f7d5c; margin: 14px 0 6px; }
-  .slot-block { display: flex; align-items: center; gap: 8px; background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 10px 12px; margin-bottom: 6px; font-size: 13px; }
-  .slot-block input { width: auto; }
+  .need-box { background: #eef6f1; border-color: #cfe6d8; font-size: 14px; }
+  .block-grid { display: flex; flex-wrap: wrap; gap: 8px; margin: 6px 0 4px; }
+  .block-btn {
+    flex: 1 1 calc(50% - 8px); min-width: 130px; text-align: center;
+    background: #fff; border: 1.5px solid #ddd; border-radius: 10px;
+    padding: 10px 8px; font-size: 13px; cursor: pointer; color: #333;
+  }
+  .block-btn .block-btn-sub { display: block; font-size: 11px; color: #888; margin-top: 2px; }
+  .block-btn.selected { border-color: #2f7d5c; background: #eef6f1; color: #2f7d5c; font-weight: 600; }
 </style>
 <script>
   {% if uses_slots %}
   var isMaedetRahman = {{ 'true' if is_maedet_rahman else 'false' }};
-  function updateSlotSelection() {
-    var checked = document.querySelector('input[name="slot_row"]:checked');
-    if (!checked) return;
-    var remaining = checked.dataset.remaining;
+  var SLOTS = {{ slots_json|tojson }};
+  var selectedDate = null;
+
+  function renderDateBlocks() {
+    var byDate = {};
+    SLOTS.forEach(function(s) {
+      if (!byDate[s.date_iso]) byDate[s.date_iso] = { weekday: s.weekday, display: s.date_display, slots: [] };
+      byDate[s.date_iso].slots.push(s);
+    });
+    var container = document.getElementById('date-blocks');
+    Object.keys(byDate).sort().forEach(function(dateIso) {
+      var info = byDate[dateIso];
+      var totalRemaining = info.slots.reduce(function(sum, s) { return sum + s.remaining; }, 0);
+      var btn = document.createElement('div');
+      btn.className = 'block-btn';
+      btn.dataset.date = dateIso;
+      btn.innerHTML = info.weekday + ' ' + info.display + '<span class="block-btn-sub">متاح ' + totalRemaining + '</span>';
+      btn.addEventListener('click', function() { selectDate(dateIso, btn); });
+      container.appendChild(btn);
+    });
+  }
+
+  function selectDate(dateIso, btnEl) {
+    selectedDate = dateIso;
+    document.querySelectorAll('#date-blocks .block-btn').forEach(function(b) { b.classList.remove('selected'); });
+    btnEl.classList.add('selected');
+    document.getElementById('slot_row_input').value = '';
+    renderTimeBlocks(dateIso);
+    document.getElementById('time-blocks-wrapper').style.display = 'block';
+  }
+
+  function renderTimeBlocks(dateIso) {
+    var container = document.getElementById('time-blocks');
+    container.innerHTML = '';
+    SLOTS.filter(function(s) { return s.date_iso === dateIso; }).forEach(function(s) {
+      var btn = document.createElement('div');
+      btn.className = 'block-btn';
+      btn.dataset.row = s.row;
+      btn.dataset.remaining = s.remaining;
+      btn.innerHTML = (s.meal_slot || 'الفترة المتاحة') + '<span class="block-btn-sub">متبقي ' + s.remaining + '</span>';
+      btn.addEventListener('click', function() { selectTimeSlot(s, btn); });
+      container.appendChild(btn);
+    });
+  }
+
+  function selectTimeSlot(slot, btnEl) {
+    document.querySelectorAll('#time-blocks .block-btn').forEach(function(b) { b.classList.remove('selected'); });
+    btnEl.classList.add('selected');
+    document.getElementById('slot_row_input').value = slot.row;
     if (isMaedetRahman) {
       var qtyInput = document.getElementById('quantity_number');
       if (qtyInput) {
-        qtyInput.max = remaining;
-        qtyInput.placeholder = 'لحد ' + remaining;
-        document.getElementById('remaining-hint').textContent = 'المتبقي في الميعاد ده: ' + remaining;
+        qtyInput.max = slot.remaining;
+        qtyInput.placeholder = 'لحد ' + slot.remaining;
+        document.getElementById('remaining-hint').textContent = 'المتبقي في الفترة دي: ' + slot.remaining;
       }
     } else {
       var note = document.getElementById('full-coverage-note');
       if (note) note.style.display = 'block';
     }
   }
-  document.querySelectorAll('input[name="slot_row"]').forEach(function(el) {
-    el.addEventListener('change', updateSlotSelection);
-  });
+
+  renderDateBlocks();
   {% else %}
   function updateTimePreferenceVisibility() {
     var foodType = document.getElementById('food_type').value;

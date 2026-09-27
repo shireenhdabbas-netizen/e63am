@@ -517,6 +517,22 @@ def get_open_slots_for_center(center_row):
     return slots
 
 
+def serialize_slots_for_js(slots):
+    """Small JSON-safe version of open slots, grouped for the two-step
+    date-then-time picker on the give-to-place page."""
+    return [
+        {
+            "row": s["_row"],
+            "date_iso": s["_date_obj"].isoformat(),
+            "date_display": s["_date_obj"].strftime("%d/%m"),
+            "weekday": s["_weekday_ar"],
+            "meal_slot": s.get("Meal Slot", ""),
+            "remaining": s["Remaining"],
+        }
+        for s in slots
+    ]
+
+
 def secure_slot(slot_row, quantity):
     ws = get_worksheet(NEED_SLOTS_TAB, NEED_SLOTS_HEADER)
     header = ensure_columns(ws, NEED_SLOTS_HEADER)
@@ -821,6 +837,14 @@ def give_to_place(center_row):
     if uses_slots:
         ensure_upcoming_slots(center_row, center)
 
+    def render_form(form_data):
+        current_slots = get_open_slots_for_center(center_row) if uses_slots else []
+        return render_template(
+            "give_to_place.html", center=center, form=form_data,
+            is_maedet_rahman=is_maedet_rahman, uses_slots=uses_slots,
+            slots=current_slots, slots_json=serialize_slots_for_js(current_slots),
+        )
+
     if request.method == "POST":
         phone = request.form.get("phone", "").strip()
 
@@ -828,17 +852,13 @@ def give_to_place(center_row):
         if blocked_until:
             flash(f"للأسف رقمك متوقف مؤقتًا لحد {blocked_until.strftime('%d/%m/%Y')} بسبب وجبة سابقة ما اتأكدتش. "
                   f"لو ده غلط، ابعتلنا إيميل من صفحة تواصل معنا.")
-            return render_template("give_to_place.html", center=center, form=request.form,
-                                    is_maedet_rahman=is_maedet_rahman, uses_slots=uses_slots,
-                                    slots=get_open_slots_for_center(center_row) if uses_slots else [])
+            return render_form(request.form)
         if phone:
             check_missed_confirmations(phone)
             blocked_until = is_blocked(phone)
             if blocked_until:
                 flash(f"للأسف رقمك اتوقف لحد {blocked_until.strftime('%d/%m/%Y')} — في وجبة سابقة فات معادها من غير ما تتأكد.")
-                return render_template("give_to_place.html", center=center, form=request.form,
-                                        is_maedet_rahman=is_maedet_rahman, uses_slots=uses_slots,
-                                        slots=get_open_slots_for_center(center_row) if uses_slots else [])
+                return render_form(request.form)
 
         giver_type = request.form.get("giver_type", "")
         name = request.form.get("name", "").strip()
@@ -922,9 +942,7 @@ def give_to_place(center_row):
         if errors:
             for e in errors:
                 flash(e)
-            return render_template("give_to_place.html", center=center, form=request.form,
-                                    is_maedet_rahman=is_maedet_rahman, uses_slots=uses_slots,
-                                    slots=get_open_slots_for_center(center_row) if uses_slots else [])
+            return render_form(request.form)
 
         confirm_token = generate_token()
         givers_ws = get_worksheet(GIVERS_TAB, GIVERS_HEADER)
@@ -955,9 +973,7 @@ def give_to_place(center_row):
                                 food_type=food_type, meal_slot=meal_slot,
                                 ready_date=ready_date, matched_center=center.get("Center Name"))
 
-    return render_template("give_to_place.html", center=center, form={},
-                            is_maedet_rahman=is_maedet_rahman, uses_slots=uses_slots,
-                            slots=get_open_slots_for_center(center_row) if uses_slots else [])
+    return render_form({})
 
 
 @app.route("/confirm-delivery/<int:giver_row>", methods=["POST"])
