@@ -692,31 +692,92 @@ def notify_center_of_match(center, giver, giver_row_number):
     )
 
 
+ADMIN_EMAIL = os.environ.get("ADMIN_EMAIL") or "memmatoheboun@gmail.com"
+
+
+def notify_admin(event, details):
+    """Plain summary email to the platform owner. Subject starts with [مما تحبون] so it is easy to filter."""
+    try:
+        rows = "".join(
+            f'<li><span style="color:#8F5558;">{k}:</span> <strong>{v}</strong></li>'
+            for k, v in details if v not in (None, "")
+        )
+        html = (f'<div dir="rtl" style="text-align:right;font-family:Tahoma,Arial,sans-serif;color:#48192E;">'
+                f'<p><strong>{event}</strong></p><ul>{rows}</ul>'
+                f'<p style="color:#999;font-size:12px;">{datetime.now().strftime("%d/%m/%Y %H:%M")}</p></div>')
+        send_email(ADMIN_EMAIL, f"[مما تحبون] {event}", html)
+    except Exception as e:
+        print(f"notify_admin failed: {e}")
+
+
+def _email_shell(inner_html):
+    try:
+        logo = url_for("static", filename="logo-ivory.png", _external=True)
+    except Exception:
+        logo = ""
+    head = (f'<img src="{logo}" alt="مما تحبون" height="38" style="height:38px;display:inline-block;">'
+            if logo else '<span style="font-size:22px;color:#F8EDE8;">مما تحبون</span>')
+    return (
+        '<div dir="rtl" style="margin:0;padding:24px 12px;background:#F8EDE8;'
+        'font-family:Tahoma,Arial,sans-serif;color:#48192E;text-align:right;">'
+        '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" '
+        'style="max-width:560px;margin:0 auto;background:#ffffff;border-radius:14px;'
+        'overflow:hidden;border:1px solid #EBD6D0;">'
+        f'<tr><td style="background:#48192E;padding:20px 24px;text-align:center;">{head}</td></tr>'
+        f'<tr><td style="padding:24px;font-size:15px;line-height:1.9;">{inner_html}</td></tr>'
+        '<tr><td style="padding:14px 24px;background:#F8EDE8;font-size:12px;color:#8F5558;text-align:center;">'
+        'مما تحبون منصة بتربط بين اللي حابب يقدّم إطعام والأماكن المحتاجة، وبس. مفيش فلوس بتتحوّل عن طريقنا.'
+        '</td></tr></table></div>'
+    )
+
+
+def _email_row(label, value):
+    if not value:
+        return ""
+    return (f'<tr><td style="padding:6px 0;color:#8F5558;width:34%;vertical-align:top;">{label}</td>'
+            f'<td style="padding:6px 0;font-weight:bold;vertical-align:top;">{value}</td></tr>')
+
+
 def notify_giver_of_booking(center, giver):
     giver_email = giver.get("Email")
     if not giver_email:
         return
     place = center.get("Center Name", "")
+    area = center.get("Area", "")
+    address = center.get("Address", "")
+    maps = center.get("Maps Link", "")
     place_phone = center.get("Contact Phone", "")
-    send_email(
-        giver_email,
-        f"تم حجز ميعادك مع {place}",
-        f'<div dir="rtl" style="text-align:right;font-family:Tahoma,Arial,sans-serif;">'
-        f"<p>أهلاً {giver.get('Name') or ''}،</p>"
-        f"<p>شكراً إنك حجزت ميعاد إطعام من خلال مما تحبون. التفاصيل:</p>"
-        f"<ul>"
-        f"<li>المكان: <strong>{place}</strong>"
-        f"{' — ' + center.get('Area') if center.get('Area') else ''}</li>"
-        f"<li>الكمية: <strong>{giver.get('Quantity')} {giver.get('Quantity Unit')}</strong></li>"
-        f"<li>النوع: {giver.get('Food Type')}"
-        f"{' — ' + giver.get('Meal Slot') if giver.get('Meal Slot') else ''}</li>"
-        f"<li>التاريخ: {giver.get('Ready Date')}</li>"
-        f"{'<li>تليفون المكان: ' + place_phone + '</li>' if place_phone else ''}"
-        f"</ul>"
-        f"<p>المكان اتبلّغ بحجزك. أنت اللي هتوصّل الأكل بنفسك في الميعاد.</p>"
-        f'<p style="color:#999;font-size:12px;">لو مش هتقدر تيجي، لازم تلغي قبل الميعاد بـ 24 ساعة على الأقل.</p>'
-        f"<p>— مما تحبون</p></div>",
+    slot = giver.get("Meal Slot") or ""
+    food = giver.get("Food Type") or ""
+    maps_html = (f'<a href="{maps}" style="color:#8F5558;">افتح على الخريطة</a>' if maps else "")
+    inner = (
+        f"<p style=\"margin:0 0 12px;\">أهلاً {giver.get('Name') or ''}،</p>"
+        f"<p style=\"margin:0 0 16px;\">شكراً إنك حجزت ميعاد إطعام. المكان اتبلّغ بحجزك، وده ملخص الميعاد:</p>"
+        '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" '
+        'style="border-top:1px solid #EBD6D0;border-bottom:1px solid #EBD6D0;margin:0 0 18px;">'
+        + _email_row("المكان", place)
+        + _email_row("المنطقة", area)
+        + _email_row("العنوان", address)
+        + _email_row("الموقع", maps_html)
+        + _email_row("تليفون المكان", place_phone)
+        + _email_row("التاريخ", str(giver.get("Ready Date") or ""))
+        + _email_row("الميعاد", f"{food} {('— ' + slot) if slot else ''}".strip())
+        + _email_row("الكمية", f"{giver.get('Quantity')} {giver.get('Quantity Unit')}")
+        + "</table>"
+        '<p style="margin:0 0 6px;font-weight:bold;">عشان الأكل يبقى متكامل</p>'
+        f'<p style="margin:0 0 14px;">{MEAL_COMPOSITION_GUIDELINE}</p>'
+        '<p style="margin:0 0 6px;font-weight:bold;">قبل ما تبعت</p>'
+        f'<p style="margin:0 0 14px;">{PACKAGING_GUIDELINE}</p>'
+        '<p style="margin:0 0 6px;font-weight:bold;">لازم تعرف</p>'
+        '<ul style="margin:0 0 14px;padding:0 20px 0 0;">'
+        '<li>إنت اللي بتوصّل الأكل بنفسك في الميعاد.</li>'
+        f'<li>لو مش هتقدر تيجي، الغي قبل الميعاد بـ {CANCELLATION_MIN_NOTICE_HOURS} ساعة على الأقل.</li>'
+        f'<li>عدم الحضور من غير إلغاء بيوقف الحجز عندك {BLOCK_DAYS} يوم.</li>'
+        '<li>بعد التوصيل، إنت والمكان بتأكدوا من الطرفين.</li>'
+        '</ul>'
+        '<p style="margin:0;">— مما تحبون</p>'
     )
+    send_email(giver_email, f"تم حجز ميعادك مع {place}", _email_shell(inner))
 
 
 def add_to_waitlist(email, area, place_type):
@@ -997,6 +1058,8 @@ def notify_me():
     area = request.form.get("area", "").strip()
     place_type = request.form.get("place_type", "جهة استقبال")
     add_to_waitlist(email, area, place_type)
+    if email:
+        notify_admin("اشتراك جديد في قائمة الانتظار", [("الإيميل", email), ("المنطقة", area), ("النوع", place_type)])
     flash("تمام، هنبلغك أول ما مكان يتسجّل في المنطقة دي.")
     if place_type == MAEDET_RAHMAN_TYPE:
         return redirect(url_for("browse_maedet_rahman", governorate=request.form.get("governorate", ""), area=area))
@@ -1152,6 +1215,13 @@ def give_to_place(center_row):
         giver_row = read_row(givers_ws, ensure_columns(givers_ws, GIVERS_HEADER), giver_row_number)
         notify_center_of_match(center, giver_row, giver_row_number)
         notify_giver_of_booking(center, giver_row)
+        notify_admin("حجز جديد", [
+            ("المكان", center.get("Center Name")), ("المنطقة", center.get("Area")),
+            ("النوع", food_type), ("الميعاد", meal_slot),
+            ("الكمية", f"{quantity} {quantity_unit}"), ("التاريخ", ready_date.isoformat()),
+            ("الاسم", name), ("التليفون", phone), ("الإيميل", email),
+            ("إيميل المكان", center.get("Contact Email") or "مفيش إيميل — المكان ماتبلّغش"),
+        ])
 
         return render_template("give_confirmation.html", area=center.get("Area", ""),
                                 quantity_number=quantity, quantity_unit=quantity_unit,
@@ -1193,6 +1263,10 @@ def confirm_receipt(giver_row, token):
     givers_ws.update_cell(giver_row, col_index(header, "Receipt Confirmed"), "أيوه")
     if row.get("Delivery Confirmed") == "أيوه":
         givers_ws.update_cell(giver_row, col_index(header, "Status"), STATUS_DELIVERED)
+        notify_admin("وجبة اتوصلت (تأكيد الطرفين)", [
+            ("المكان", row.get("Matched Center")), ("الاسم", row.get("Name")),
+            ("الكمية", f"{row.get('Quantity')} {row.get('Quantity Unit')}"), ("التاريخ", row.get("Ready Date")),
+        ])
     return render_template("confirm_action_result.html", success=True,
                             message="شكرًا! سجّلنا إنكم استلمتوا الوجبة.")
 
@@ -1211,6 +1285,12 @@ def report_no_show(giver_row, token):
         phone = row.get("Phone", "").strip()
         if phone:
             block_phone(phone, "المكان أبلغ إن الوجبة ما وصلتش")
+        notify_admin("بلاغ عدم حضور", [
+            ("المكان", row.get("Matched Center")), ("الاسم", row.get("Name")),
+            ("التليفون", phone), ("التاريخ", row.get("Ready Date")),
+            ("الكمية", f"{row.get('Quantity')} {row.get('Quantity Unit')}"),
+            ("الإجراء", "الرقم اتحظر 30 يوم"),
+        ])
     return render_template("confirm_action_result.html", success=True,
                             message="آسفين إنها ما وصلتش. سجّلنا البلاغ.")
 
@@ -1249,6 +1329,11 @@ def cancel_commitment(giver_row):
             release_slot(int(slot_row_raw), quantity)
         except ValueError:
             pass
+    notify_admin("حجز اتلغى", [
+        ("المكان", row.get("Matched Center")), ("الاسم", row.get("Name")),
+        ("التاريخ", row.get("Ready Date")),
+        ("الكمية", f"{row.get('Quantity')} {row.get('Quantity Unit')}"),
+    ])
     flash("تم الإلغاء. شكرًا إنك قلتلنا بدري.")
     return redirect(url_for("my_activity"))
 
@@ -1482,6 +1567,12 @@ def register_center():
         ])
 
         notify_waitlist_for_area(common["area"], center_name, "جهة استقبال")
+        notify_admin("مكان جديد اتسجّل (محتاج مراجعة)", [
+            ("الاسم", center_name), ("النوع", "دار رعاية / جهة استقبال"),
+            ("المنطقة", common["area"]), ("العنوان", common["address"]),
+            ("المسؤول", common["contact_name"]), ("التليفون", common["contact_phone"]),
+            ("الإيميل", common["contact_email"]),
+        ])
 
         return render_template("center_confirmation.html", center_name=center_name)
 
@@ -1553,6 +1644,12 @@ def register_maedet_rahman():
         ])
 
         notify_waitlist_for_area(common["area"], center_name, MAEDET_RAHMAN_TYPE)
+        notify_admin("مائدة إطعام جديدة اتسجّلت (محتاجة مراجعة)", [
+            ("الاسم", center_name), ("المنطقة", common["area"]), ("العنوان", common["address"]),
+            ("جديدة؟", hub_new), ("المواعيد", hub_schedule),
+            ("المسؤول", common["contact_name"]), ("التليفون", common["contact_phone"]),
+            ("الإيميل", common["contact_email"]),
+        ])
 
         return render_template("center_confirmation.html", center_name=center_name)
 
