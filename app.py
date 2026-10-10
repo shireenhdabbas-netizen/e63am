@@ -257,12 +257,14 @@ def send_email(to_email, subject, html_body):
     if not RESEND_API_KEY or not to_email:
         return
     try:
-        requests.post(
+        r = requests.post(
             "https://api.resend.com/emails",
             headers={"Authorization": f"Bearer {RESEND_API_KEY}"},
             json={"from": FROM_EMAIL, "to": [to_email], "subject": subject, "html": html_body},
             timeout=10,
         )
+        if r.status_code >= 300:
+            print(f"Resend error {r.status_code} to {to_email}: {r.text}")
     except requests.RequestException as e:
         print(f"Email send failed to {to_email}: {e}")
 
@@ -686,6 +688,33 @@ def notify_center_of_match(center, giver, giver_row_number):
         f'<a href="{confirm_link}">أكّد إنك استلمت</a></p>'
         f'<p style="color:#999;font-size:12px;">لو المعاد فات وحد ماجاش خالص، قوللنا من هنا: '
         f'<a href="{no_show_link}">محدش جه</a></p>'
+        f"<p>— مما تحبون</p></div>",
+    )
+
+
+def notify_giver_of_booking(center, giver):
+    giver_email = giver.get("Email")
+    if not giver_email:
+        return
+    place = center.get("Center Name", "")
+    place_phone = center.get("Contact Phone", "")
+    send_email(
+        giver_email,
+        f"تم حجز ميعادك مع {place}",
+        f'<div dir="rtl" style="text-align:right;font-family:Tahoma,Arial,sans-serif;">'
+        f"<p>أهلاً {giver.get('Name') or ''}،</p>"
+        f"<p>شكراً إنك حجزت ميعاد إطعام من خلال مما تحبون. التفاصيل:</p>"
+        f"<ul>"
+        f"<li>المكان: <strong>{place}</strong>"
+        f"{' — ' + center.get('Area') if center.get('Area') else ''}</li>"
+        f"<li>الكمية: <strong>{giver.get('Quantity')} {giver.get('Quantity Unit')}</strong></li>"
+        f"<li>النوع: {giver.get('Food Type')}"
+        f"{' — ' + giver.get('Meal Slot') if giver.get('Meal Slot') else ''}</li>"
+        f"<li>التاريخ: {giver.get('Ready Date')}</li>"
+        f"{'<li>تليفون المكان: ' + place_phone + '</li>' if place_phone else ''}"
+        f"</ul>"
+        f"<p>المكان اتبلّغ بحجزك. أنت اللي هتوصّل الأكل بنفسك في الميعاد.</p>"
+        f'<p style="color:#999;font-size:12px;">لو مش هتقدر تيجي، لازم تلغي قبل الميعاد بـ 24 ساعة على الأقل.</p>'
         f"<p>— مما تحبون</p></div>",
     )
 
@@ -1122,6 +1151,7 @@ def give_to_place(center_row):
 
         giver_row = read_row(givers_ws, ensure_columns(givers_ws, GIVERS_HEADER), giver_row_number)
         notify_center_of_match(center, giver_row, giver_row_number)
+        notify_giver_of_booking(center, giver_row)
 
         return render_template("give_confirmation.html", area=center.get("Area", ""),
                                 quantity_number=quantity, quantity_unit=quantity_unit,
