@@ -163,6 +163,7 @@ GIVERS_HEADER = [
     "Status", "Matched Center", "Matched Center Row",
     "Slot Row", "Delivery Confirmed", "Receipt Confirmed", "No Show Reported",
     "Confirm Token", "Disclaimer Accepted",
+    "Food Details", "Grocery Details",
 ]
 
 USERS_HEADER = ["Phone", "Real Name", "Nickname", "Email", "Created At"]
@@ -658,6 +659,41 @@ def apply_confirmed_match(giver_row_number, center_row_number):
     givers_ws.update_cell(giver_row_number, col_index(givers_header, "Status"), STATUS_SECURED)
 
 
+FOOD_TYPE_MEALS = "وجبات"
+FOOD_TYPE_DRY = "مواد غذائية"   # shown as "إطعام جاف"
+FOOD_TYPE_BOTH = "الاتنين"
+
+
+def food_type_label(t):
+    return {FOOD_TYPE_DRY: "إطعام جاف", FOOD_TYPE_BOTH: "وجبات + إطعام جاف"}.get(t, t or "")
+
+
+def giver_food_options(center):
+    """[(value, label)] of what a giver may bring to this place."""
+    meals = center.get("Receives Meals") == "أيوه"
+    dry = center.get("Receives Groceries") == "أيوه"
+    if not meals and not dry:   # older rows without the flags: allow everything
+        meals = dry = True
+    opts = []
+    if meals:
+        opts.append((FOOD_TYPE_MEALS, "وجبات"))
+    if dry:
+        opts.append((FOOD_TYPE_DRY, "إطعام جاف"))
+    if meals and dry:
+        opts.append((FOOD_TYPE_BOTH, "الاتنين (وجبات + إطعام جاف)"))
+    return opts
+
+
+def _details_text(giver):
+    """Plain lines describing what the giver is bringing."""
+    out = []
+    if giver.get("Food Details"):
+        out.append(("الوجبة", giver.get("Food Details")))
+    if giver.get("Grocery Details"):
+        out.append(("الإطعام الجاف", giver.get("Grocery Details")))
+    return out
+
+
 def notify_center_of_match(center, giver, giver_row_number):
     center_email = center.get("Contact Email")
     if not center_email:
@@ -678,8 +714,9 @@ def notify_center_of_match(center, giver, giver_row_number):
         f"<p>حد حجز ميعاد إطعام ليكم من خلال مما تحبون:</p>"
         f"<ul>"
         f"<li>الكمية: <strong>{quantity} {unit}</strong></li>"
-        f"<li>النوع: {giver.get('Food Type')}"
+        f"<li>النوع: {food_type_label(giver.get('Food Type'))}"
         f"{' — ' + giver.get('Meal Slot') if giver.get('Meal Slot') else ''}</li>"
+        + "".join(f"<li>{k}: <strong>{v}</strong></li>" for k, v in _details_text(giver)) +
         f"<li>هيكون جاهز يوم: {giver.get('Ready Date')}</li>"
         f"<li>هيتواصل معاكم: <strong>{delivery_who}</strong> — {delivery_phone}"
         f"{' (رقم احتياطي: ' + backup_phone + ')' if backup_phone else ''}</li>"
@@ -761,8 +798,9 @@ def notify_giver_of_booking(center, giver):
         + _email_row("الموقع", maps_html)
         + _email_row("تليفون المكان", place_phone)
         + _email_row("التاريخ", str(giver.get("Ready Date") or ""))
-        + _email_row("الميعاد", f"{food} {('— ' + slot) if slot else ''}".strip())
+        + _email_row("النوع", f"{food_type_label(food)} {('— ' + slot) if slot else ''}".strip())
         + _email_row("الكمية", f"{giver.get('Quantity')} {giver.get('Quantity Unit')}")
+        + "".join(_email_row(k, v) for k, v in _details_text(giver))
         + "</table>"
         '<p style="margin:0 0 6px;font-weight:bold;">عشان الأكل يبقى متكامل</p>'
         f'<p style="margin:0 0 14px;">{MEAL_COMPOSITION_GUIDELINE}</p>'
@@ -831,11 +869,14 @@ def get_served_today():
         qty_i = col_index(header, "Quantity")
         date_i = col_index(header, "Ready Date")
         row_i = col_index(header, "Matched Center Row")
+        type_i = col_index(header, "Food Type")
         today_str = date.today().isoformat()
         for row in ws.get_all_values()[1:]:
             def cell(i):
                 return row[i - 1].strip() if len(row) >= i else ""
             if cell(status_i) != STATUS_DELIVERED or cell(date_i) != today_str:
+                continue
+            if cell(type_i) == FOOD_TYPE_DRY:   # dry goods are not meals
                 continue
             try:
                 center_row = int(cell(row_i))
@@ -1088,6 +1129,8 @@ def give_to_place(center_row):
             is_maedet_rahman=is_maedet_rahman, uses_slots=uses_slots,
             slots=current_slots, slots_json=serialize_slots_for_js(current_slots),
             served_today=(get_served_today().get(center_row, 0) if is_maedet_rahman else None),
+            food_options=giver_food_options(center),
+            receives_groceries=any(v != FOOD_TYPE_MEALS for v, _ in giver_food_options(center)),
         )
 
     if request.method == "POST":
@@ -1128,6 +1171,19 @@ def give_to_place(center_row):
         if delivery_contact_who == "حد تاني" and (not delivery_contact_name or not delivery_contact_phone):
             errors.append("من فضلك اكتب اسم ورقم الشخص اللي هيتواصل معاه المكان.")
 
+        if food_type not in [v for v, _ in giver_food_options(center)]:
+            errors.append("من فضلك اختار نوع الأكل.")
+        food_details = request.form.get("food_details", "").strip()[:600]
+        grocery_details = request.form.get("grocery_details", "").strip()[:600]
+        if food_type == FOOD_TYPE_MEALS:
+            grocery_details = ""
+        elif food_type == FOOD_TYPE_DRY:
+            food_details = ""
+        if food_type in (FOOD_TYPE_MEALS, FOOD_TYPE_BOTH) and not food_details:
+            errors.append("اكتب إيه اللي في الوجبة (مثلاً: ربع فرخة + رز + خضار + فاكهة).")
+        if food_type in (FOOD_TYPE_DRY, FOOD_TYPE_BOTH) and not grocery_details:
+            errors.append("اكتب الأصناف والكميات بتاعة الإطعام الجاف (مثلاً: رز 5 كجم، زيت 2 لتر).")
+
         selected_slot = None
         ready_date = None
         recurring = "لأ"
@@ -1137,7 +1193,7 @@ def give_to_place(center_row):
         quantity = None
         quantity_unit = request.form.get("quantity_unit", "وجبة")
 
-        if uses_slots:
+        if uses_slots and food_type != FOOD_TYPE_DRY:
             slot_row_raw = request.form.get("slot_row", "")
             available_slots = get_open_slots_for_center(center_row)
             for s in available_slots:
@@ -1160,6 +1216,27 @@ def give_to_place(center_row):
                 else:
                     # Centers: no partial - the giver covers the full remaining need.
                     quantity = remaining
+        elif uses_slots:
+            # Dry goods at a place that uses meal slots: no slot, just a date, an amount and a description.
+            quantity_unit = request.form.get("grocery_unit", "كجم")
+            try:
+                quantity = int(request.form.get("grocery_quantity", "").strip())
+            except ValueError:
+                quantity = None
+            if not quantity or quantity < 1:
+                errors.append("من فضلك اكتب كمية صحيحة للإطعام الجاف.")
+            gd_raw = request.form.get("grocery_date", "")
+            if gd_raw:
+                try:
+                    ready_date = date.fromisoformat(gd_raw)
+                    if ready_date < date.today() + timedelta(days=1):
+                        errors.append("مفيش حجز في نفس اليوم. التاريخ لازم يكون من بكرة.")
+                    elif ready_date > date.today() + timedelta(days=SLOT_GENERATION_DAYS_AHEAD):
+                        errors.append(f"تقدر تحجز لحد {SLOT_GENERATION_DAYS_AHEAD} يوم قدّام بس.")
+                except ValueError:
+                    errors.append("صيغة التاريخ غير صحيحة.")
+            else:
+                errors.append("من فضلك اختار تاريخ التسليم.")
         else:
             time_preference = request.form.get("time_preference", "مرن حسب احتياج المكان") if food_type != "مواد غذائية" else ""
             meal_slot = request.form.get("meal_slot", "") if (food_type != "مواد غذائية" and time_preference == "وقت محدد") else ""
@@ -1204,6 +1281,7 @@ def give_to_place(center_row):
             STATUS_SECURED, center.get("Center Name", ""), center_row,
             selected_slot["_row"] if selected_slot else "",
             "لأ", "لأ", "لأ", confirm_token, "أيوه",
+            food_details, grocery_details,
         ])
         giver_row_number = len(givers_ws.get_all_values())
 
@@ -1217,7 +1295,8 @@ def give_to_place(center_row):
         notify_giver_of_booking(center, giver_row)
         notify_admin("حجز جديد", [
             ("المكان", center.get("Center Name")), ("المنطقة", center.get("Area")),
-            ("النوع", food_type), ("الميعاد", meal_slot),
+            ("النوع", food_type_label(food_type)), ("الميعاد", meal_slot),
+            ("الوجبة", food_details), ("الإطعام الجاف", grocery_details),
             ("الكمية", f"{quantity} {quantity_unit}"), ("التاريخ", ready_date.isoformat()),
             ("الاسم", name), ("التليفون", phone), ("الإيميل", email),
             ("إيميل المكان", center.get("Contact Email") or "مفيش إيميل — المكان ماتبلّغش"),
@@ -1225,7 +1304,8 @@ def give_to_place(center_row):
 
         return render_template("give_confirmation.html", area=center.get("Area", ""),
                                 quantity_number=quantity, quantity_unit=quantity_unit,
-                                food_type=food_type, meal_slot=meal_slot,
+                                food_type=food_type_label(food_type), meal_slot=meal_slot,
+                                food_details=food_details, grocery_details=grocery_details,
                                 ready_date=ready_date, matched_center=center.get("Center Name"))
 
     return render_form({})

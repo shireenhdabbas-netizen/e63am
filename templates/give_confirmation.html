@@ -8,7 +8,7 @@
 <p class="subtitle">اتحجز مع {{ matched_center }}</p>
 <div class="info-box">
   <strong>{{ quantity_number }} {{ quantity_unit }}</strong> · {{ food_type }}{% if meal_slot %} · {{ meal_slot }}{% endif %}<br>
-  {{ area }} · {{ ready_date.strftime('%d/%m/%Y') }}
+  {{ area }} · {{ ready_date.strftime('%d/%m/%Y') }}{% if food_details %}<br>🍽 {{ food_details }}{% endif %}{% if grocery_details %}<br>📦 {{ grocery_details }}{% endif %}
 </div>
 <div class="info-box">
   <strong>{{ matched_center }}</strong> اتبلّغوا بحجزك وهيتواصلوا معاك لو احتاجوا أي تفاصيل. وإنت اللي هتوصّل الأكل بنفسك في المعاد.

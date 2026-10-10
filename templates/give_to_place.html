@@ -37,13 +37,26 @@
   <input type="email" name="email" value="{{ form.get('email', '') }}" required>
   <p class="hint">مطلوب دلوقتي عشان تأكيد التوصيل والاستلام بيعتمد عليه.</p>
 
-  <label>نوع الأكل</label>
+  <label>هتجيب إيه؟</label>
   <select name="food_type" id="food_type">
-    <option value="وجبات">وجبات</option>
-    <option value="مواد غذائية">إطعام جاف</option>
+    {% for val, label in food_options %}
+    <option value="{{ val }}" {{ 'selected' if form.get('food_type') == val }}>{{ label }}</option>
+    {% endfor %}
   </select>
 
+  <div id="meals-details" class="conditional-section">
+    <label>إيه اللي في الوجبة؟ *</label>
+    <textarea name="food_details" id="food_details" rows="3" maxlength="600" placeholder="مثلاً: ربع فرخة + رز + طبخة خضار + فاكهة">{{ form.get('food_details', '') }}</textarea>
+    <p class="hint">اكتب مكوّنات الوجبة، عشان المكان يعرف اللي جاي ليهم.</p>
+  </div>
+  <div id="grocery-details" class="conditional-section">
+    <label>إيه الأصناف والكميات؟ (إطعام جاف) *</label>
+    <textarea name="grocery_details" id="grocery_details" rows="3" maxlength="600" placeholder="مثلاً: رز 5 كجم، زيت 2 لتر، سكر 3 كجم، 10 علب تونة">{{ form.get('grocery_details', '') }}</textarea>
+    <p class="hint">اكتب كل صنف وكميته.</p>
+  </div>
+
   {% if uses_slots %}
+  <div id="meals-part">
   {% if slots %}
   <label style="margin-top:18px;">1. اختار اليوم *</label>
   <div id="date-blocks" class="block-grid"></div>
@@ -68,6 +81,25 @@
   {% endif %}
   {% else %}
   <div class="info-box">لسه مفيش مواعيد متاحة قريبة — كل المواعيد المعروفة إما محجوزة أو المكان محدّدش أيامه لسه. جرّب تتواصل من صفحة تواصل معنا.</div>
+  {% endif %}
+  </div>
+
+  {% if receives_groceries %}
+  <div id="grocery-part" class="conditional-section">
+    <div class="info-box">الإطعام الجاف مالوش مواعيد وجبات. اختار بس يوم التسليم.{% if center.get('Grocery Hours') %} ساعات استلام المكان: <strong>{{ center.get('Grocery Hours') }}</strong>.{% endif %}</div>
+    <label>يوم التسليم *</label>
+    <input type="date" name="grocery_date" id="grocery_date" value="{{ form.get('grocery_date', '') }}">
+    <p class="hint">من بكرة ولحد 14 يوم قدّام.</p>
+    <label>الكمية الإجمالية *</label>
+    <input type="number" min="1" name="grocery_quantity" id="grocery_quantity" placeholder="مثلاً 10" value="{{ form.get('grocery_quantity', '') }}">
+    <select name="grocery_unit">
+      <option value="كجم">كجم</option>
+      <option value="كرتونة">كرتونة</option>
+      <option value="كيس">كيس</option>
+      <option value="علبة">علبة</option>
+      <option value="قطعة">قطعة</option>
+    </select>
+  </div>
   {% endif %}
   {% else %}
   <div id="time-preference-wrapper" class="conditional-section visible">
@@ -144,7 +176,7 @@
     قرأت إخلاء المسؤولية اللي فوق وموافق عليه.
   </label>
 
-  <button type="submit" {{ 'disabled' if uses_slots and not slots }}>احجز الميعاد</button>
+  <button type="submit" {{ 'disabled' if uses_slots and not slots and not receives_groceries }}>احجز الميعاد</button>
 </form>
 </div>
 
@@ -196,6 +228,28 @@
   .block-btn.selected { border-color: var(--turq); background: var(--turq-wash); color: var(--navy); font-weight: 700; box-shadow: 0 0 0 3px rgba(143,85,88,.22); }
 </style>
 <script>
+  function updateFoodTypeSections() {
+    var type = document.getElementById('food_type').value;
+    var meals = type !== 'مواد غذائية';
+    var groc = type !== 'وجبات';
+    document.getElementById('meals-details').classList.toggle('visible', meals);
+    document.getElementById('grocery-details').classList.toggle('visible', groc);
+    document.getElementById('food_details').required = meals;
+    document.getElementById('grocery_details').required = groc;
+    var mp = document.getElementById('meals-part');
+    if (mp) mp.style.display = meals ? '' : 'none';
+    var gp = document.getElementById('grocery-part');
+    if (gp) {
+      var only = type === 'مواد غذائية';
+      gp.classList.toggle('visible', only);
+      var gd = document.getElementById('grocery_date'), gq = document.getElementById('grocery_quantity');
+      if (gd) gd.required = only;
+      if (gq) gq.required = only;
+    }
+  }
+  document.getElementById('food_type').addEventListener('change', updateFoodTypeSections);
+  updateFoodTypeSections();
+  (function(){var i=document.getElementById('grocery_date');if(!i)return;function f(d){var m=('0'+(d.getMonth()+1)).slice(-2),x=('0'+d.getDate()).slice(-2);return d.getFullYear()+'-'+m+'-'+x;}var t=new Date();i.min=f(new Date(t.getFullYear(),t.getMonth(),t.getDate()+1));i.max=f(new Date(t.getFullYear(),t.getMonth(),t.getDate()+14));})();
   {% if uses_slots %}
   var isMaedetRahman = {{ 'true' if is_maedet_rahman else 'false' }};
   var SLOTS = {{ slots_json|tojson }};
