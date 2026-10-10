@@ -8,6 +8,9 @@
 <div class="give-layout">
 <div class="give-main">
 
+{% if is_maedet_rahman and served_today is not none %}
+<div class="info-box need-box">🍽 اتقدّم النهارده: <strong>{{ served_today }}</strong> وجبة.</div>
+{% endif %}
 {% if center.get('Total To Feed') %}
 <div class="info-box need-box">📌 المكان محتاج <strong>{{ center.get('Total To Feed') }}</strong> وجبة في كل ميعاد أكل.</div>
 {% elif center.get('Capacity Per Slot') %}

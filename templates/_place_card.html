@@ -16,9 +16,14 @@
       {% else %}
       <span class="pill">لسه مش معتمد</span>
       {% endif %}
+      {% if center.get('Hub New') == 'أيوه' %}<span class="pill pill-new">مائدة جديدة</span>{% endif %}
     </div>
     <p class="place-meta">{% if not is_maedet %}{{ center.get('Center Type') }} · {% endif %}{{ center.get('Area') }}</p>
     {% if center.get('Bio') %}<p class="place-bio">{{ center.get('Bio') }}</p>{% endif %}
+    {% if is_maedet %}
+    {% if center.get('Hub Schedule') %}<p class="place-sched">📅 {{ center.get('Hub Schedule') }}</p>{% endif %}
+    <p class="place-served">🍽 اتقدّم النهارده: <strong>{{ center.get('Served Today', 0) }}</strong> وجبة</p>
+    {% endif %}
     <p class="place-need">
       {% if center.get('Total To Feed') %}محتاجين يغطوا {{ center.get('Total To Feed') }} شخص
       {% elif center.get('Capacity Per Slot') %}لحد {{ center.get('Capacity Per Slot') }} في الفترة{% endif %}

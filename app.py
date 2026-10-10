@@ -141,7 +141,7 @@ CENTERS_HEADER = [
     "Receives Groceries", "Grocery Hours",
     "Has Capacity Limit", "Capacity Per Slot",
     "Photo URLs", "Status", "Last Matched", "Visits",
-    "Disclaimer Accepted",
+    "Disclaimer Accepted", "Hub New", "Hub Schedule",
 ]
 
 NEED_SLOTS_HEADER = [
@@ -684,6 +684,64 @@ def notify_waitlist_for_area(area, place_name, place_type):
             )
 
 
+def get_served_today():
+    """{center_row: meals} confirmed delivered (both sides) with a ready date of today."""
+    served = {}
+    try:
+        ws = get_worksheet(GIVERS_TAB, GIVERS_HEADER)
+        header = ensure_columns(ws, GIVERS_HEADER)
+        status_i = col_index(header, "Status")
+        qty_i = col_index(header, "Quantity")
+        date_i = col_index(header, "Ready Date")
+        row_i = col_index(header, "Matched Center Row")
+        today_str = date.today().isoformat()
+        for row in ws.get_all_values()[1:]:
+            def cell(i):
+                return row[i - 1].strip() if len(row) >= i else ""
+            if cell(status_i) != STATUS_DELIVERED or cell(date_i) != today_str:
+                continue
+            try:
+                center_row = int(cell(row_i))
+            except ValueError:
+                continue
+            try:
+                qty = int(cell(qty_i))
+            except ValueError:
+                qty = 1
+            served[center_row] = served.get(center_row, 0) + qty
+    except Exception as e:
+        print(f"Served-today failed: {e}")
+    return served
+
+
+def parse_hub_fields(form):
+    """Returns (hub_new, hub_schedule, errors) for the optional 'start a new table' section."""
+    if form.get("hub_mode") != "new":
+        return "", "", []
+    slot = form.get("hub_slot", "").strip()
+    repeat = form.get("hub_repeat", "weekly")
+    errors = []
+    if repeat == "once":
+        raw = form.get("hub_date", "").strip()
+        try:
+            d = date.fromisoformat(raw)
+        except ValueError:
+            d = None
+        if not d or d < date.today():
+            errors.append("اختار تاريخ المائدة الجديدة (من النهارده أو بعده).")
+            return "أيوه", "", errors
+        schedule = f"{d.strftime('%d/%m/%Y')} · مرة واحدة"
+    else:
+        day = form.get("hub_day", "").strip()
+        if not day:
+            errors.append("اختار اليوم اللي هتتكرر فيه المائدة كل أسبوع.")
+            return "أيوه", "", errors
+        schedule = f"كل {day}"
+    if slot:
+        schedule += f" · {slot}"
+    return "أيوه", schedule, errors
+
+
 def get_homepage_stats():
     """Live counters for the homepage: registered places, meals delivered
     (confirmed on both sides), and unique givers ("people engaged")."""
@@ -847,6 +905,9 @@ def browse_maedet_rahman():
             governorate, areas, only_maedet_rahman=True,
             date_filter=date_filter, quantity_filter=quantity_filter, food_type_filter=food_type,
         )
+        served = get_served_today()
+        for c in (matched or []) + (other or []):
+            c["Served Today"] = served.get(c["_row"], 0)
     return render_template(
         "browse_maedet_rahman.html", governorate=governorate, areas=areas,
         matched=matched, other=other,
@@ -887,6 +948,7 @@ def give_to_place(center_row):
             "give_to_place.html", center=center, form=form_data,
             is_maedet_rahman=is_maedet_rahman, uses_slots=uses_slots,
             slots=current_slots, slots_json=serialize_slots_for_js(current_slots),
+            served_today=(get_served_today().get(center_row, 0) if is_maedet_rahman else None),
         )
 
     if request.method == "POST":
@@ -1384,6 +1446,14 @@ def register_maedet_rahman():
             errors.append("من فضلك اكتب السقف التقريبي، أو اختار \"لأ\" لو المائدة مفتوحة من غير سقف.")
         if not disclaimer_ack:
             errors.append("لازم توافق على إخلاء المسؤولية الأول.")
+        hub_new, hub_schedule, hub_errors = parse_hub_fields(request.form)
+        errors.extend(hub_errors)
+        if hub_new:
+            # Make the new table bookable on its day/slot even if the optional fields were left empty.
+            if not common["meal_slots"] and request.form.get("hub_slot"):
+                common["meal_slots"] = request.form.get("hub_slot")
+            if not common["days_open"] and request.form.get("hub_repeat", "weekly") == "weekly" and request.form.get("hub_day"):
+                common["days_open"] = request.form.get("hub_day")
 
         if errors:
             for e in errors:
@@ -1402,7 +1472,7 @@ def register_maedet_rahman():
             common["receives_meals"], common["meal_slots"], common["days_open"],
             common["receives_groceries"], common["grocery_hours"],
             common["has_capacity_limit"], common["capacity_per_slot"],
-            photo_url, "لسه مش موثّق", "", 0, "أيوه",
+            photo_url, "لسه مش موثّق", "", 0, "أيوه", hub_new, hub_schedule,
         ])
 
         notify_waitlist_for_area(common["area"], center_name, MAEDET_RAHMAN_TYPE)

@@ -2,12 +2,63 @@
 {% block title %}سجّل مائدة إطعام{% endblock %}
 {% block container_class %}container narrow{% endblock %}
 {% block content %}
+<style>
+  .choice-row { display:flex; flex-wrap:wrap; gap:10px; margin:6px 0 12px; }
+  .choice { display:flex; align-items:center; gap:8px; margin:0; padding:10px 16px; border:1.5px solid var(--line); border-radius:12px; font-weight:500; cursor:pointer; background:#fff; }
+  .choice input { width:auto; margin:0; }
+  .choice:has(input:checked) { border-color: var(--plum); background: var(--ivory); color: var(--plum); }
+  .hub-box { background: var(--ivory); border-radius: 14px; padding: 16px 18px; margin: 4px 0 18px; }
+  .hub-box strong { color: var(--plum); font-size:16px; }
+  .two-col { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+</style>
 <a class="back-link" href="{{ url_for('home') }}">&rarr; رجوع</a>
 <img class="pic pic-banner" src="{{ url_for('static', filename='ph-table.jpg') }}" alt="">
 <h1>{{ 'عدّل بيانات مائدتك' if editing_row else 'سجّل مائدة إطعام' }}</h1>
 <p class="subtitle">مسجد، كنيسة، أو أي مكان بيقدّم أكل مفتوح لأي حد بييجي — من غير قايمة أشخاص محددة</p>
 
 <form method="POST" enctype="multipart/form-data" class="form-card" action="{{ url_for('edit_place', row=editing_row) if editing_row else url_for('register_maedet_rahman') }}">
+  {% if not editing_row %}
+  {% set hub_new = form.get('hub_mode') == 'new' %}
+  <label>المائدة دي... *</label>
+  <div class="choice-row">
+    <label class="choice"><input type="radio" name="hub_mode" value="existing" {{ '' if hub_new else 'checked' }}> شغّالة بالفعل</label>
+    <label class="choice"><input type="radio" name="hub_mode" value="new" {{ 'checked' if hub_new else '' }}> عايز أبدأ مائدة جديدة</label>
+  </div>
+
+  <div id="new-hub" class="hub-box" style="display:{{ 'block' if hub_new else 'none' }};">
+    <strong>مائدة جديدة</strong>
+    <p class="hint" style="margin:4px 0 10px;">تقدر تبدأها في مسجد أو كنيسة أو أي مكان مناسب، بعد ما تتفق مع المسؤول عنه. مش لازم كل التفاصيل تبقى جاهزة، وبنراجعها معاك قبل ما تظهر للناس.</p>
+    <div class="choice-row">
+      <label class="choice"><input type="radio" name="hub_repeat" value="once" {{ 'checked' if form.get('hub_repeat') == 'once' else '' }}> مرة واحدة</label>
+      <label class="choice"><input type="radio" name="hub_repeat" value="weekly" {{ '' if form.get('hub_repeat') == 'once' else 'checked' }}> كل أسبوع</label>
+    </div>
+    <div id="hub-day-wrap">
+      <label>اليوم</label>
+      <select name="hub_day"><option value="">اختار...</option><option value="السبت"{{ " selected" if form.get('hub_day')=="السبت" }}>السبت</option><option value="الأحد"{{ " selected" if form.get('hub_day')=="الأحد" }}>الأحد</option><option value="الإتنين"{{ " selected" if form.get('hub_day')=="الإتنين" }}>الإتنين</option><option value="التلات"{{ " selected" if form.get('hub_day')=="التلات" }}>التلات</option><option value="الأربع"{{ " selected" if form.get('hub_day')=="الأربع" }}>الأربع</option><option value="الخميس"{{ " selected" if form.get('hub_day')=="الخميس" }}>الخميس</option><option value="الجمعة"{{ " selected" if form.get('hub_day')=="الجمعة" }}>الجمعة</option></select>
+    </div>
+    <div id="hub-date-wrap" style="display:none;">
+      <label>التاريخ</label>
+      <input type="date" name="hub_date" value="{{ form.get('hub_date', '') }}">
+    </div>
+    <label>الفترة</label>
+    <select name="hub_slot"><option value="">اختار...</option><option value="فطار (9-11)"{{ " selected" if form.get('hub_slot')=="فطار (9-11)" }}>فطار (9-11)</option><option value="فطار متأخر (12-2)"{{ " selected" if form.get('hub_slot')=="فطار متأخر (12-2)" }}>فطار متأخر (12-2)</option><option value="غدا (4-6)"{{ " selected" if form.get('hub_slot')=="غدا (4-6)" }}>غدا (4-6)</option><option value="عشا (8-10)"{{ " selected" if form.get('hub_slot')=="عشا (8-10)" }}>عشا (8-10)</option></select>
+  </div>
+  <script>
+    (function () {
+      var box = document.getElementById('new-hub');
+      function sync() {
+        var isNew = document.querySelector('input[name=hub_mode]:checked').value === 'new';
+        box.style.display = isNew ? 'block' : 'none';
+        var once = document.querySelector('input[name=hub_repeat]:checked').value === 'once';
+        document.getElementById('hub-day-wrap').style.display = once ? 'none' : 'block';
+        document.getElementById('hub-date-wrap').style.display = once ? 'block' : 'none';
+      }
+      document.querySelectorAll('input[name=hub_mode], input[name=hub_repeat]').forEach(function (el) { el.addEventListener('change', sync); });
+      sync();
+    })();
+  </script>
+  {% endif %}
+
   <label>اسم المكان *</label>
   <input type="text" name="center_name" value="{{ form.get('center_name', '') }}" required>
 
