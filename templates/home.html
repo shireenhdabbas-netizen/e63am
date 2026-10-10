@@ -92,7 +92,7 @@
         <a class="btn btn-inline btn-outline-light" href="{{ url_for('our_story') }}" style="margin-top:16px;">اقرأ حكايتنا</a></div>
       <div class="panel"><h3>شارك الخير</h3>
         <p>كل ما ناس أكتر تعرف، الإطعام بيوصل لأماكن أكتر. ابعت المنصة لحد نفسه يقدّم.</p>
-        <a class="btn btn-inline" href="https://wa.me/?text=جرّب%20مما%20تحبون" target="_blank" rel="noopener" style="margin-top:16px;">شارك على واتساب</a></div>
+        <a class="btn btn-inline" href="https://wa.me/?text={{ ('جرّب مما تحبون: ' ~ url_for('home', _external=True)) | urlencode }}" target="_blank" rel="noopener" style="margin-top:16px;">شارك على واتساب</a></div>
     </div>
   </div>
 </section>
