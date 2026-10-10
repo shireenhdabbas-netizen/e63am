@@ -1,4 +1,5 @@
 import os
+import re
 import json
 import random
 import string
@@ -75,6 +76,43 @@ SCOPES = [
     "https://www.googleapis.com/auth/spreadsheets",
     "https://www.googleapis.com/auth/drive",
 ]
+
+# ---------------------------------------------------------------------------
+# Brand name -> logo. Every visible "مما تحبون" in page text is shown as the
+# logo image. Only text nodes are touched (never <title>, attributes, scripts,
+# styles, form fields) and emails are unaffected.
+BRAND_NAME = "مما تحبون"
+_BRAND_SKIP_TAGS = {"script", "style", "title", "textarea", "option", "noscript"}
+
+
+def _brand_to_logo(html, logo_src):
+    img = (f'<img class="inline-logo" src="{logo_src}" alt="{BRAND_NAME}">')
+    out, skip = [], 0
+    for part in re.split(r"(<[^>]+>)", html):
+        if part.startswith("<") and part.endswith(">"):
+            m = re.match(r"<\s*(/?)\s*([a-zA-Z0-9]+)", part)
+            if m and m.group(2).lower() in _BRAND_SKIP_TAGS and not part.rstrip().endswith("/>"):
+                skip += -1 if m.group(1) else 1
+                skip = max(skip, 0)
+            out.append(part)
+        else:
+            out.append(part if skip else part.replace(BRAND_NAME, img))
+    return "".join(out)
+
+
+@app.after_request
+def brand_name_as_logo(response):
+    try:
+        if response.mimetype == "text/html" and response.status_code == 200 and not response.direct_passthrough:
+            html = response.get_data(as_text=True)
+            if BRAND_NAME in html:
+                logo_src = url_for("static", filename="logo-inline.png")
+                response.set_data(_brand_to_logo(html, logo_src))
+    except Exception as e:
+        print(f"brand logo swap failed: {e}")
+    return response
+
+
 
 @app.context_processor
 def inject_nav_state():
@@ -156,8 +194,17 @@ STORIES_HEADER = ["Timestamp", "Author Type", "Author Name", "Center Name", "Sto
 
 def ensure_columns(ws, required_header):
     header = ws.row_values(1)
-    for col_name in required_header:
-        if col_name not in header:
+    missing = [c for c in required_header if c not in header]
+    if missing:
+        # The sheet may have exactly as many columns as the old header had;
+        # writing past the grid raises "exceeds grid limits", so grow it first.
+        needed = len(header) + len(missing)
+        try:
+            if ws.col_count < needed:
+                ws.add_cols(needed - ws.col_count)
+        except Exception as e:
+            print(f"add_cols failed: {e}")
+        for col_name in missing:
             header.append(col_name)
             ws.update_cell(1, len(header), col_name)
     return header
