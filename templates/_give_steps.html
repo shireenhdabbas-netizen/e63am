@@ -4,19 +4,22 @@
     <h2 class="section-title">قدّم إطعام في ثلاث خطوات</h2>
     <div class="steps">
       <div class="step"><span class="icon-wrap"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-6-5.2-6-10a6 6 0 1 1 12 0c0 4.8-6 10-6 10z"/><circle cx="12" cy="11" r="2.2"/></svg></span><span class="step-num">01</span>
-        <h3>اختار المكان</h3><p>دوّر في منطقتك على دار رعاية أو مائدة إطعام، وشوف محتاجين إيه وفي أنهي يوم.</p></div>
+        <h3>اختار المكان</h3><p>دوّر في منطقتك على دار رعاية أو مائدة إطعام، وشوف محتاجين إيه وفي أنهي يوم.</p>
+        <div class="step-photo"><img src="{{ url_for('static', filename='strip1.jpg') }}" alt="تدوّر على مكان من موبايلك"></div></div>
       <div class="step"><span class="icon-wrap"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2.5"/><path d="M4 10h16M8 3v4M16 3v4M9 15l2 2 4-4"/></svg></span><span class="step-num">02</span>
-        <h3>جهّز الأكل</h3><p>احجز اليوم اللي يناسبك وجهّز الأكل في بيتك. ولو ظروفك اتغيّرت، تقدر تلغي لحد 24 ساعة قبل المعاد.</p></div>
+        <h3>جهّز الأكل</h3><p>احجز اليوم اللي يناسبك وجهّز الأكل في بيتك. ولو ظروفك اتغيّرت، تقدر تلغي لحد 24 ساعة قبل المعاد.</p>
+        <div class="step-photo"><img src="{{ url_for('static', filename='strip3pack.jpg') }}" alt="تغليف الوجبات"></div></div>
       <div class="step"><span class="icon-wrap"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8l8-4 8 4v8l-8 4-8-4zM4 8l8 4 8-4M12 12v8"/></svg></span><span class="step-num">03</span>
-        <h3>وصّل، وأكّد</h3><p>وصّل الأكل بنفسك، وبعدها إنت والمكان بتأكدوا إن التسليم تم.</p></div>
+        <h3>وصّل، وأكّد</h3><p>وصّل الأكل بنفسك، وبعدها إنت والمكان بتأكدوا إن التسليم تم.</p>
+        <div class="step-photo"><img src="{{ url_for('static', filename='strip3.jpg') }}" alt="وجبة وصلت لدار مسنين"></div></div>
     </div>
   </div>
 </section>
 
 <!-- ============ PHOTO STRIP ============ -->
-<section class="strip">
+<section class="strip strip-desktop">
   <div class="strip-inner">
-    <div class="photo has-img"><img src="{{ url_for('static', filename='strip1.jpg') }}" alt="تدوّر على مكان موثوق من موبايلك"></div>
+    <div class="photo has-img"><img src="{{ url_for('static', filename='strip1.jpg') }}" alt="تدوّر على مكان من موبايلك"></div>
     <div class="photo has-img"><img src="{{ url_for('static', filename='strip3pack.jpg') }}" alt="تغليف الوجبات"></div>
     <div class="photo has-img"><img src="{{ url_for('static', filename='strip3.jpg') }}" alt="وجبة وصلت لدار مسنين"></div>
   </div>

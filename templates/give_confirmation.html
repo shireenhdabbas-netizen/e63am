@@ -1,10 +1,11 @@
 {% extends "base.html" %}
-{% block title %}تم حجز الوجبة{% endblock %}
+{% block title %}تم حجز الميعاد{% endblock %}
 {% block container_class %}container narrow{% endblock %}
 {% block content %}
+<img class="pic pic-banner" style="aspect-ratio:3/2;max-width:420px;margin-inline:auto;" src="{{ url_for('static', filename='ph-child.jpg') }}" alt="">
 <div class="confirm-icon">✅</div>
-<h1>تم حجز الوجبة</h1>
-<p class="subtitle">اتحجزت مع {{ matched_center }}</p>
+<h1>تم حجز الميعاد</h1>
+<p class="subtitle">اتحجز مع {{ matched_center }}</p>
 <div class="info-box">
   <strong>{{ quantity_number }} {{ quantity_unit }}</strong> · {{ food_type }}{% if meal_slot %} · {{ meal_slot }}{% endif %}<br>
   {{ area }} · {{ ready_date.strftime('%d/%m/%Y') }}

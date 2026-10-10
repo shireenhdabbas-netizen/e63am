@@ -50,7 +50,7 @@ WEEKDAY_TO_ARABIC = {
     2: "الأربع", 3: "الخميس", 4: "الجمعة",
 }
 
-SLOT_GENERATION_DAYS_AHEAD = 21
+SLOT_GENERATION_DAYS_AHEAD = 14  # booking window: from tomorrow up to 14 days ahead; no same-day booking
 CANCELLATION_MIN_NOTICE_HOURS = 24
 BLOCK_DAYS = 30
 
@@ -65,10 +65,10 @@ PACKAGING_GUIDELINE = (
     "المهم إنه يوصل زي ما كنت هتحبه لنفسك أو لأهلك."
 )
 DISCLAIMER_TEXT = (
-    "مما تحبون منصة تواصل بس بين اللي حابب يدّي واللي محتاج ياخد — "
-    "مش مسؤولة عن أي حاجة تحصل بعد كده بين الطرفين. اللي بيدّي هو المسؤول عن "
-    "التزامه وتوصيله، واللي بياخد مسؤول عن استلامه والتأكد من الأكل، من غير أي "
-    "مسؤولية قانونية أو غيرها على المنصة. أي اتفاق أو مشكلة تحصل، هي بين الطرفين بس."
+    "مما تحبون منصة بتربط بين اللي حابب يقدّم إطعام وبين الأماكن المحتاجة، وبس. "
+    "إحنا مش طرف في أي اتفاق، ومش مسؤولين عن أي حاجة بتحصل بين الطرفين، لا قانونيًا ولا غيره. "
+    "اللي بيقدّم مسؤول عن التزامه وتوصيله وسلامة الأكل، واللي بيستقبل مسؤول عن استلامه والتأكد منه. "
+    "سواء كنت بتقدّم أو بتستقبل، ده على مسؤوليتك الشخصية بالكامل."
 )
 
 SCOPES = [
@@ -396,6 +396,10 @@ def find_candidate_places(governorate, areas, only_maedet_rahman=False,
             continue
         if food_type_filter == "مواد غذائية" and info.get("Receives Groceries") != "أيوه":
             continue
+        if food_type_filter == "الاتنين" and not (
+            info.get("Receives Meals") == "أيوه" and info.get("Receives Groceries") == "أيوه"
+        ):
+            continue
 
         if weekday_name:
             days_open = [d.strip() for d in (info.get("Days Open") or "").split(",")]
@@ -503,7 +507,7 @@ def get_open_slots_for_center(center_row):
             slot_date = date.fromisoformat(info.get("Date", ""))
         except ValueError:
             continue
-        if slot_date < today:
+        if slot_date < today + timedelta(days=1) or slot_date > today + timedelta(days=SLOT_GENERATION_DAYS_AHEAD):
             continue
         try:
             needed = int(info.get("Quantity Needed") or 0)
@@ -619,10 +623,10 @@ def notify_center_of_match(center, giver, giver_row_number):
     no_show_link = url_for("report_no_show", giver_row=giver_row_number, token=token, _external=True)
     send_email(
         center_email,
-        f"وجبة محجوزة ليكم — {quantity} {unit}",
+        f"ميعاد إطعام محجوز ليكم — {quantity} {unit}",
         f'<div dir="rtl" style="text-align:right;font-family:Tahoma,Arial,sans-serif;">'
         f"<p>أهلاً،</p>"
-        f"<p>حد حجز وجبة ليكم من خلال مما تحبون:</p>"
+        f"<p>حد حجز ميعاد إطعام ليكم من خلال مما تحبون:</p>"
         f"<ul>"
         f"<li>الكمية: <strong>{quantity} {unit}</strong></li>"
         f"<li>النوع: {giver.get('Food Type')}"
@@ -675,7 +679,7 @@ def notify_waitlist_for_area(area, place_name, place_type):
                 f'<div dir="rtl" style="text-align:right;font-family:Tahoma,Arial,sans-serif;">'
                 f"<p>أهلاً،</p>"
                 f"<p><strong>{place_name}</strong> سجّل دلوقتي في {area} — "
-                f'رجع <a href="{browse_link}">هنا</a> عشان تحجز الوجبة.</p>'
+                f'رجع <a href="{browse_link}">هنا</a> عشان تحجز ميعاد إطعام.</p>'
                 f"<p>— مما تحبون</p></div>",
             )
 
@@ -977,7 +981,9 @@ def give_to_place(center_row):
                 errors.append("من فضلك اختار تاريخ.")
             if ready_date and recurring != "أيوه":
                 if ready_date < date.today() + timedelta(days=1):
-                    errors.append("التاريخ لازم يكون بكرة على الأقل.")
+                    errors.append("مفيش حجز في نفس اليوم. التاريخ لازم يكون من بكرة.")
+                elif ready_date > date.today() + timedelta(days=SLOT_GENERATION_DAYS_AHEAD):
+                    errors.append(f"تقدر تحجز لحد {SLOT_GENERATION_DAYS_AHEAD} يوم قدّام بس.")
 
         if errors:
             for e in errors:
@@ -1308,9 +1314,9 @@ def register_center():
         if not common["contact_name"] or not common["contact_phone"]:
             errors.append("من فضلك اكتب اسم ورقم الشخص المسؤول في المكان.")
         if not common["contact_email"]:
-            errors.append("إيميل المكان بقى مطلوب — عشان نبلغكم أول ما حد يحجز وجبة ليكم.")
+            errors.append("إيميل المكان بقى مطلوب — عشان نبلغكم أول ما حد يحجز ميعاد إطعام ليكم.")
         if not common["receives"]:
-            errors.append("من فضلك اختار إيه اللي المكان بيستقبله: وجبات، مواد غذائية، أو الاتنين.")
+            errors.append("من فضلك اختار إيه اللي المكان بيستقبله: وجبات، إطعام جاف، أو الاتنين.")
         if has_capacity_limit == "أيوه" and not capacity_per_slot:
             errors.append("من فضلك اكتب السقف لكل فترة، أو اختار \"لأ\" لو مفيش سقف ثابت.")
         if not disclaimer_ack:
@@ -1371,9 +1377,9 @@ def register_maedet_rahman():
         if not common["contact_name"] or not common["contact_phone"]:
             errors.append("من فضلك اكتب اسم ورقم الشخص المسؤول في المكان.")
         if not common["contact_email"]:
-            errors.append("إيميل المائدة بقى مطلوب — عشان نبلغكم أول ما حد يحجز وجبة ليها.")
+            errors.append("إيميل المائدة بقى مطلوب — عشان نبلغكم أول ما حد يحجز ميعاد إطعام ليها.")
         if not common["receives"]:
-            errors.append("من فضلك اختار إيه اللي المائدة بتستقبله: وجبات، مواد غذائية، أو الاتنين.")
+            errors.append("من فضلك اختار إيه اللي المائدة بتستقبله: وجبات، إطعام جاف، أو الاتنين.")
         if common["has_capacity_limit"] == "أيوه" and not common["capacity_per_slot"]:
             errors.append("من فضلك اكتب السقف التقريبي، أو اختار \"لأ\" لو المائدة مفتوحة من غير سقف.")
         if not disclaimer_ack:

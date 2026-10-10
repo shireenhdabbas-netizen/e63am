@@ -1,17 +1,17 @@
 {% extends "base.html" %}
-{% block title %}احجز وجبة لـ {{ center.get('Center Name') }}{% endblock %}
+{% block title %}احجز ميعاد إطعام لـ {{ center.get('Center Name') }}{% endblock %}
 {% block content %}
 <a class="back-link" href="{{ url_for('browse_maedet_rahman') if is_maedet_rahman else url_for('browse_places') }}">&rarr; رجوع للبحث</a>
-<h1>احجز وجبة لـ {{ center.get('Center Name') }}</h1>
+<h1>احجز ميعاد إطعام لـ {{ center.get('Center Name') }}</h1>
 <p class="subtitle">{{ center.get('Area') }}{% if center.get('Bio') %} · {{ center.get('Bio') }}{% endif %}</p>
 
 <div class="give-layout">
 <div class="give-main">
 
 {% if center.get('Total To Feed') %}
-<div class="info-box need-box">📌 المكان محتاج تغطية <strong>{{ center.get('Total To Feed') }}</strong> شخص في كل فترة.</div>
+<div class="info-box need-box">📌 المكان محتاج <strong>{{ center.get('Total To Feed') }}</strong> وجبة في كل ميعاد أكل.</div>
 {% elif center.get('Capacity Per Slot') %}
-<div class="info-box need-box">📌 المكان محتاج <strong>{{ center.get('Capacity Per Slot') }}</strong> {{ 'شخص' if is_maedet_rahman else 'وجبة' }} في كل فترة.</div>
+<div class="info-box need-box">📌 المكان محتاج <strong>{{ center.get('Capacity Per Slot') }}</strong> وجبة في كل ميعاد أكل.</div>
 {% endif %}
 {% if center.get('Preferred Meal Type') %}
 <div class="info-box">تفضيلهم، لو عندك اختيار: {{ center.get('Preferred Meal Type') }}</div>
@@ -36,9 +36,8 @@
 
   <label>نوع الأكل</label>
   <select name="food_type" id="food_type">
-    <option value="وجبة سخنة">وجبة سخنة</option>
-    <option value="وجبة باردة">وجبة باردة</option>
-    <option value="مواد غذائية">مواد غذائية</option>
+    <option value="وجبات">وجبات</option>
+    <option value="مواد غذائية">إطعام جاف</option>
   </select>
 
   {% if uses_slots %}
@@ -97,7 +96,8 @@
 
   <label>هيكون جاهز إمتى؟ *</label>
   <input type="date" name="ready_date" value="{{ form.get('ready_date', '') }}" required>
-  <p class="hint">لازم يكون بكرة على الأقل.</p>
+  <script>(function(){var i=document.querySelector('input[name=ready_date]');if(!i)return;function f(d){var m=('0'+(d.getMonth()+1)).slice(-2),x=('0'+d.getDate()).slice(-2);return d.getFullYear()+'-'+m+'-'+x;}var t=new Date();i.min=f(new Date(t.getFullYear(),t.getMonth(),t.getDate()+1));i.max=f(new Date(t.getFullYear(),t.getMonth(),t.getDate()+14));})();</script>
+  <p class="hint">من بكرة ولحد 14 يوم قدّام.</p>
 
   <label>ده عرض متكرر؟</label>
   <select name="recurring" id="recurring">
@@ -118,7 +118,7 @@
   </div>
   {% endif %}
 
-  <p class="hint">بإرسالك الطلب، انت بتلتزم إنك توصّل بنفسك. تقدر تلغي مجانًا لحد 24 ساعة قبل المعاد.</p>
+  <p class="hint">بإرسالك الطلب، انت بتلتزم إنك توصّل بنفسك. تقدر تلغي لحد 24 ساعة قبل المعاد.</p>
 
   <label>المكان هيتواصل مع مين — انت ولا حد تاني؟ *</label>
   <select name="delivery_contact_who" id="delivery_contact_who" required>
@@ -135,21 +135,23 @@
   <label>رقم احتياطي (اختياري)</label>
   <input type="tel" name="backup_phone" value="{{ form.get('backup_phone', '') }}">
 
-  <label class="checkbox-label" style="margin-top:18px;">
+  <div class="disclaimer-box"><strong>إخلاء المسؤولية</strong><p>{{ disclaimer_text }}</p></div>
+  <label class="checkbox-label" style="margin-top:12px;">
     <input type="checkbox" name="disclaimer_ack" required>
-    موافق على <a href="{{ url_for('disclaimer') }}" target="_blank">إخلاء المسؤولية</a> — مما تحبون منصة تواصل بس، والالتزام بالتوصيل مسؤوليتي أنا.
+    قرأت إخلاء المسؤولية اللي فوق وموافق عليه.
   </label>
 
-  <button type="submit" {{ 'disabled' if uses_slots and not slots }}>احجز الوجبة</button>
+  <button type="submit" {{ 'disabled' if uses_slots and not slots }}>احجز الميعاد</button>
 </form>
 </div>
 
 <aside class="give-aside">
-  <p class="aside-kicker">هكذا تتم الوجبة</p>
+  <img class="pic" style="aspect-ratio:16/10;margin-bottom:18px;" src="{{ url_for('static', filename='ph-stack.jpg') }}" alt="">
+  <p class="aside-kicker">معلومات عن الميعاد</p>
   <h2 style="color:#fff;">{{ center.get('Center Name') }}</h2>
   <p class="aside-sub">{{ center.get('Area') }}{% if center.get('Status') == 'موثّق' %} · ✓ معتمد{% endif %}</p>
   <div class="aside-block">
-    <strong>عشان الوجبة تبقى متكاملة</strong>
+    <strong>عشان الأكل يبقى متكامل</strong>
     <p>{{ meal_guideline_text }}</p>
   </div>
   <div class="aside-block">
@@ -158,7 +160,7 @@
   </div>
   <ul class="aside-list">
     <li>مفيش فلوس بتتحوّل عن طريق المنصة</li>
-    <li>إلغاء مجاني لحد 24 ساعة قبل المعاد</li>
+    <li>إمكانية الإلغاء لحد 24 ساعة قبل المعاد</li>
     <li>إنت والمكان بتأكدوا التوصيل من الطرفين</li>
   </ul>
 </aside>
@@ -188,7 +190,7 @@
     padding: 12px 8px; font-size: 14px; cursor: pointer; color: var(--navy);
   }
   .block-btn .block-btn-sub { display: block; font-size: 12px; color: var(--muted); margin-top: 2px; }
-  .block-btn.selected { border-color: var(--turq); background: var(--turq-wash); color: var(--navy); font-weight: 700; box-shadow: 0 0 0 3px rgba(172,123,120,.22); }
+  .block-btn.selected { border-color: var(--turq); background: var(--turq-wash); color: var(--navy); font-weight: 700; box-shadow: 0 0 0 3px rgba(143,85,88,.22); }
 </style>
 <script>
   {% if uses_slots %}

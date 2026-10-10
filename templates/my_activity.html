@@ -4,9 +4,9 @@
 <div class="dash-head">
   <div>
     <h1>{{ user.get('Nickname') or user.get('Real Name') }}</h1>
-    <p class="subtitle" style="margin:0;">{{ donations|length }} وجبة حجزتها لحد دلوقتي</p>
+    <p class="subtitle" style="margin:0;">{{ donations|length }} ميعاد إطعام حجزته لحد دلوقتي</p>
   </div>
-  <a class="btn btn-inline" href="{{ url_for('browse_places') }}">احجز وجبة جديدة</a>
+  <a class="btn btn-inline" href="{{ url_for('browse_places') }}">احجز ميعاد إطعام جديد</a>
 </div>
 
 {% if blocked_until %}
@@ -25,7 +25,7 @@
         <p class="row-sub">{% if d.get('Matched Center') %}{{ d.get('Matched Center') }} · {% endif %}{{ d.get('Area') }} · {{ d.get('Ready Date') }}</p>
       </div>
       {% set st = d.get('Status') %}
-      <span class="pill {{ 'pill-ok' if st == 'اتوصلت' else ('pill-bad' if st == 'فشل' else ('pill' if st == 'اتلغت' else 'pill-info')) }}">{{ 'محجوزة' if st == 'مؤمّنة' else st }}</span>
+      <span class="pill {{ 'pill-ok' if st == 'اتوصلت' else ('pill-bad' if st == 'فشل' else ('pill' if st == 'اتلغت' else 'pill-info')) }}">{{ 'ميعاد محجوز' if st == 'مؤمّنة' else st }}</span>
 
       {% if st == 'مؤمّنة' %}
       <div class="row-actions">
@@ -39,14 +39,14 @@
         {% set is_past = d._ready_date_obj and d._ready_date_obj < today %}
         {% if not is_past %}
         <form method="POST" action="{{ url_for('cancel_commitment', giver_row=d._row) }}">
-          <button type="submit" class="btn-sm btn-sm-outline">إلغاء (مجاني لحد 24 ساعة قبل المعاد)</button>
+          <button type="submit" class="btn-sm btn-sm-outline">إلغاء (لحد 24 ساعة قبل المعاد)</button>
         </form>
         {% endif %}
       </div>
       {% endif %}
     </div>
     {% else %}
-    <p class="subtitle" style="margin:12px 0 0;">لسه مفيش حاجة — <a href="{{ url_for('browse_places') }}">احجز أول وجبة</a>.</p>
+    <p class="subtitle" style="margin:12px 0 0;">لسه مفيش حاجة — <a href="{{ url_for('browse_places') }}">احجز أول ميعاد إطعام</a>.</p>
     {% endfor %}
   </section>
 

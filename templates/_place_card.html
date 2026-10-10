@@ -24,7 +24,7 @@
       {% elif center.get('Capacity Per Slot') %}لحد {{ center.get('Capacity Per Slot') }} في الفترة{% endif %}
       {% if center.get('Meal Slots') %}{% if center.get('Total To Feed') or center.get('Capacity Per Slot') %} · {% endif %}{{ center.get('Meal Slots') }}{% endif %}
     </p>
-    <a class="btn btn-dark choose-btn" href="{{ url_for('give_to_place', center_row=center._row) }}">احجز وجبة هنا</a>
+    <a class="btn btn-dark choose-btn" href="{{ url_for('give_to_place', center_row=center._row) }}">احجز ميعاد إطعام هنا</a>
   </div>
 </article>
 {% endmacro %}

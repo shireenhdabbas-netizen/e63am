@@ -17,6 +17,8 @@
   .step-num { font-family: var(--font-en); font-size: 22px; letter-spacing: .18em; font-weight: 600; color: var(--rose); display: block; margin-bottom: 4px; direction: ltr; text-align: right; }
   .step h3 { font-size: 21px; margin: 0 0 6px; }
   .step p { color: var(--muted); font-size: 16.5px; margin: 0; }
+  .step-photo { display: none; }
+  .step-photo img { width: 100%; display: block; border-radius: 16px; aspect-ratio: 4 / 3; object-fit: cover; }
   .strip { padding: 0 0 72px; }
   .strip-inner { max-width: 1120px; margin: 0 auto; padding: 0 20px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
   .strip .photo { aspect-ratio: 4 / 3; }
@@ -24,6 +26,8 @@
   .band-receive { border-top: 1px solid var(--line); }
 
   @media (max-width: 900px) {
+    .step-photo { display: block; margin-top: 18px; }
+    .strip-desktop { display: none; }
     .band { padding: 48px 0; }
     .steps { grid-template-columns: 1fr; }
     .step { border-inline-start: none; padding: 18px 0; border-top: 1px solid var(--line); }

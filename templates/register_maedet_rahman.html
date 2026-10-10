@@ -3,6 +3,7 @@
 {% block container_class %}container narrow{% endblock %}
 {% block content %}
 <a class="back-link" href="{{ url_for('home') }}">&rarr; رجوع</a>
+<img class="pic pic-banner" src="{{ url_for('static', filename='ph-table.jpg') }}" alt="">
 <h1>{{ 'عدّل بيانات مائدتك' if editing_row else 'سجّل مائدة إطعام' }}</h1>
 <p class="subtitle">مسجد، كنيسة، أو أي مكان بيقدّم أكل مفتوح لأي حد بييجي — من غير قايمة أشخاص محددة</p>
 
@@ -51,7 +52,7 @@
   <label>بتستقبلوا إيه؟ *</label>
   <div class="checkbox-row">
     <label class="checkbox-label"><input type="checkbox" name="receives" value="وجبات"> وجبات طازة / سخنة</label>
-    <label class="checkbox-label"><input type="checkbox" name="receives" value="مواد غذائية"> مواد غذائية</label>
+    <label class="checkbox-label"><input type="checkbox" name="receives" value="مواد غذائية"> إطعام جاف</label>
   </div>
 
   <div id="meals-section" class="conditional-section">
@@ -76,7 +77,7 @@
   </div>
 
   <div id="groceries-section" class="conditional-section">
-    <label>في أنهي مواعيد تقدروا تستقبلوا مواد غذائية؟</label>
+    <label>في أنهي مواعيد تقدروا تستقبلوا إطعام جاف؟</label>
     <input type="text" name="grocery_hours" placeholder="مثلاً يوميًا من 10 الصبح لـ 6 المغرب" value="{{ form.get('grocery_hours', '') }}">
   </div>
 
@@ -118,19 +119,20 @@
   <p class="hint">الشخص اللي ممكن يترد عليه فعلاً في المكان — ممكن يكون مختلف عنك.</p>
 
   <label>إيميل المكان *</label>
-  <input type="email" name="contact_email" placeholder="عشان نبلغكم أول ما حد يحجز وجبة" value="{{ form.get('contact_email', '') }}" required>
+  <input type="email" name="contact_email" placeholder="عشان نبلغكم أول ما حد يحجز ميعاد إطعام" value="{{ form.get('contact_email', '') }}" required>
   <p class="hint">مطلوب دلوقتي — بيه بس بنقدر نبلغكم أوتوماتيك إن في أكل جاي ونأكّد الاستلام.</p>
 
   {% if not editing_row %}
-  <label class="checkbox-label" style="margin-top:18px;">
+  <div class="disclaimer-box"><strong>إخلاء المسؤولية</strong><p>{{ disclaimer_text }}</p></div>
+  <label class="checkbox-label" style="margin-top:12px;">
     <input type="checkbox" name="disclaimer_ack" required>
-    موافقين على <a href="{{ url_for('disclaimer') }}" target="_blank">إخلاء المسؤولية</a> — مما تحبون منصة تواصل بس بين الطرفين.
+    قرأت إخلاء المسؤولية اللي فوق وموافقين عليه.
   </label>
   {% endif %}
 
   <button type="submit">{{ 'حفظ التعديلات' if editing_row else 'إرسال' }}</button>
   {% if not editing_row %}
-  <p class="hint" style="text-align:center;margin-top:10px;">المائدة بتظهر للناس فورًا — وهتاخد شارة "معتمد" أوتوماتيك أول ما إطعام يتأكد ليها.</p>
+  <p class="hint" style="text-align:center;margin-top:10px;">المائدة بتظهر للناس فورًا — وهتاخد علامة "معتمد" أوتوماتيك أول ما إطعام يتأكد ليها.</p>
   {% endif %}
 </form>
 

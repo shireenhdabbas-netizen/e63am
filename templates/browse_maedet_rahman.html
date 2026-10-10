@@ -20,17 +20,12 @@
       <label>المنطقة (تقدر تختار أكتر من واحدة)</label>
       <div id="area-checkboxes" class="area-box"></div>
 
-      <label>محتاج الأكل يوصل إمتى؟ (اختياري)</label>
-      <input type="date" name="date_needed" value="{{ date_needed }}">
-
-      <label>هتدّي كام؟ (اختياري)</label>
-      <input type="number" min="1" name="quantity_needed" value="{{ quantity_needed }}" placeholder="مثلاً 20">
-
-      <label>نوع الأكل (اختياري)</label>
-      <select name="food_type_filter">
-        <option value="" {{ 'selected' if food_type_filter == '' }}>أي حاجة</option>
+      <label>هتقدّم إيه؟</label>
+      <select name="food_type_filter" required>
+        <option value="" disabled {{ 'selected' if not food_type_filter }}>اختار...</option>
         <option value="وجبات" {{ 'selected' if food_type_filter == 'وجبات' }}>وجبات</option>
-        <option value="مواد غذائية" {{ 'selected' if food_type_filter == 'مواد غذائية' }}>مواد غذائية</option>
+        <option value="مواد غذائية" {{ 'selected' if food_type_filter == 'مواد غذائية' }}>إطعام جاف</option>
+        <option value="الاتنين" {{ 'selected' if food_type_filter == 'الاتنين' }}>الاتنين</option>
       </select>
 
       <button type="submit">ابحث</button>
