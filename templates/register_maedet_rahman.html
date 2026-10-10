@@ -1,11 +1,12 @@
 {% extends "base.html" %}
-{% block title %}سجّل مائدة رحمن{% endblock %}
+{% block title %}سجّل مائدة إطعام{% endblock %}
+{% block container_class %}container narrow{% endblock %}
 {% block content %}
 <a class="back-link" href="{{ url_for('home') }}">&rarr; رجوع</a>
-<h1>{{ 'عدّل بيانات مائدتك' if editing_row else 'سجّل مائدة رحمن' }}</h1>
-<p class="subtitle">مسجد، كنيسة، أو أي مكان بيقدّم أكل مفتوح لأي حد بييجي — من غير قايمة مستفيدين محددة</p>
+<h1>{{ 'عدّل بيانات مائدتك' if editing_row else 'سجّل مائدة إطعام' }}</h1>
+<p class="subtitle">مسجد، كنيسة، أو أي مكان بيقدّم أكل مفتوح لأي حد بييجي — من غير قايمة أشخاص محددة</p>
 
-<form method="POST" enctype="multipart/form-data" action="{{ url_for('edit_place', row=editing_row) if editing_row else url_for('register_maedet_rahman') }}">
+<form method="POST" enctype="multipart/form-data" class="form-card" action="{{ url_for('edit_place', row=editing_row) if editing_row else url_for('register_maedet_rahman') }}">
   <label>اسم المكان *</label>
   <input type="text" name="center_name" value="{{ form.get('center_name', '') }}" required>
 
@@ -117,7 +118,7 @@
   <p class="hint">الشخص اللي ممكن يترد عليه فعلاً في المكان — ممكن يكون مختلف عنك.</p>
 
   <label>إيميل المكان *</label>
-  <input type="email" name="contact_email" placeholder="عشان نبلغكم أول ما حد يأمّن إنه هيبعتلكم أكل" value="{{ form.get('contact_email', '') }}" required>
+  <input type="email" name="contact_email" placeholder="عشان نبلغكم أول ما حد يحجز وجبة" value="{{ form.get('contact_email', '') }}" required>
   <p class="hint">مطلوب دلوقتي — بيه بس بنقدر نبلغكم أوتوماتيك إن في أكل جاي ونأكّد الاستلام.</p>
 
   {% if not editing_row %}
@@ -129,15 +130,15 @@
 
   <button type="submit">{{ 'حفظ التعديلات' if editing_row else 'إرسال' }}</button>
   {% if not editing_row %}
-  <p class="hint" style="text-align:center;margin-top:10px;">المائدة بتظهر للناس فورًا — وهتاخد شارة "موثّق" أوتوماتيك أول ما وجبة تتأمّن ليها.</p>
+  <p class="hint" style="text-align:center;margin-top:10px;">المائدة بتظهر للناس فورًا — وهتاخد شارة "معتمد" أوتوماتيك أول ما إطعام يتأكد ليها.</p>
   {% endif %}
 </form>
 
 <style>
   .checkbox-row { display: flex; flex-wrap: wrap; gap: 10px 16px; margin: 6px 0 4px; }
-  .checkbox-label { display: flex; align-items: center; gap: 6px; font-size: 13px; color: #333; margin: 0; }
+  .checkbox-label { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 500; color: var(--navy); margin: 0; }
   .checkbox-label input { width: auto; }
-  .conditional-section { display: none; border-right: 2px solid #2f7d5c; padding-right: 12px; margin: 8px 0 16px; }
+  .conditional-section { display: none; border-right: 3px solid var(--turq); padding-right: 12px; margin: 8px 0 16px; }
   .conditional-section.visible { display: block; }
 </style>
 <script>

@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% block title %}مما تحبون{% endblock %}
+{% block container_class %}container narrow{% endblock %}
 {% block content %}
 <div class="confirm-icon">{{ '✅' if success else '⚠️' }}</div>
 <h1>{{ message }}</h1>

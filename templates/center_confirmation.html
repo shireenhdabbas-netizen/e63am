@@ -1,11 +1,12 @@
 {% extends "base.html" %}
 {% block title %}تم إضافة المكان{% endblock %}
+{% block container_class %}container narrow{% endblock %}
 {% block content %}
 <div class="confirm-icon">📋</div>
 <h1>المكان بقى ظاهر دلوقتي</h1>
 <p class="subtitle">شكرًا — <strong>{{ center_name }}</strong> بقى ظاهر للناس اللي هتدّي في منطقتك.</p>
 <div class="info-box">
-  هيظهر كـ"لسه مش موثّق" دلوقتي — أول ما وجبة تتأمّن ليه، هياخد شارة "موثّق" أوتوماتيك.
+  هيظهر كـ"لسه مش معتمد" دلوقتي — أول ما إطعام يتأكد ليه، هياخد شارة "معتمد" أوتوماتيك.
 </div>
 <a class="back-link" href="{{ url_for('home') }}">&rarr; رجوع للرئيسية</a>
 {% endblock %}

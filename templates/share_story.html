@@ -1,11 +1,12 @@
 {% extends "base.html" %}
 {% block title %}احكيلنا تجربتك{% endblock %}
+{% block container_class %}container narrow{% endblock %}
 {% block content %}
 <div class="confirm-icon">🌿</div>
 <h1>الوجبة وصلت الحمد لله</h1>
 <p class="subtitle">حابب تحكي للناس تجربتك مع {{ matched_center }}؟ (اختياري)</p>
 
-<form method="POST">
+<form method="POST" class="form-card">
   <label>احكيلنا في جملة أو اتنين</label>
   <textarea name="story_text" rows="4" placeholder="مثلاً: حسّيت إني بطعم أهلي... الاستقبال كان جميل..."></textarea>
   <button type="submit">شارك تجربتك</button>

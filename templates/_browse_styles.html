@@ -1,0 +1,69 @@
+{# Shared CSS + area-picker JS for both browse pages. Needs `areas` in context. #}
+<style>
+  .browse-layout { display: grid; grid-template-columns: 300px 1fr; gap: 24px; align-items: start; margin-top: 8px; }
+  .filter-card { background: #fff; border: 1px solid var(--line); border-radius: 18px; padding: 20px; position: sticky; top: 16px; }
+  .filter-card h2 { font-size: 18px; margin-bottom: 4px; }
+  .area-box { display: flex; flex-direction: column; gap: 6px; max-height: 180px; overflow-y: auto; padding: 10px; border: 1.5px solid #E4D6CE; border-radius: 10px; }
+  .area-box label.checkbox-label { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 500; margin: 0; }
+  .results-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 14px; }
+  .results-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+  .place-card { background: #fff; border: 1px solid var(--line); border-top: 5px solid var(--rose); border-radius: 18px; overflow: hidden; display: flex; flex-direction: column; }
+  .place-photo { height: 120px; background-size: cover; background-position: center; background-color: var(--panel); }
+  .place-photo-empty { display: flex; align-items: center; justify-content: center; background: #E8CBC5; }
+  .place-photo-empty span { font-family: var(--font-display); font-size: 22px; color: var(--plum); line-height: 1; font-weight: 500; opacity: .8; }
+  .place-body { padding: 16px; display: flex; flex-direction: column; flex: 1; }
+  .place-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  .place-head h3 { margin: 0; font-size: 17px; }
+  .place-meta { color: var(--muted); font-size: 13px; margin: 2px 0 8px; }
+  .place-bio { font-size: 14px; margin: 0 0 8px; color: #4A3A3D; }
+  .place-need { font-size: 13px; color: var(--muted); margin: 0 0 12px; flex: 1; }
+  .place-body .btn { margin-top: 0; padding: 11px; font-size: 15px; }
+  .compact-guide { background: var(--panel); border: 1px solid #E4CFC6; border-radius: 14px; padding: 12px 14px; font-size: 13px; margin-bottom: 16px; }
+  .empty-box { background: #fff; border: 1px solid var(--line); border-radius: 18px; padding: 22px; }
+  .other-title { font-size: 18px; margin: 32px 0 12px; }
+  @media (max-width: 900px) {
+    .browse-layout { grid-template-columns: 1fr; }
+    .filter-card { position: static; }
+  }
+  @media (max-width: 640px) { .results-grid { grid-template-columns: 1fr; } }
+</style>
+<script>
+  var AREAS_BY_GOVERNORATE = {
+    "القاهرة": [
+      "شبرا", "الزاوية الحمراء", "حدائق القبة", "روض الفرج", "الشرابية", "الساحل", "الزيتون", "الأميرية",
+      "مصر القديمة", "الخليفة", "المقطم", "البساتين", "دار السلام", "السيدة زينب", "التبين", "حلوان", "المعصرة", "المعادي", "طرة", "15 مايو",
+      "منشأة ناصر", "الوايلي", "وسط القاهرة", "بولاق", "غرب القاهرة", "عابدين", "الأزبكية", "الموسكي", "باب الشعرية",
+      "مصر الجديدة (هليوبوليس)", "النزهة", "شرق مدينة نصر", "غرب مدينة نصر", "السلام أول", "السلام ثاني", "المطرية", "عين شمس", "المرج",
+      "الزمالك", "جاردن سيتي", "القاهرة الجديدة", "القطامية", "تاني"
+    ],
+    "الجيزة": [
+      "الدقي", "العجوزة / المهندسين", "العمرانية", "الهرم", "بولاق الدكرور", "الوراق", "شمال الجيزة", "جنوب الجيزة",
+      "السادس من أكتوبر", "الشيخ زايد", "إمبابة", "فيصل", "ميدان الجيزة",
+      "العياط", "أطفيح", "أوسيم", "البدرشين", "الحوامدية", "الصف", "كرداسة", "منشأة القناطر", "تاني"
+    ]
+  };
+  var PRESELECTED_AREAS = {{ areas|tojson }};
+  function updateAreaOptions() {
+    var gov = document.getElementById('governorate').value;
+    var container = document.getElementById('area-checkboxes');
+    container.innerHTML = "";
+    if (!gov || !AREAS_BY_GOVERNORATE[gov]) {
+      container.innerHTML = '<p class="hint" style="margin:0;">اختار المحافظة الأول...</p>';
+      return;
+    }
+    AREAS_BY_GOVERNORATE[gov].forEach(function(area) {
+      var label = document.createElement('label');
+      label.className = 'checkbox-label';
+      var input = document.createElement('input');
+      input.type = 'checkbox';
+      input.name = 'area';
+      input.value = area;
+      if (PRESELECTED_AREAS.indexOf(area) !== -1) input.checked = true;
+      label.appendChild(input);
+      label.appendChild(document.createTextNode(area));
+      container.appendChild(label);
+    });
+  }
+  document.getElementById('governorate').addEventListener('change', updateAreaOptions);
+  updateAreaOptions();
+</script>

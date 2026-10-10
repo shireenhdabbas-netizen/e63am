@@ -76,6 +76,12 @@ SCOPES = [
     "https://www.googleapis.com/auth/drive",
 ]
 
+@app.context_processor
+def inject_nav_state():
+    """Lightweight signed-in flag for the top nav (no sheet lookup)."""
+    return {"logged_in": bool(session.get("user_phone"))}
+
+
 app.jinja_env.globals["meal_guideline_text"] = MEAL_COMPOSITION_GUIDELINE
 app.jinja_env.globals["packaging_guideline_text"] = PACKAGING_GUIDELINE
 app.jinja_env.globals["disclaimer_text"] = DISCLAIMER_TEXT
@@ -613,10 +619,10 @@ def notify_center_of_match(center, giver, giver_row_number):
     no_show_link = url_for("report_no_show", giver_row=giver_row_number, token=token, _external=True)
     send_email(
         center_email,
-        f"وجبة مؤمّنة ليكم — {quantity} {unit}",
+        f"وجبة محجوزة ليكم — {quantity} {unit}",
         f'<div dir="rtl" style="text-align:right;font-family:Tahoma,Arial,sans-serif;">'
         f"<p>أهلاً،</p>"
-        f"<p>حد أمّن إنه هيبعتلكم أكل من خلال مما تحبون:</p>"
+        f"<p>حد حجز وجبة ليكم من خلال مما تحبون:</p>"
         f"<ul>"
         f"<li>الكمية: <strong>{quantity} {unit}</strong></li>"
         f"<li>النوع: {giver.get('Food Type')}"
@@ -669,7 +675,7 @@ def notify_waitlist_for_area(area, place_name, place_type):
                 f'<div dir="rtl" style="text-align:right;font-family:Tahoma,Arial,sans-serif;">'
                 f"<p>أهلاً،</p>"
                 f"<p><strong>{place_name}</strong> سجّل دلوقتي في {area} — "
-                f'رجع <a href="{browse_link}">هنا</a> عشان تأمّن الوجبة.</p>'
+                f'رجع <a href="{browse_link}">هنا</a> عشان تحجز الوجبة.</p>'
                 f"<p>— مما تحبون</p></div>",
             )
 
@@ -735,6 +741,40 @@ def get_recent_stories(limit=5):
 def home():
     return render_template("home.html", user=current_user(),
                             stats=get_homepage_stats(), stories=get_recent_stories())
+
+
+@app.template_filter("disp_type")
+def disp_type(value):
+    """Display label only. The stored value stays 'مائدة رحمن' so existing sheet rows keep working."""
+    return "مائدة إطعام" if value == MAEDET_RAHMAN_TYPE else value
+
+
+@app.template_filter("disp_status")
+def disp_status(value):
+    return {"موثّق": "معتمد", "لسه مش موثّق": "لسه مش معتمد"}.get(value, value)
+
+
+CONTACT_EMAIL = "memmatoheboun@gmail.com"
+
+
+@app.context_processor
+def inject_contact():
+    return {"contact_email": CONTACT_EMAIL}
+
+
+@app.route("/give")
+def give_page():
+    return render_template("choose.html", mode="give")
+
+
+@app.route("/receive")
+def receive_page():
+    return render_template("choose.html", mode="receive")
+
+
+@app.route("/our-story")
+def our_story():
+    return render_template("our_story.html")
 
 
 @app.route("/disclaimer")
@@ -1268,7 +1308,7 @@ def register_center():
         if not common["contact_name"] or not common["contact_phone"]:
             errors.append("من فضلك اكتب اسم ورقم الشخص المسؤول في المكان.")
         if not common["contact_email"]:
-            errors.append("إيميل المكان بقى مطلوب — عشان نبلغكم أول ما حد يأمّن أكل ليكم.")
+            errors.append("إيميل المكان بقى مطلوب — عشان نبلغكم أول ما حد يحجز وجبة ليكم.")
         if not common["receives"]:
             errors.append("من فضلك اختار إيه اللي المكان بيستقبله: وجبات، مواد غذائية، أو الاتنين.")
         if has_capacity_limit == "أيوه" and not capacity_per_slot:
@@ -1331,7 +1371,7 @@ def register_maedet_rahman():
         if not common["contact_name"] or not common["contact_phone"]:
             errors.append("من فضلك اكتب اسم ورقم الشخص المسؤول في المكان.")
         if not common["contact_email"]:
-            errors.append("إيميل المائدة بقى مطلوب — عشان نبلغكم أول ما حد يأمّن أكل ليها.")
+            errors.append("إيميل المائدة بقى مطلوب — عشان نبلغكم أول ما حد يحجز وجبة ليها.")
         if not common["receives"]:
             errors.append("من فضلك اختار إيه اللي المائدة بتستقبله: وجبات، مواد غذائية، أو الاتنين.")
         if common["has_capacity_limit"] == "أيوه" and not common["capacity_per_slot"]:

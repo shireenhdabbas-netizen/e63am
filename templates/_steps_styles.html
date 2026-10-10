@@ -1,0 +1,35 @@
+<style>
+  .photo { border-radius: 18px; overflow: hidden; background: #F4ECE9; border: 1px dashed #D9B7B2; }
+  .photo-hero { aspect-ratio: 4 / 4.6; border: none; }
+  .photo.has-img { border: none; }
+  .photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .ph { height: 100%; min-height: 160px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; color: var(--rose); text-align: center; padding: 16px; font-size: 14px; }
+  .ph-ic { width: 38px; height: 38px; }
+  .band { padding: 72px 0; }
+  .band-inner { max-width: 1120px; margin: 0 auto; padding: 0 20px; }
+  .section-title::after { content: ""; display: block; width: 56px; height: 4px; background: var(--rose); border-radius: 2px; margin: 14px 0 0 auto; }
+  .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; margin-top: 26px; }
+  .step { padding: 4px 28px; border-inline-start: 1px solid var(--line); position: relative; }
+  .step:first-child { border-inline-start: none; padding-inline-start: 0; }
+  .step:last-child { padding-inline-end: 0; }
+  .icon-wrap { width: 76px; height: 76px; border-radius: 50%; border: 1.5px solid var(--rose); color: var(--plum); display: flex; align-items: center; justify-content: center; margin-bottom: 16px; }
+  .icon-wrap .ic { width: 38px; height: 38px; }
+  .step-num { font-family: var(--font-en); font-size: 22px; letter-spacing: .18em; font-weight: 600; color: var(--rose); display: block; margin-bottom: 4px; direction: ltr; text-align: right; }
+  .step h3 { font-size: 21px; margin: 0 0 6px; }
+  .step p { color: var(--muted); font-size: 16.5px; margin: 0; }
+  .strip { padding: 0 0 72px; }
+  .strip-inner { max-width: 1120px; margin: 0 auto; padding: 0 20px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .strip .photo { aspect-ratio: 4 / 3; }
+  .receive-actions { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 36px; }
+  .band-receive { border-top: 1px solid var(--line); }
+
+  @media (max-width: 900px) {
+    .band { padding: 48px 0; }
+    .steps { grid-template-columns: 1fr; }
+    .step { border-inline-start: none; padding: 18px 0; border-top: 1px solid var(--line); }
+    .step:first-child { border-top: none; }
+    .strip-inner { grid-template-columns: 1fr; }
+    .strip { padding-bottom: 48px; }
+    .receive-actions-wrap .strip-inner { padding-bottom: 8px; }
+  }
+</style>

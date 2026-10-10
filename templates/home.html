@@ -1,110 +1,182 @@
 {% extends "base.html" %}
-{% block title %}مما تحبون{% endblock %}
-{% block content %}
+{% block title %}مما تحبون — من القلب{% endblock %}
+{% block full %}
 
-<div class="hero">
-  <h1 style="font-size:24px;">مما تحبون</h1>
-  <p class="subtitle" style="font-size:14px;line-height:1.7;">
-    كلنا بنحب نطعم من قلبنا — بس مش دايمًا عارفين مكان نثق فيه، أو الأكل بيوصل صح.
-    مما تحبون بتوصّلك بأماكن حقيقية في منطقتك، عشان تدّي بأمان وتطمن إن اللي بتدّيه بيوصل.
-  </p>
-</div>
-
-{% if user %}
-<p style="font-size:13px;margin:-8px 0 18px;">
-  أهلاً {{ user.get('Nickname') or user.get('Real Name') }} —
-  <a href="{{ url_for('my_activity') }}">نشاطي</a>
-</p>
-{% else %}
-<p style="font-size:13px;margin:-8px 0 18px;">
-  <a href="{{ url_for('login') }}">سجّل دخول</a> عشان تحتفظ بسجل نشاطك
-</p>
-{% endif %}
-
-<h1 style="font-size:16px;margin-top:24px;">إزاي بيشتغل؟</h1>
-<div class="timeline-item next">
-  <div class="dot"></div>
-  <div>
-    <p class="timeline-title">1. دوّر على مكان في منطقتك</p>
-    <p class="timeline-sub">جهة استقبال بعدد محدد من المستفيدين، أو مائدة رحمن مفتوحة لأي حد</p>
+<!-- ============ HERO ============ -->
+<section class="hero">
+  <div class="hero-inner">
+    <div class="hero-text">
+      <h1 class="hero-title">علشان اللي بتقدّمه من قلبك…<br>يوصل لحد محتاجه فعلًا.</h1>
+      <p class="hero-sub">
+        كتير مننا نفسه يعمل إطعام، بس مش عارف يقدّمه لمين ولا فين.<br>
+        مما تحبون منصة بتربط أي حد حابب يعمل إطعام بدور رعاية وموائد إطعام موثوق فيها، كل السنة.
+      </p>
+      <div class="hero-actions">
+        <a class="btn btn-inline" href="{{ url_for('give_page') }}">قدّم إطعام</a>
+        <a class="btn btn-inline btn-outline-dark" href="{{ url_for('receive_page') }}">استقبل إطعام</a>
+      </div>
+    </div>
+    <div class="photo photo-hero"><img src="{{ url_for('static', filename='hero.jpg') }}" alt="أيادي بتجهّز وجبة"></div>
   </div>
-</div>
-<div class="timeline-item">
-  <div class="dot"></div>
-  <div>
-    <p class="timeline-title">2. أمّن وجبتك</p>
-    <p class="timeline-sub">اختار ميعاد وكمية، والتزم بالتوصيل بنفسك</p>
+</section>
+
+<!-- ============ STATS BAR ============ -->
+<section class="stats-bar" aria-label="أرقام المنصة">
+  <div class="stats-inner">
+    <div class="stat"><p class="stat-number">{{ stats.places }}</p><p class="stat-label">مكان مسجّل</p></div>
+    <div class="stat"><p class="stat-number">{{ stats.meals_delivered }}</p><p class="stat-label">وجبة وصلت</p></div>
+    <div class="stat"><p class="stat-number">{{ stats.unique_givers }}</p><p class="stat-label">شخص شارك</p></div>
+    <div class="stat-login">
+      {% if user %}أهلاً {{ user.get('Nickname') or user.get('Real Name') }} — <a href="{{ url_for('my_activity') }}">نشاطي</a>
+      {% else %}<a href="{{ url_for('login') }}">سجّل دخول</a> عشان تحتفظ بسجل نشاطك{% endif %}
+    </div>
   </div>
-</div>
-<div class="timeline-item">
-  <div class="dot"></div>
-  <div>
-    <p class="timeline-title">3. وصّل، وأكّد</p>
-    <p class="timeline-sub">لما توصّل، أكّد من نشاطك — والمكان بيأكّد الاستلام برضه</p>
+</section>
+
+{% include '_give_steps.html' %}
+
+{% include '_receive_steps.html' %}
+
+<!-- ============ TRUST ============ -->
+<section class="band band-plum">
+  <div class="band-inner">
+    <h2 class="section-title">إزاي بنحافظ على الثقة</h2>
+    <div class="trust-grid">
+      <div class="trust-item"><svg class="t-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5v9M9.6 10c0-.9 1-1.5 2.4-1.5s2.4.6 2.4 1.5-1 1.3-2.4 1.6-2.4.7-2.4 1.6 1 1.5 2.4 1.5 2.4-.6 2.4-1.5M5.5 18.5l13-13"/></svg><h3>من غير فلوس</h3><p>المنصة مش بتستلم ولا بتحوّل أي فلوس. الأكل بيوصل بإيدك.</p></div>
+      <div class="trust-item"><svg class="t-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="9" r="3.3"/><path d="M5.5 20c.8-3.6 3.4-5.2 6.5-5.2s5.7 1.6 6.5 5.2M4.5 4.5l15 15"/></svg><h3>من غير بيانات أفراد</h3><p>مش بنسجّل بيانات أي شخص بيستفيد. بنسجّل الأماكن بس.</p></div>
+      <div class="trust-item"><svg class="t-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6z"/><path d="M9 12l2 2 4-4"/></svg><h3>اعتماد بالتجربة</h3><p>المكان بياخد شارة «معتمد» مع أول إطعام يتأكد.</p></div>
+      <div class="trust-item"><svg class="t-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 8h11l-3-3M17 16H6l3 3"/></svg><h3>تأكيد من الطرفين</h3><p>اللي بيقدّم بيأكّد إنه وصّل، والمكان بيأكّد إنه استلم.</p></div>
+    </div>
   </div>
-</div>
+</section>
 
-<p style="font-size:13px;color:#888;margin:24px 0 8px;">عايز تدّي؟</p>
-<a class="card" href="{{ url_for('browse_places') }}">
-  <p class="card-title">🏠 دوّر على جهة استقبال</p>
-  <p class="card-sub">دار أيتام، دار مسنين، أو جهة بعدد مستفيدين محدد</p>
-</a>
-<a class="card" href="{{ url_for('browse_maedet_rahman') }}">
-  <p class="card-title">🕌 دوّر على مائدة رحمن</p>
-  <p class="card-sub">مسجد، كنيسة، أو مكان بيقدّم أكل مفتوح لأي حد</p>
-</a>
+<!-- ============ WHO IT'S FOR ============ -->
+<section class="band band-ivory">
+  <div class="band-inner">
+    <div class="two-cards">
+      <div class="panel"><h3>للي حابب يقدّم إطعام</h3>
+        <p>اختار مكان في منطقتك واحجز اليوم اللي يناسبك. مش لازم تعمل حساب، بس لازم تلتزم بالمعاد.</p>
+        <a class="btn btn-inline" href="{{ url_for('give_page') }}" style="margin-top:16px;">قدّم إطعام</a></div>
+      <div class="panel"><h3>لو عندك دار أو مائدة</h3>
+        <p>سجّل المكان مرة واحدة وحدّد احتياجه، وهنعرضه لكل اللي حابب يقدّم إطعام. أي حد يعرف مكان محتاج يقدر يسجّله.</p>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:16px;">
+          <a class="btn btn-inline" href="{{ url_for('register_center') }}">سجّل دار رعاية</a>
+          <a class="btn btn-inline btn-outline-dark" href="{{ url_for('register_maedet_rahman') }}">سجّل مائدة إطعام</a></div></div>
+    </div>
+  </div>
+</section>
 
-<p style="font-size:13px;color:#888;margin:18px 0 8px;">عندك مكان استقبال؟</p>
-<a class="card" href="{{ url_for('register_center') }}">
-  <p class="card-title">📋 سجّل جهة استقبال</p>
-  <p class="card-sub">عدد مستفيدين محدد ومعروف</p>
-</a>
-<a class="card" href="{{ url_for('register_maedet_rahman') }}">
-  <p class="card-title">📋 سجّل مائدة رحمن</p>
-  <p class="card-sub">مفتوحة لأي حد بييجي</p>
-</a>
-
+<!-- ============ STORIES ============ -->
 {% if stories %}
-<h1 style="font-size:16px;margin-top:28px;">تجارب ناس زيك</h1>
-{% for s in stories %}
-<div class="info-box" style="margin-bottom:10px;">
-  <p style="margin:0 0 6px;font-style:italic;">"{{ s.get('Story Text') }}"</p>
-  <p class="hint" style="margin:0;">— {{ s.get('Author Name') }}{% if s.get('Center Name') %} · {{ s.get('Center Name') }}{% endif %}</p>
-</div>
-{% endfor %}
+<section class="band band-line">
+  <div class="band-inner">
+    <h2 class="section-title">تجارب ناس زيك</h2>
+    <div class="steps">
+      {% for s in stories %}
+      <div class="step"><p style="font-size:18px;color:var(--plum);margin:0 0 10px;">"{{ s.get('Story Text') }}"</p>
+        <p class="hint" style="margin:0;">— {{ s.get('Author Name') }}{% if s.get('Center Name') %} · {{ s.get('Center Name') }}{% endif %}</p></div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
 {% endif %}
 
-<div class="info-box" style="margin-top:20px;background:#fdf6ec;border-color:#f0dfc0;">
-  <p style="margin:0;font-size:13px;line-height:1.7;">
-    بدأنا مما تحبون عشان نصدّق إن مافيش حد المفروض ينام جعان في مجتمعنا — مش عشان نتخلص من فايض أكل،
-    لكن عشان نسهّل على أي حد حابب يطعم من قلبه إنه يلاقي مكان يثق فيه، ويدّي بأمان وبانتظام.
-  </p>
-</div>
+{% set faq_key = 'home' %}{% include '_faq.html' %}
 
-<div class="stats-row">
-  <div class="stat-box">
-    <p class="stat-number">{{ stats.places }}</p>
-    <p class="stat-label">مكان مسجّل</p>
+<!-- ============ ORIGIN + SHARE ============ -->
+<section class="band">
+  <div class="band-inner">
+    <div class="two-cards">
+      <div class="panel panel-plum"><h3>ليه عملنا مما تحبون؟</h3>
+        <p>شفنا ناس كتير نفسها تقدّم إطعام ومش لاقية المكان المناسب. فعملنا المنصة دي عشان نسهّل عليكم، ونساعد الخير يوصل لناس أكتر تستحقه.</p>
+        <a class="btn btn-inline btn-outline-light" href="{{ url_for('our_story') }}" style="margin-top:16px;">اقرأ حكايتنا</a></div>
+      <div class="panel"><h3>شارك الخير</h3>
+        <p>كل ما ناس أكتر تعرف، الإطعام بيوصل لأماكن أكتر. ابعت المنصة لحد نفسه يقدّم.</p>
+        <a class="btn btn-inline" href="https://wa.me/?text=جرّب%20مما%20تحبون" target="_blank" rel="noopener" style="margin-top:16px;">شارك على واتساب</a></div>
+    </div>
   </div>
-  <div class="stat-box">
-    <p class="stat-number">{{ stats.meals_delivered }}</p>
-    <p class="stat-label">وجبة وصلت</p>
-  </div>
-  <div class="stat-box">
-    <p class="stat-number">{{ stats.unique_givers }}</p>
-    <p class="stat-label">شخص شارك بالعطاء</p>
-  </div>
-</div>
-
-<div class="info-box" style="margin-top:16px;text-align:center;">
-  <p style="margin:0 0 8px;font-size:13px;">شارك الخير — كل ما ناس أكتر تعرف، كل ما العطاء بقى أسهل.</p>
-  <a class="btn" href="https://wa.me/?text=جرّب%20مما%20تحبون" target="_blank" style="background:#25D366;">شارك على واتساب</a>
-</div>
+</section>
 
 <style>
-  .stats-row { display: flex; gap: 8px; margin-top: 20px; }
-  .stat-box { flex: 1; background: #fff; border: 1px solid #eee; border-radius: 12px; padding: 14px 8px; text-align: center; }
-  .stat-number { font-size: 20px; font-weight: 700; color: #2f7d5c; margin: 0; }
-  .stat-label { font-size: 11px; color: #888; margin: 4px 0 0; }
+  .hero { background: #fff; }
+  .hero-inner { max-width: 1120px; margin: 0 auto; padding: 56px 20px 56px; display: grid; grid-template-columns: 1.05fr .95fr; gap: 56px; align-items: center; }
+  .hero-title { font-size: 64px; line-height: 1.45; margin: 6px 0 18px; color: var(--plum); }
+  .hero-sub { color: var(--ink-muted); font-size: 24px; line-height: 1.9; max-width: 560px; margin: 0 0 32px; }
+  .hero-actions { display: flex; gap: 12px; flex-wrap: wrap; }
+  .hero-note { font-size: 14px; color: var(--stone); margin: 16px 0 0; }
+
+  .photo { border-radius: 18px; overflow: hidden; background: #F4ECE9; border: 1px dashed #D9B7B2; }
+  .photo-hero { aspect-ratio: 4 / 4.6; border: none; }
+  .photo.has-img { border: none; }
+  .photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .ph { height: 100%; min-height: 160px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; color: var(--rose); text-align: center; padding: 16px; font-size: 14px; }
+  .ph-ic { width: 38px; height: 38px; }
+
+  .stats-bar { background: var(--plum); color: var(--ivory); }
+  .stats-inner { max-width: 1120px; margin: 0 auto; padding: 22px 20px; display: flex; align-items: center; gap: 0; }
+  .stat { padding: 0 36px; border-inline-end: 1px solid rgba(248,237,232,.25); text-align: center; }
+  .stat:first-child { padding-inline-start: 0; }
+  .stat-number { font-family: var(--font-en); font-size: 42px; font-weight: 600; line-height: 1.1; margin: 0; color: var(--ivory); }
+  .stat-label { font-size: 13.5px; color: #E3C4BF; margin: 4px 0 0; }
+  .stat-login { margin-inline-start: auto; font-size: 14.5px; color: #E3D0C9; }
+  .stat-login a { color: var(--ivory); }
+
+  .band { padding: 72px 0; }
+  .band-inner { max-width: 1120px; margin: 0 auto; padding: 0 20px; }
+  .band-ivory { background: #F8EDE8; }
+  .band-line { border-top: 1px solid var(--line); }
+  .section-title::after { content: ""; display: block; width: 56px; height: 4px; background: var(--rose); border-radius: 2px; margin: 14px 0 0 auto; }
+
+  .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; margin-top: 26px; }
+  .step { padding: 4px 28px; border-inline-start: 1px solid var(--line); position: relative; }
+  .step:first-child { border-inline-start: none; padding-inline-start: 0; }
+  .step:last-child { padding-inline-end: 0; }
+  .icon-wrap { width: 76px; height: 76px; border-radius: 50%; border: 1.5px solid var(--rose); color: var(--plum); display: flex; align-items: center; justify-content: center; margin-bottom: 16px; }
+  .icon-wrap .ic { width: 38px; height: 38px; }
+  .step-num { font-family: var(--font-en); font-size: 22px; letter-spacing: .18em; font-weight: 600; color: var(--rose); display: block; margin-bottom: 4px; direction: ltr; text-align: right; }
+  .step h3 { font-size: 21px; margin: 0 0 6px; }
+  .step p { color: var(--muted); font-size: 16.5px; margin: 0; }
+
+  .strip { padding: 0 0 72px; }
+  .strip-inner { max-width: 1120px; margin: 0 auto; padding: 0 20px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .strip .photo { aspect-ratio: 4 / 3; }
+
+  .band-plum { background: var(--plum); color: var(--ivory); }
+  .band-plum .section-title { color: var(--ivory); }
+  .band-plum .eyebrow { color: #E3C4BF; }
+  .trust-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; margin-top: 26px; }
+  .trust-item { padding: 4px 24px; border-inline-start: 1px solid rgba(248,237,232,.25); }
+  .trust-item:first-child { border-inline-start: none; padding-inline-start: 0; }
+  .trust-item:last-child { padding-inline-end: 0; }
+  .t-ic { width: 46px; height: 46px; color: #E3C4BF; display: block; margin-bottom: 12px; }
+  .trust-item h3 { font-size: 20px; margin: 0 0 6px; color: var(--ivory); }
+  .trust-item p { font-size: 15.5px; margin: 0; color: #E4D3CC; }
+
+  .two-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .panel { background: #fff; border: 1px solid var(--line); border-top: 5px solid var(--rose); border-radius: 16px; padding: 30px; }
+  .panel h3 { font-family: var(--font-display); font-size: 30px; font-weight: 700; margin: 0 0 8px; }
+  .panel p { color: var(--muted); font-size: 17px; margin: 0; }
+  .receive-actions { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 36px; }
+  .band-receive { border-top: 1px solid var(--line); }
+  .btn-outline-light { background: transparent !important; color: var(--ivory) !important; border: 1.5px solid var(--rose) !important; }
+  .panel-plum { background: var(--plum); border-color: var(--plum); border-top-color: var(--rose); }
+  .panel-plum h3 { color: var(--ivory); }
+  .panel-plum p { color: #E3D0C9; }
+
+  @media (max-width: 900px) {
+    .hero-inner { grid-template-columns: 1fr; padding: 32px 20px 36px; gap: 28px; }
+    .hero-title { font-size: 40px; }
+    .photo-hero { aspect-ratio: 16 / 11; }
+    .stats-inner { flex-wrap: wrap; gap: 14px 0; }
+    .stat { padding: 0 18px; flex: 1; }
+    .stat-login { flex: 1 1 100%; margin: 0; text-align: center; }
+    .band { padding: 48px 0; }
+    .steps, .two-cards, .trust-grid { grid-template-columns: 1fr; }
+    .step, .trust-item { border-inline-start: none; padding: 18px 0; border-top: 1px solid var(--line); }
+    .trust-item { border-top-color: rgba(248,237,232,.25); }
+    .step:first-child, .trust-item:first-child { border-top: none; }
+    .strip-inner { grid-template-columns: 1fr; }
+    .strip { padding-bottom: 48px; }
+  }
 </style>
 {% endblock %}

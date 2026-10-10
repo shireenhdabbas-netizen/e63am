@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}حكايتنا{% endblock %}
+{% block full %}
+<section class="story">
+  <div class="story-inner">
+    <h1 class="section-title">حكايتنا</h1>
+    <p class="story-lead">في الحقيقة، هي حكايتكم.</p>
+    <p>شفنا حب العطاء عند ناس كتير، وشفنا إزاي بيتعبوا عشان يلاقوا المكان المناسب يثقوا فيه. فعملنا المنصة دي عشان نسهّل عليكم، ونساعد الخير يوصل لناس أكتر تستحقه.</p>
+    <p>اللي عملناه جزء صغير جدًا، والباقي منكم.</p>
+    <div class="story-contact">
+      <p>لو احتجتوا أي حاجة، ابعتوا لنا على الإيميل، وإحنا في خدمتكم دايمًا.</p>
+      <a class="btn btn-inline" href="mailto:{{ contact_email }}?subject=%D9%85%D9%85%D8%A7%20%D8%AA%D8%AD%D8%A8%D9%88%D9%86">ابعتلنا إيميل</a>
+      <p class="story-mail"><a href="mailto:{{ contact_email }}">{{ contact_email }}</a></p>
+      <p class="story-mail"><a href="{{ url_for('disclaimer') }}">إخلاء المسؤولية</a></p>
+    </div>
+  </div>
+</section>
+<style>
+  .story { padding: 64px 0 88px; background: #fff; }
+  .story-inner { max-width: 720px; margin: 0 auto; padding: 0 20px; }
+  .story-inner p { font-size: 19px; line-height: 2; color: var(--ink-muted); margin: 0 0 14px; }
+  .story-lead { font-family: var(--font-display); font-size: 34px !important; color: var(--plum) !important; margin: 12px 0 18px !important; }
+  .story-contact { margin-top: 36px; padding: 28px; background: var(--ivory); border-radius: 16px; border-top: 5px solid var(--rose); }
+  .story-contact .story-mail { font-size: 15px; margin: 14px 0 0; }
+  .story-contact a { color: var(--plum); }
+  .story-contact a.btn { color: var(--ivory); }
+</style>
+{% endblock %}

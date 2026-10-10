@@ -4,135 +4,174 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>{% block title %}مما تحبون{% endblock %}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Aref+Ruqaa:wght@400;700&family=Vazirmatn:wght@400;500;700&family=Cormorant+Garamond:wght@500;600&display=swap" rel="stylesheet">
 <style>
+  :root {
+    /* Brand guideline palette */
+    --plum: #5B383E;  --plum-2: #6E4A50;  --rose: #AC7B78;  --ivory: #F8EDE8;
+    --stone: #777477; --slate: #35444B;   --sage: #D6C9B5;
+    --wash: #EFDCD7;  --line: #E8DDD6;    --ink-muted: #5F5659;
+    /* legacy names used by other templates, mapped to the palette */
+    --navy: var(--plum); --navy-2: var(--plum-2); --blue: var(--slate);
+    --turq: var(--rose); --turq-tint: #E3C4BF; --turq-wash: var(--wash);
+    --mint: var(--sage); --coral: var(--sage); --coral-tint: #EBD3CE; --pink: #E3C4BF;
+    --panel: var(--wash); --bg: #FFFFFF; --card: #FFFFFF; --muted: var(--ink-muted);
+    --font: 'Vazirmatn', 'Noto Sans Arabic', 'Segoe UI', Tahoma, system-ui, sans-serif;
+    --font-display: 'Aref Ruqaa', 'Vazirmatn', serif;
+    --font-en: 'Cormorant Garamond', Georgia, serif;
+  }
   * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
   body {
-    font-family: 'Segoe UI', Tahoma, -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
-    background: #f7f5f2;
-    color: #2b2b2b;
-    margin: 0;
-    padding: 0;
-    display: flex;
-    justify-content: center;
-    text-align: right;
+    font-family: var(--font); font-weight: 400; background: var(--bg); color: var(--plum);
+    margin: 0; text-align: right; line-height: 1.85; -webkit-font-smoothing: antialiased;
   }
-  .wrap {
-    width: 100%;
-    max-width: 420px;
-    padding: 24px 20px 60px;
-  }
-  h1 { font-size: 20px; margin: 0 0 4px; }
-  p.subtitle { color: #777; font-size: 13px; margin: 0 0 24px; }
-  .card {
-    background: #fff;
-    border: 1px solid #eee;
-    border-radius: 14px;
-    padding: 18px;
-    margin-bottom: 14px;
-    text-decoration: none;
-    color: inherit;
-    display: block;
-  }
-  .card:active { background: #fafafa; }
-  .card-title { font-weight: 600; font-size: 15px; margin: 0 0 2px; }
-  .card-sub { font-size: 12px; color: #888; margin: 0; }
-  label {
-    display: block;
-    font-size: 12px;
-    color: #666;
-    margin: 14px 0 4px;
-  }
-  input, select, textarea {
-    width: 100%;
-    padding: 10px 12px;
-    border-radius: 8px;
-    border: 1px solid #ddd;
-    font-size: 14px;
-    font-family: inherit;
-    background: #fff;
-    text-align: right;
-  }
-  .hint { font-size: 11px; color: #999; margin-top: 4px; }
-  button, .btn {
-    width: 100%;
-    margin-top: 22px;
-    padding: 13px;
-    border: none;
-    border-radius: 10px;
-    background: #2f7d5c;
-    color: #fff;
-    font-size: 15px;
-    font-weight: 600;
-    font-family: inherit;
-    text-align: center;
-    display: block;
-    text-decoration: none;
-  }
-  button:disabled, .btn.is-loading { opacity: 0.7; }
-  .errors {
-    background: #fdecea;
-    border: 1px solid #f5c2be;
-    color: #a33;
-    border-radius: 8px;
-    padding: 10px 12px;
-    font-size: 13px;
-    margin-bottom: 12px;
-  }
-  .back-link {
-    display: inline-block;
-    margin-bottom: 16px;
-    font-size: 13px;
-    color: #2f7d5c;
-    text-decoration: none;
-  }
-  .confirm-icon { font-size: 32px; margin-bottom: 8px; }
-  .info-box {
-    background: #fff;
-    border: 1px solid #eee;
-    border-radius: 10px;
-    padding: 12px;
-    margin: 10px 0;
-    font-size: 13px;
-  }
+  a { color: var(--slate); }
+  h1, .section-title { font-family: var(--font-display); font-weight: 700; }
+  h2, h3, .btn, button, label, .nav-links a, .pill, .card-title, .timeline-title, .back-link { font-family: var(--font); font-weight: 700; }
+  .btn, button, label, .nav-links a, .pill, .back-link { font-weight: 500; }
+
+  /* ---------- top nav ---------- */
+  .nav { background: #fff; border-bottom: 3px solid var(--rose); }
+  .nav-inner { max-width: 1120px; margin: 0 auto; padding: 14px 20px; display: flex; align-items: center; gap: 24px; }
+  .brand { display: flex; align-items: center; text-decoration: none; }
+  .brand-logo { height: 52px; width: auto; display: block; }
+  .nav-links { display: flex; align-items: center; gap: 26px; margin-inline-start: 18px; flex: 1; }
+  .nav-links a { color: var(--plum); text-decoration: none; font-size: 15px; font-weight: 500; padding: 4px 0; border-bottom: 2px solid transparent; }
+  .nav-links a:hover { border-bottom-color: var(--rose); }
+  .nav-toggle { display: none !important; background: transparent !important; width: 44px !important; height: 44px; margin: 0 !important; padding: 0 !important; border: none !important; box-shadow: none !important; align-items: center; justify-content: center; color: var(--plum) !important; order: 3; }
+  .nav-toggle svg { width: 26px; height: 26px; }
+  .nav-cta { background: var(--plum); color: var(--ivory) !important; padding: 9px 20px !important; border-radius: 10px; font-size: 14px !important; border-bottom: none !important; }
+  .nav-cta:hover { background: var(--plum-2); }
+
+  /* ---------- layout ---------- */
+  .container { max-width: 1120px; margin: 0 auto; padding: 40px 20px 72px; }
+  .container.narrow { max-width: 720px; }
+  h1 { font-size: 40px; line-height: 1.5; margin: 0 0 8px; }
+  h2 { font-size: 26px; margin: 0 0 8px; }
+  p.subtitle { color: var(--muted); font-size: 16px; margin: 0 0 26px; }
+  .section-title { font-size: 38px; margin: 0 0 8px; }
+  .eyebrow { font-family: var(--font-en); font-size: 15px; letter-spacing: .22em; text-transform: uppercase; color: var(--rose); font-weight: 600; direction: ltr; display: block; text-align: right; margin-bottom: 6px; }
+
+  /* ---------- cards & surfaces ---------- */
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 20px; margin-bottom: 14px; text-decoration: none; color: inherit; display: block; }
+  a.card:hover { border-color: var(--rose); }
+  .card-title { font-weight: 500; font-size: 17px; margin: 0 0 2px; }
+  .card-sub { font-size: 14px; color: var(--muted); margin: 0; }
+  .info-box { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; margin: 10px 0; font-size: 15px; }
+  .need-box { background: var(--wash); border-color: #DDB9B3; }
+  .form-card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 26px; margin-bottom: 16px; }
+  .pill { display: inline-block; font-size: 12.5px; padding: 3px 12px; border-radius: 999px; background: var(--wash); color: var(--plum); white-space: nowrap; font-weight: 500; }
+  .pill-ok { background: #E6E6E0; color: var(--slate); }
+  .pill-warn { background: #F1E6D2; color: #6B4E1A; }
+  .pill-bad { background: #F2DAD6; color: #7A2E2A; }
+  .pill-info { background: #E7EAEC; color: var(--slate); }
+
+  /* ---------- forms ---------- */
+  label { display: block; font-size: 14px; font-weight: 500; color: var(--plum); margin: 18px 0 6px; }
+  input, select, textarea { width: 100%; padding: 11px 13px; border-radius: 10px; border: 1.5px solid #DCC9BF; font-size: 15.5px; font-family: inherit; background: #fff; color: var(--plum); text-align: right; }
+  input:focus, select:focus, textarea:focus { outline: none; border-color: var(--rose); box-shadow: 0 0 0 3px rgba(172,123,120,.25); }
+  input[type="checkbox"], input[type="radio"] { width: auto; }
+  .hint { font-size: 13px; color: var(--muted); margin-top: 5px; }
+
+  /* ---------- buttons: plum primary, rose secondary ---------- */
+  button, .btn { width: 100%; margin-top: 22px; padding: 13px 20px; border: none; border-radius: 10px; background: var(--plum); color: var(--ivory); font-size: 16.5px; font-weight: 500; font-family: var(--font); text-align: center; display: block; text-decoration: none; cursor: pointer; }
+  button:hover, .btn:hover { background: var(--plum-2); }
+  button:disabled, .btn.is-loading { opacity: .65; cursor: default; }
+  .btn-dark { background: var(--plum); color: var(--ivory); }
+  .btn-outline { background: transparent; color: var(--ivory); border: 1.5px solid rgba(248,237,232,.55); }
+  .btn-outline:hover { background: rgba(248,237,232,.1); }
+  .btn-outline-dark { background: transparent; color: var(--plum); border: 1.5px solid var(--rose); }
+  .btn-outline-dark:hover { background: var(--wash); }
+  .btn-inline { width: auto; display: inline-block; margin-top: 0; padding: 11px 26px; }
+
+  .errors { background: #F6E3DF; border: 1px solid #E3B8B1; color: #7A2E2A; border-radius: 12px; padding: 12px 14px; font-size: 15px; margin-bottom: 16px; }
+  .flash-wrap { max-width: 1120px; margin: 0 auto; padding: 16px 20px 0; }
+  .back-link { display: inline-block; margin-bottom: 14px; font-size: 14.5px; color: var(--slate); text-decoration: none; font-weight: 500; }
+  .confirm-icon { font-size: 40px; margin-bottom: 8px; }
   .timeline-item { display: flex; gap: 10px; padding-bottom: 14px; }
-  .dot { width: 8px; height: 8px; border-radius: 50%; background: #ccc; margin-top: 5px; flex-shrink: 0; }
-  .timeline-item.next .dot { background: #2f7d5c; }
-  .timeline-title { font-size: 13px; font-weight: 600; margin: 0; }
-  .timeline-sub { font-size: 12px; color: #888; margin: 0; }
-  .site-footer {
-    max-width: 420px;
-    margin: 32px auto 0;
-    padding: 18px 20px 30px;
-    border-top: 1px solid #e6e3de;
-    font-size: 11px;
-    color: #999;
-    line-height: 1.7;
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: #ccc; margin-top: 10px; flex-shrink: 0; }
+  .timeline-item.next .dot { background: var(--rose); }
+  .timeline-title { font-size: 15px; font-weight: 500; margin: 0; }
+  .timeline-sub { font-size: 14px; color: var(--muted); margin: 0; }
+
+  /* ---------- footer ---------- */
+  .footer { background: var(--plum); color: #E9D9D2; margin-top: 0; border-top: 6px solid var(--rose); }
+  .footer-inner { max-width: 1120px; margin: 0 auto; padding: 36px 20px 28px; display: flex; flex-wrap: wrap; gap: 18px 40px; align-items: flex-start; justify-content: space-between; font-size: 14px; }
+  .footer a { color: var(--ivory); }
+  .footer-note { flex: 1 1 100%; font-size: 13px; color: #CDB5AD; border-top: 1px solid rgba(248,237,232,.16); padding-top: 16px; line-height: 1.9; }
+
+  @media (max-width: 640px) {
+    .nav-inner { gap: 12px; position: relative; }
+    .nav-toggle { display: inline-flex !important; }
+    .nav-links { display: none; position: absolute; top: 100%; inset-inline: 0; background: #fff; flex-direction: column; align-items: stretch; gap: 0; margin: 0; padding: 8px 20px 16px; border-bottom: 3px solid var(--rose); box-shadow: 0 12px 24px rgba(91,56,62,.10); z-index: 20; }
+    .nav-links.is-open { display: flex; }
+    .nav-links a { padding: 14px 0; font-size: 18px; border-bottom: 1px solid var(--line); }
+    .nav-links a:last-child { border-bottom: none; }
+    .nav-inner .brand { margin-inline-end: auto; }
+    .brand-logo { height: 44px; }
+    .container { padding: 26px 16px 52px; }
+    h1 { font-size: 27px; }
   }
-  .site-footer a { color: #2f7d5c; }
 </style>
 </head>
 <body>
-<div class="wrap">
-  {% with messages = get_flashed_messages() %}
-    {% if messages %}
-      <div class="errors">
-        {% for m in messages %}<div>{{ m }}</div>{% endfor %}
-      </div>
+<header class="nav">
+  <div class="nav-inner">
+    <a class="brand" href="{{ url_for('home') }}">
+      <img class="brand-logo" src="{{ url_for('static', filename='logo-original.png') }}" alt="مما تحبون">
+    </a>
+    <button type="button" class="nav-toggle" aria-label="القايمة" aria-expanded="false" aria-controls="nav-links"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+    <nav class="nav-links" id="nav-links">
+      <a href="{{ url_for('give_page') }}">قدّم إطعام</a>
+      <a href="{{ url_for('receive_page') }}">استقبل إطعام</a>
+      <a href="{{ url_for('our_story') }}">حكايتنا</a>
+    </nav>
+    {% if logged_in %}
+    <a class="nav-cta" href="{{ url_for('my_activity') }}" style="text-decoration:none;">نشاطي</a>
+    {% else %}
+    <a class="nav-cta" href="{{ url_for('login') }}" style="text-decoration:none;">دخول</a>
     {% endif %}
-  {% endwith %}
-  {% block content %}{% endblock %}
-
-  {% block footer %}
-  <div class="site-footer">
-    مما تحبون منصة تواصل بس بين اللي حابب يدّي واللي محتاج ياخد — مش مسؤولة عن أي حاجة تحصل بين الطرفين بعد كده.
-    <a href="{{ url_for('disclaimer') }}">اقرا التفاصيل / تواصل معانا</a>
   </div>
-  {% endblock %}
-</div>
+</header>
+
+{% with messages = get_flashed_messages() %}
+  {% if messages %}
+  <div class="flash-wrap">
+    <div class="errors">{% for m in messages %}<div>{{ m }}</div>{% endfor %}</div>
+  </div>
+  {% endif %}
+{% endwith %}
+
+{% block full %}
+<main class="{% block container_class %}container{% endblock %}">
+  {% block content %}{% endblock %}
+</main>
+{% endblock %}
+
+<footer class="footer">
+  <div class="footer-inner">
+    <div>
+      <img class="brand-logo" src="{{ url_for('static', filename='logo-ivory.png') }}" alt="مما تحبون" style="height:76px;">
+      <div style="margin-top:4px;">مِمّا تُحِبّون… من القلب</div>
+    </div>
+    <div>
+      <a href="{{ url_for('disclaimer') }}">إخلاء المسؤولية</a><br>
+      <a href="{{ url_for('our_story') }}">حكايتنا وتواصل</a><br>
+      <a href="mailto:{{ contact_email }}">{{ contact_email }}</a>
+    </div>
+    <div class="footer-note">
+      مما تحبون منصة تواصل فقط بين اللي حابب يدّي واللي محتاج ياخد — مش مسؤولة عن أي حاجة تحصل بين الطرفين بعد كده.
+      لو عندك سؤال ابعتلنا إيميل وهنرد عليك بعناية.
+    </div>
+  </div>
+</footer>
+
 <script>
   // Prevents duplicate submissions: disables the submit button the instant
-  // a form is submitted, so a second tap (e.g. if the page is slow to
-  // respond) can't fire a second request.
+  // a form is submitted, so a second tap can't fire a second request.
   document.querySelectorAll('form').forEach(function(form) {
     form.addEventListener('submit', function() {
       var btn = form.querySelector('button[type="submit"]');
@@ -143,8 +182,7 @@
       }
     });
   });
-  // Same idea for plain links styled as action buttons (e.g. "أمّن وجبة هنا")
-  // that navigate to another page rather than submitting a form.
+  // Same for links styled as action buttons that navigate to another page.
   document.querySelectorAll('a.choose-btn').forEach(function(link) {
     link.addEventListener('click', function() {
       if (link.classList.contains('is-loading')) return;
@@ -153,6 +191,10 @@
       link.textContent = 'جاري التحميل...';
     });
   });
+</script>
+<script>
+  (function(){var t=document.querySelector('.nav-toggle'),n=document.getElementById('nav-links');
+  if(!t||!n)return;t.addEventListener('click',function(){var o=n.classList.toggle('is-open');t.setAttribute('aria-expanded',o);});})();
 </script>
 </body>
 </html>

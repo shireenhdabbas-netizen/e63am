@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% block title %}إخلاء المسؤولية وتواصل معنا{% endblock %}
+{% block container_class %}container narrow{% endblock %}
 {% block content %}
 <a class="back-link" href="{{ url_for('home') }}">&rarr; رجوع</a>
 <h1>إخلاء المسؤولية</h1>
@@ -12,6 +13,6 @@
 <h1 style="margin-top:28px;">تواصل معنا</h1>
 <p class="subtitle">لو عندك أي سؤال أو مشكلة، ابعتلنا إيميل وهنرد عليك بعناية</p>
 <div class="info-box">
-  📧 <a href="mailto:hello@mamatuhibbun.example">hello@mamatuhibbun.example</a>
+  📧 <a href="mailto:{{ contact_email }}">{{ contact_email }}</a>
 </div>
 {% endblock %}

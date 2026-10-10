@@ -1,58 +1,88 @@
 {% extends "base.html" %}
 {% block title %}نشاطي{% endblock %}
 {% block content %}
-<a class="back-link" href="{{ url_for('home') }}">&rarr; رجوع</a>
-<h1>{{ user.get('Nickname') or user.get('Real Name') }}</h1>
-<p class="subtitle">{{ donations|length }} وجبة مؤمّنة لحد دلوقتي</p>
+<div class="dash-head">
+  <div>
+    <h1>{{ user.get('Nickname') or user.get('Real Name') }}</h1>
+    <p class="subtitle" style="margin:0;">{{ donations|length }} وجبة حجزتها لحد دلوقتي</p>
+  </div>
+  <a class="btn btn-inline" href="{{ url_for('browse_places') }}">احجز وجبة جديدة</a>
+</div>
 
 {% if blocked_until %}
-<div class="errors">
+<div class="errors" style="margin-top:16px;">
   رقمك متوقف مؤقتًا لحد {{ blocked_until.strftime('%d/%m/%Y') }} بسبب وجبة سابقة ما اتأكدتش استلامها. لو ده غلط، تواصل معانا.
 </div>
 {% endif %}
 
-<h1 style="font-size:16px;margin-top:8px;">وجباتي</h1>
-{% for d in donations %}
-<div class="info-box" style="margin-bottom:10px;">
-  <strong>{{ d.get('Quantity') }} {{ d.get('Quantity Unit') }}</strong>
-  · {{ d.get('Food Type') }}<br>
-  {{ d.get('Area') }} · {{ d.get('Ready Date') }}<br>
-  {% if d.get('Matched Center') %}→ {{ d.get('Matched Center') }}{% endif %}
-  <span style="float:left;color:#888;font-size:12px;">{{ d.get('Status') }}</span>
-  <div style="clear:both;"></div>
+<div class="dash-grid">
+  <section class="form-card" style="margin:0;">
+    <h2>وجباتي</h2>
+    {% for d in donations %}
+    <div class="row-item">
+      <div class="row-main">
+        <p class="row-title">{{ d.get('Quantity') }} {{ d.get('Quantity Unit') }} · {{ d.get('Food Type') }}</p>
+        <p class="row-sub">{% if d.get('Matched Center') %}{{ d.get('Matched Center') }} · {% endif %}{{ d.get('Area') }} · {{ d.get('Ready Date') }}</p>
+      </div>
+      {% set st = d.get('Status') %}
+      <span class="pill {{ 'pill-ok' if st == 'اتوصلت' else ('pill-bad' if st == 'فشل' else ('pill' if st == 'اتلغت' else 'pill-info')) }}">{{ 'محجوزة' if st == 'مؤمّنة' else st }}</span>
 
-  {% if d.get('Status') == 'مؤمّنة' %}
-    {% set is_past = d._ready_date_obj and d._ready_date_obj < today %}
-    {% if not is_past %}
-    <form method="POST" action="{{ url_for('cancel_commitment', giver_row=d._row) }}" style="margin-top:8px;">
-      <button type="submit" style="background:#c0392b;margin-top:6px;">إلغاء (مجاني لحد 24 ساعة قبل المعاد)</button>
-    </form>
-    {% endif %}
-    {% if d.get('Delivery Confirmed') != 'أيوه' %}
-    <form method="POST" action="{{ url_for('confirm_delivery', giver_row=d._row) }}" style="margin-top:8px;">
-      <button type="submit" style="margin-top:6px;">أكّد إنك وصّلت</button>
-    </form>
+      {% if st == 'مؤمّنة' %}
+      <div class="row-actions">
+        {% if d.get('Delivery Confirmed') != 'أيوه' %}
+        <form method="POST" action="{{ url_for('confirm_delivery', giver_row=d._row) }}">
+          <button type="submit" class="btn-sm">أكّد إنك وصّلت</button>
+        </form>
+        {% else %}
+        <span class="hint" style="margin:0;">✓ أكّدت إنك وصّلت — مستنيين تأكيد المكان.</span>
+        {% endif %}
+        {% set is_past = d._ready_date_obj and d._ready_date_obj < today %}
+        {% if not is_past %}
+        <form method="POST" action="{{ url_for('cancel_commitment', giver_row=d._row) }}">
+          <button type="submit" class="btn-sm btn-sm-outline">إلغاء (مجاني لحد 24 ساعة قبل المعاد)</button>
+        </form>
+        {% endif %}
+      </div>
+      {% endif %}
+    </div>
     {% else %}
-    <p class="hint" style="margin-top:6px;">✓ أكّدت إنك وصّلت — مستنيين تأكيد المكان.</p>
-    {% endif %}
-  {% endif %}
-</div>
-{% else %}
-<p style="color:#888;font-size:14px;">لسه مفيش حاجة — <a href="{{ url_for('browse_places') }}">أمّن أول وجبة</a>.</p>
-{% endfor %}
+    <p class="subtitle" style="margin:12px 0 0;">لسه مفيش حاجة — <a href="{{ url_for('browse_places') }}">احجز أول وجبة</a>.</p>
+    {% endfor %}
+  </section>
 
-<h1 style="font-size:16px;margin-top:24px;">أماكني المسجّلة</h1>
-{% for p in places %}
-<div class="info-box" style="margin-bottom:10px;">
-  <strong>{{ p.get('Center Name') }}</strong> · {{ p.get('Center Type') }}<br>
-  {{ p.get('Area') }}
-  <span style="float:left;color:#888;font-size:12px;">{{ p.get('Status') }}</span>
-  <div style="clear:both;"></div>
-  <a class="back-link" href="{{ url_for('edit_place', row=p._row) }}" style="margin-top:8px;margin-bottom:0;">عدّل البيانات</a>
+  <section class="form-card" style="margin:0;">
+    <h2>أماكني المسجّلة</h2>
+    {% for p in places %}
+    <div class="row-item">
+      <div class="row-main">
+        <p class="row-title">{{ p.get('Center Name') }}</p>
+        <p class="row-sub">{{ p.get('Center Type') }} · {{ p.get('Area') }}</p>
+      </div>
+      <span class="pill {{ 'pill-ok' if p.get('Status') == 'موثّق' else '' }}">{{ p.get('Status')|disp_status }}</span>
+      <div class="row-actions">
+        <a class="btn-sm btn-sm-outline" href="{{ url_for('edit_place', row=p._row) }}">عدّل البيانات</a>
+      </div>
+    </div>
+    {% else %}
+    <p class="subtitle" style="margin:12px 0 0;">لسه مسجّلتش أي مكان — <a href="{{ url_for('register_center') }}">سجّل واحد</a>.</p>
+    {% endfor %}
+  </section>
 </div>
-{% else %}
-<p style="color:#888;font-size:14px;">لسه مسجّلتش أي مكان — <a href="{{ url_for('register_center') }}">سجّل واحد</a>.</p>
-{% endfor %}
 
-<a class="back-link" href="{{ url_for('logout') }}" style="margin-top:16px;display:inline-block;">تسجيل خروج</a>
+<a class="back-link" href="{{ url_for('logout') }}" style="margin-top:20px;">تسجيل خروج</a>
+
+<style>
+  .dash-head { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; }
+  .dash-grid { display: grid; grid-template-columns: 1.3fr 1fr; gap: 20px; margin-top: 24px; align-items: start; }
+  .row-item { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding: 14px 0; border-top: 1px solid var(--line); }
+  .row-item:first-of-type { margin-top: 10px; }
+  .row-main { flex: 1; min-width: 160px; }
+  .row-title { font-weight: 700; margin: 0; font-size: 15px; }
+  .row-sub { margin: 2px 0 0; font-size: 13px; color: var(--muted); }
+  .row-actions { flex: 1 1 100%; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .row-actions form { margin: 0; }
+  .btn-sm { width: auto; margin: 0; padding: 8px 16px; font-size: 13px; border-radius: 10px; display: inline-block; background: var(--navy); color: #fff; text-decoration: none; font-weight: 600; }
+  .btn-sm-outline { background: transparent; color: var(--navy); border: 1.5px solid #D6C9B5; }
+  @media (max-width: 860px) { .dash-grid { grid-template-columns: 1fr; } }
+</style>
 {% endblock %}

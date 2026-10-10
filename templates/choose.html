@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block title %}{{ 'قدّم إطعام' if mode == 'give' else 'استقبل إطعام' }}{% endblock %}
+{% block full %}
+<section class="choose">
+  <div class="choose-inner">
+    <h1 class="section-title">{{ 'قدّم إطعام' if mode == 'give' else 'استقبل إطعام' }}</h1>
+    <p class="choose-sub">
+      {% if mode == 'give' %}اختار نوع المكان اللي تحب تقدّم له الإطعام، وهنوريك الأماكن المعتمدة في منطقتك.
+      {% else %}سجّل مكانك مرة واحدة، وحدّد أيامك وفتراتك، وهنعرضه لكل اللي حابب يقدّم إطعام حواليك.{% endif %}
+    </p>
+    <div class="tabs" role="tablist">
+      <button type="button" class="tab is-on" data-tab="care" role="tab">
+        <span class="tab-name">دور الرعاية</span>
+        <span class="tab-desc">أيتام ومسنين ومراكز وجمعيات · وجبات كاملة في أيام محددة</span>
+      </button>
+      <button type="button" class="tab" data-tab="maedet" role="tab">
+        <span class="tab-name">موائد إطعام</span>
+        <span class="tab-desc">مفتوحة طول السنة · بتقبل مساهمة جزئية</span>
+      </button>
+    </div>
+  </div>
+</section>
+
+<div class="tab-panel" data-panel="care">
+  {% if mode == 'give' %}{% include '_give_steps.html' %}{% else %}{% include '_receive_steps.html' %}{% endif %}
+  <div class="panel-cta"><div class="choose-inner">
+    {% if mode == 'give' %}<a class="btn btn-inline" href="{{ url_for('browse_places') }}">دوّر على دار رعاية</a>
+    {% else %}<a class="btn btn-inline" href="{{ url_for('register_center') }}">سجّل دار رعاية</a>{% endif %}
+  </div></div>
+  {% set faq_key = 'give_care' if mode == 'give' else 'receive_care' %}{% include '_faq.html' %}
+</div>
+<div class="tab-panel" data-panel="maedet" hidden>
+  {% if mode == 'give' %}{% include '_give_steps_maedet.html' %}{% else %}{% include '_receive_steps_maedet.html' %}{% endif %}
+  <div class="panel-cta"><div class="choose-inner">
+    {% if mode == 'give' %}<a class="btn btn-inline" href="{{ url_for('browse_maedet_rahman') }}">دوّر على مائدة</a>
+    {% else %}<a class="btn btn-inline" href="{{ url_for('register_maedet_rahman') }}">سجّل مائدة إطعام</a>{% endif %}
+  </div></div>
+  {% set faq_key = 'give_maedet' if mode == 'give' else 'receive_maedet' %}{% include '_faq.html' %}
+</div>
+
+{% include '_steps_styles.html' %}
+<style>
+  .choose { padding: 56px 0 0; background: #fff; }
+  .choose-inner { max-width: 1120px; margin: 0 auto; padding: 0 20px; }
+  .choose-sub { color: var(--ink-muted); font-size: 18px; max-width: 640px; margin: 8px 0 28px; }
+  .tabs { display: grid; grid-template-columns: 1fr 1fr; border-bottom: 1px solid var(--line); }
+  .tabs .tab { font-family: var(--font); text-align: start; background: transparent !important; box-shadow: none !important; width: auto !important; border: 0; border-bottom: 4px solid transparent; border-radius: 0; margin: 0 0 -1px; padding: 16px 4px; cursor: pointer; color: var(--ink-muted); display: block; }
+  .tab-name { display: block; font-family: var(--font-display); font-size: 30px; font-weight: 700; line-height: 1.5; color: var(--ink-muted); }
+  .tab-desc { display: block; font-size: 14.5px; margin-top: 4px; color: var(--ink-muted); font-weight: 400; }
+  .tabs .tab.is-on { border-bottom-color: var(--rose); }
+  .tab.is-on .tab-name { color: var(--plum); }
+  .tab:hover .tab-name { color: var(--plum); }
+  .tab-panel .band { padding-top: 48px; }
+  .panel-cta { padding: 0 0 80px; }
+  [hidden] { display: none !important; }
+  @media (max-width: 900px) { .choose { padding-top: 40px; } .tab-name { font-size: 24px; } .tab-desc { font-size: 12.5px; } .panel-cta { padding-bottom: 56px; } }
+</style>
+<script>
+(function(){
+  var tabs=document.querySelectorAll(".tab");
+  function show(k){
+    tabs.forEach(function(t){t.classList.toggle("is-on",t.dataset.tab===k);});
+    document.querySelectorAll("[data-panel]").forEach(function(p){p.hidden=p.dataset.panel!==k;});
+  }
+  tabs.forEach(function(t){t.addEventListener("click",function(){show(t.dataset.tab);});});
+  if(location.hash==="#maedet"){show("maedet");}
+})();
+</script>
+{% endblock %}

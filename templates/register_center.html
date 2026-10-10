@@ -1,11 +1,12 @@
 {% extends "base.html" %}
 {% block title %}سجّل مكان استقبال{% endblock %}
+{% block container_class %}container narrow{% endblock %}
 {% block content %}
 <a class="back-link" href="{{ url_for('home') }}">&rarr; رجوع</a>
 <h1>{{ 'عدّل بيانات مكانك' if editing_row else 'سجّل مكان استقبال' }}</h1>
-<p class="subtitle">دار أيتام، دار مسنين، مركز خدمة مجتمعي، أو أي جهة بتخدم عدد محدد ومعروف من المستفيدين</p>
+<p class="subtitle">دار أيتام، دار مسنين، مركز خدمة مجتمعي، أو أي مكان بيرعى عدد محدد ومعروف من الأشخاص</p>
 
-<form method="POST" enctype="multipart/form-data" action="{{ url_for('edit_place', row=editing_row) if editing_row else url_for('register_center') }}">
+<form method="POST" enctype="multipart/form-data" class="form-card" action="{{ url_for('edit_place', row=editing_row) if editing_row else url_for('register_center') }}">
   <label>اسم المكان *</label>
   <input type="text" name="center_name" value="{{ form.get('center_name', '') }}" required>
 
@@ -36,7 +37,7 @@
     <option value="تاني">تاني</option>
   </select>
   <input type="text" name="center_type_other" placeholder="لو اخترت تاني، حدد" value="{{ form.get('center_type_other', '') }}">
-  <p class="hint">مسجد أو كنيسة بييجي بمائدة رحمن مفتوحة؟ استخدم "سجّل مائدة رحمن" من الصفحة الرئيسية بدل الفورم ده.</p>
+  <p class="hint">مسجد أو كنيسة بييجي بمائدة إطعام مفتوحة؟ استخدم "سجّل مائدة إطعام" من الصفحة الرئيسية بدل الفورم ده.</p>
 
   <label>المحافظة *</label>
   <select name="governorate" id="governorate" required>
@@ -77,7 +78,7 @@
   <input type="text" name="target_group_other" placeholder="تاني (حدد)" value="{{ form.get('target_group_other', '') }}">
 
   <div id="institution-section" class="conditional-section">
-    <label>عدد المستفيدين (المقيمين / اللي بترعاهم)</label>
+    <label>عدد الأشخاص (المقيمين / اللي بترعاهم)</label>
     <input type="number" min="1" name="beneficiaries" id="beneficiaries" placeholder="مثلاً 30" value="{{ form.get('beneficiaries', '') }}">
 
     <label>عدد فريق العمل (مشرفين، مدرّسين، مقدّمين رعاية، إلخ)</label>
@@ -165,7 +166,7 @@
   <p class="hint">الشخص اللي ممكن يترد عليه فعلاً في المكان — ممكن يكون مختلف عنك.</p>
 
   <label>إيميل المكان *</label>
-  <input type="email" name="contact_email" placeholder="عشان نبلغكم أول ما حد يأمّن إنه هيبعتلكم أكل" value="{{ form.get('contact_email', '') }}" required>
+  <input type="email" name="contact_email" placeholder="عشان نبلغكم أول ما حد يحجز وجبة" value="{{ form.get('contact_email', '') }}" required>
   <p class="hint">مطلوب دلوقتي — بيه بس بنقدر نبلغكم أوتوماتيك إن في أكل جاي ونأكّد الاستلام.</p>
 
   {% if not editing_row %}
@@ -177,15 +178,15 @@
 
   <button type="submit">{{ 'حفظ التعديلات' if editing_row else 'إرسال' }}</button>
   {% if not editing_row %}
-  <p class="hint" style="text-align:center;margin-top:10px;">المكان بيظهر للناس فورًا — وهياخد شارة "موثّق" أوتوماتيك أول ما وجبة تتأمّن ليه.</p>
+  <p class="hint" style="text-align:center;margin-top:10px;">المكان بيظهر للناس فورًا — وهياخد شارة "معتمد" أوتوماتيك أول ما إطعام يتأكد ليه.</p>
   {% endif %}
 </form>
 
 <style>
   .checkbox-row { display: flex; flex-wrap: wrap; gap: 10px 16px; margin: 6px 0 4px; }
-  .checkbox-label { display: flex; align-items: center; gap: 6px; font-size: 13px; color: #333; margin: 0; }
+  .checkbox-label { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 500; color: var(--navy); margin: 0; }
   .checkbox-label input { width: auto; }
-  .conditional-section { display: none; border-right: 2px solid #2f7d5c; padding-right: 12px; margin: 8px 0 16px; }
+  .conditional-section { display: none; border-right: 3px solid var(--turq); padding-right: 12px; margin: 8px 0 16px; }
   .conditional-section.visible { display: block; }
 </style>
 <script>

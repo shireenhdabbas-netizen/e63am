@@ -1,0 +1,28 @@
+<!-- ============ HOW TO RECEIVE ============ -->
+<section class="band band-receive" id="receive">
+  <div class="band-inner">
+    <h2 class="section-title">استقبل إطعام في ثلاث خطوات</h2>
+    <div class="steps">
+      <div class="step"><span class="icon-wrap"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 21V9l8-5 8 5v12M9 21v-6h6v6"/></svg></span><span class="step-num">01</span>
+        <h3>سجّل مكانك</h3><p>سجّل بيانات الدار مرة واحدة: النوع، والمنطقة، والعنوان. مش لازم تشتغل فيها، أي حد يعرف دار محتاجة يقدر يسجّلها.</p></div>
+      <div class="step"><span class="icon-wrap"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2.5"/><path d="M4 10h16M8 3v4M16 3v4"/></svg></span><span class="step-num">02</span>
+        <h3>حدّد احتياجك</h3><p>حدّد الأيام وعدد الوجبات اللي محتاجها، وبنعرضها لكل اللي حابب يقدّم إطعام. مفيش حد بيجيلكم بأكل من غير ميعاد: كل إطعام بيتحجز الأول، وأول ما حد يحجز وجبة بيتم التواصل معاكم.</p></div>
+      <div class="step"><span class="icon-wrap"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M8.5 12.2l2.4 2.4 4.6-4.8"/></svg></span><span class="step-num">03</span>
+        <h3>استلم وأكّد</h3><p>لما الأكل يوصل، أكّد الاستلام. ومع أول إطعام يتأكد، مكانك ياخد شارة «معتمد».</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="strip">
+  <div class="strip-inner">
+    <div class="photo has-img"><img src="{{ url_for('static', filename='recv1.jpg') }}" alt="تسجيل مكان على الموبايل"></div>
+    <div class="photo has-img"><img src="{{ url_for('static', filename='recv2.jpg') }}" alt="تحديد الاحتياج الأسبوعي"></div>
+    <div class="photo has-img"><img src="{{ url_for('static', filename='recv3.jpg') }}" alt="استلام الوجبة وتأكيدها"></div>
+  </div>
+</section>
+
+<div class="receive-actions-wrap"><div class="strip-inner">    <div class="receive-actions" style="margin-top:0">
+      <a class="btn btn-inline" href="{{ url_for('register_center') }}">سجّل دار رعاية</a>
+      <a class="btn btn-inline btn-outline-dark" href="{{ url_for('register_maedet_rahman') }}">سجّل مائدة إطعام</a>
+    </div>
+</div></div>

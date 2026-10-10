@@ -2,14 +2,14 @@
    the give-to-place form (full, with packaging note). Set `compact` before
    including: {% set compact = true %}{% include "_meal_guideline.html" %} #}
 {% if compact %}
-<div class="info-box" style="background:#fdf6ec;border-color:#f0dfc0;font-size:12px;">
+<div class="info-box" style="background:#F3E4DD;border-color:#E4CFC6;font-size:12px;">
   <strong>عشان الوجبة تبقى متكاملة:</strong> بروتين + نشويات + خضار + مشروب + حاجة حلوة.
 </div>
 {% else %}
-<div class="info-box" style="background:#fdf6ec;border-color:#f0dfc0;">
+<div class="info-box" style="background:#F3E4DD;border-color:#E4CFC6;">
   <strong>عشان الوجبة تبقى متكاملة:</strong> {{ meal_guideline_text }}
 </div>
-<div class="info-box" style="background:#f3f6f4;border-color:#dbe6e0;">
+<div class="info-box" style="background:#F4ECE7;border-color:#E4D6CE;">
   <strong>قبل ما تبعت:</strong> {{ packaging_guideline_text }}
 </div>
 {% endif %}

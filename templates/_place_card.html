@@ -1,0 +1,30 @@
+{# Shared result card for both browse pages. Usage:
+   {% from "_place_card.html" import place_card %}{{ place_card(center, is_maedet) }} #}
+{% macro place_card(center, is_maedet=False) %}
+{% set photos = (center.get('Photo URLs') or '').split(',') | map('trim') | select | list %}
+<article class="place-card">
+  {% if photos %}
+  <div class="place-photo" style="background-image:url('{{ photos[0] }}');"></div>
+  {% else %}
+  <div class="place-photo place-photo-empty"><span>{{ (center.get('Center Type') or 'مائدة رحمن')|disp_type }}</span></div>
+  {% endif %}
+  <div class="place-body">
+    <div class="place-head">
+      <h3>{{ center.get('Center Name') }}</h3>
+      {% if center.get('Status') == 'موثّق' %}
+      <span class="pill pill-ok">✓ معتمد</span>
+      {% else %}
+      <span class="pill">لسه مش معتمد</span>
+      {% endif %}
+    </div>
+    <p class="place-meta">{% if not is_maedet %}{{ center.get('Center Type') }} · {% endif %}{{ center.get('Area') }}</p>
+    {% if center.get('Bio') %}<p class="place-bio">{{ center.get('Bio') }}</p>{% endif %}
+    <p class="place-need">
+      {% if center.get('Total To Feed') %}محتاجين يغطوا {{ center.get('Total To Feed') }} شخص
+      {% elif center.get('Capacity Per Slot') %}لحد {{ center.get('Capacity Per Slot') }} في الفترة{% endif %}
+      {% if center.get('Meal Slots') %}{% if center.get('Total To Feed') or center.get('Capacity Per Slot') %} · {% endif %}{{ center.get('Meal Slots') }}{% endif %}
+    </p>
+    <a class="btn btn-dark choose-btn" href="{{ url_for('give_to_place', center_row=center._row) }}">احجز وجبة هنا</a>
+  </div>
+</article>
+{% endmacro %}

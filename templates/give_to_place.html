@@ -1,12 +1,15 @@
 {% extends "base.html" %}
-{% block title %}أمّن وجبة لـ {{ center.get('Center Name') }}{% endblock %}
+{% block title %}احجز وجبة لـ {{ center.get('Center Name') }}{% endblock %}
 {% block content %}
 <a class="back-link" href="{{ url_for('browse_maedet_rahman') if is_maedet_rahman else url_for('browse_places') }}">&rarr; رجوع للبحث</a>
-<h1>أمّن وجبة لـ {{ center.get('Center Name') }}</h1>
+<h1>احجز وجبة لـ {{ center.get('Center Name') }}</h1>
 <p class="subtitle">{{ center.get('Area') }}{% if center.get('Bio') %} · {{ center.get('Bio') }}{% endif %}</p>
 
+<div class="give-layout">
+<div class="give-main">
+
 {% if center.get('Total To Feed') %}
-<div class="info-box need-box">📌 الجهة محتاجة تغطية <strong>{{ center.get('Total To Feed') }}</strong> شخص في كل فترة.</div>
+<div class="info-box need-box">📌 المكان محتاج تغطية <strong>{{ center.get('Total To Feed') }}</strong> شخص في كل فترة.</div>
 {% elif center.get('Capacity Per Slot') %}
 <div class="info-box need-box">📌 المكان محتاج <strong>{{ center.get('Capacity Per Slot') }}</strong> {{ 'شخص' if is_maedet_rahman else 'وجبة' }} في كل فترة.</div>
 {% endif %}
@@ -14,10 +17,7 @@
 <div class="info-box">تفضيلهم، لو عندك اختيار: {{ center.get('Preferred Meal Type') }}</div>
 {% endif %}
 
-{% set compact = false %}
-{% include "_meal_guideline.html" %}
-
-<form method="POST">
+<form method="POST" class="form-card">
   <label>انت فرد ولا مطعم/منشأة؟ *</label>
   <select name="giver_type" required>
     <option value="فرد">فرد</option>
@@ -61,11 +61,11 @@
   </div>
   {% else %}
   <div class="info-box" id="full-coverage-note" style="display:none;">
-    الجهة دي محتاجة تغطية كاملة للفترة دي — لما تختار فترة، أنت بتلتزم بالعدد المتبقي كله (مش ممكن تدّي جزء بس).
+    المكان ده محتاج تغطية كاملة للوجبة دي، عشان كل اللي فيه ياخدوا نفس الأكل. فلما تختار فترة، بتلتزم بالعدد المتبقي كله (مش ممكن تدّي جزء بس).
   </div>
   {% endif %}
   {% else %}
-  <div class="info-box">لسه مفيش مواعيد متاحة قريبة — كل المواعيد المعروفة إما متأمّنة أو المكان محدّدش أيامه لسه. جرّب تتواصل من صفحة تواصل معنا.</div>
+  <div class="info-box">لسه مفيش مواعيد متاحة قريبة — كل المواعيد المعروفة إما محجوزة أو المكان محدّدش أيامه لسه. جرّب تتواصل من صفحة تواصل معنا.</div>
   {% endif %}
   {% else %}
   <div id="time-preference-wrapper" class="conditional-section visible">
@@ -140,24 +140,55 @@
     موافق على <a href="{{ url_for('disclaimer') }}" target="_blank">إخلاء المسؤولية</a> — مما تحبون منصة تواصل بس، والالتزام بالتوصيل مسؤوليتي أنا.
   </label>
 
-  <button type="submit" {{ 'disabled' if uses_slots and not slots }}>أمّن الوجبة</button>
+  <button type="submit" {{ 'disabled' if uses_slots and not slots }}>احجز الوجبة</button>
 </form>
+</div>
+
+<aside class="give-aside">
+  <p class="aside-kicker">هكذا تتم الوجبة</p>
+  <h2 style="color:#fff;">{{ center.get('Center Name') }}</h2>
+  <p class="aside-sub">{{ center.get('Area') }}{% if center.get('Status') == 'موثّق' %} · ✓ معتمد{% endif %}</p>
+  <div class="aside-block">
+    <strong>عشان الوجبة تبقى متكاملة</strong>
+    <p>{{ meal_guideline_text }}</p>
+  </div>
+  <div class="aside-block">
+    <strong>قبل ما تبعت</strong>
+    <p>{{ packaging_guideline_text }}</p>
+  </div>
+  <ul class="aside-list">
+    <li>مفيش فلوس بتتحوّل عن طريق المنصة</li>
+    <li>إلغاء مجاني لحد 24 ساعة قبل المعاد</li>
+    <li>إنت والمكان بتأكدوا التوصيل من الطرفين</li>
+  </ul>
+</aside>
+</div>
 
 <style>
   .checkbox-row { display: flex; flex-wrap: wrap; gap: 10px 16px; margin: 6px 0 4px; }
-  .checkbox-label { display: flex; align-items: flex-start; gap: 6px; font-size: 13px; color: #333; margin: 0; }
+  .checkbox-label { display: flex; align-items: flex-start; gap: 8px; font-size: 14px; font-weight: 500; color: var(--navy); margin: 0; }
   .checkbox-label input { width: auto; margin-top: 3px; }
-  .conditional-section { display: none; border-right: 2px solid #2f7d5c; padding-right: 12px; margin: 8px 0 16px; }
+  .conditional-section { display: none; border-right: 3px solid var(--turq); padding-right: 12px; margin: 8px 0 16px; }
   .conditional-section.visible { display: block; }
-  .need-box { background: #eef6f1; border-color: #cfe6d8; font-size: 14px; }
+  .give-layout { display: grid; grid-template-columns: 1fr 340px; gap: 24px; align-items: start; }
+  .give-aside { background: var(--navy); color: #fff; border-radius: 22px; padding: 24px; position: sticky; top: 16px; }
+  .aside-kicker { color: var(--turq-tint); font-size: 13px; font-weight: 600; margin: 0 0 6px; }
+  .aside-sub { color: #E4D3CC; font-size: 14px; margin: 0 0 16px; }
+  .aside-block { background: rgba(255,255,255,.08); border-radius: 14px; padding: 14px; margin-bottom: 12px; font-size: 13px; }
+  .aside-block strong { display: block; margin-bottom: 4px; color: #fff; }
+  .aside-block p { margin: 0; color: #E4D3CC; }
+  .aside-list { list-style: none; padding: 0; margin: 14px 0 0; font-size: 13px; color: #E4D3CC; }
+  .aside-list li { padding: 6px 0; padding-right: 22px; position: relative; }
+  .aside-list li::before { content: "✓"; position: absolute; right: 0; color: var(--turq-tint); font-weight: 700; }
+  @media (max-width: 900px) { .give-layout { grid-template-columns: 1fr; } .give-aside { position: static; } }
   .block-grid { display: flex; flex-wrap: wrap; gap: 8px; margin: 6px 0 4px; }
   .block-btn {
     flex: 1 1 calc(50% - 8px); min-width: 130px; text-align: center;
-    background: #fff; border: 1.5px solid #ddd; border-radius: 10px;
-    padding: 10px 8px; font-size: 13px; cursor: pointer; color: #333;
+    background: #fff; border: 1.5px solid #E4D6CE; border-radius: 12px;
+    padding: 12px 8px; font-size: 14px; cursor: pointer; color: var(--navy);
   }
-  .block-btn .block-btn-sub { display: block; font-size: 11px; color: #888; margin-top: 2px; }
-  .block-btn.selected { border-color: #2f7d5c; background: #eef6f1; color: #2f7d5c; font-weight: 600; }
+  .block-btn .block-btn-sub { display: block; font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .block-btn.selected { border-color: var(--turq); background: var(--turq-wash); color: var(--navy); font-weight: 700; box-shadow: 0 0 0 3px rgba(172,123,120,.22); }
 </style>
 <script>
   {% if uses_slots %}

@@ -1,15 +1,16 @@
 {% extends "base.html" %}
-{% block title %}الوجبة مؤمّنة{% endblock %}
+{% block title %}تم حجز الوجبة{% endblock %}
+{% block container_class %}container narrow{% endblock %}
 {% block content %}
 <div class="confirm-icon">✅</div>
-<h1>الوجبة مؤمّنة</h1>
-<p class="subtitle">تم تأمينها مع {{ matched_center }}</p>
+<h1>تم حجز الوجبة</h1>
+<p class="subtitle">اتحجزت مع {{ matched_center }}</p>
 <div class="info-box">
   <strong>{{ quantity_number }} {{ quantity_unit }}</strong> · {{ food_type }}{% if meal_slot %} · {{ meal_slot }}{% endif %}<br>
   {{ area }} · {{ ready_date.strftime('%d/%m/%Y') }}
 </div>
 <div class="info-box">
-  🕌 <strong>{{ matched_center }}</strong> — هنتواصل معاك على رقمك عشان نأكّد التفاصيل ونظبط التوصيل.
+  <strong>{{ matched_center }}</strong> اتبلّغوا بحجزك وهيتواصلوا معاك لو احتاجوا أي تفاصيل. وإنت اللي هتوصّل الأكل بنفسك في المعاد.
 </div>
 
 <a class="back-link" href="{{ url_for('home') }}">&rarr; رجوع للرئيسية</a>

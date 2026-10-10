@@ -1,11 +1,12 @@
 {% extends "base.html" %}
 {% block title %}تسجيل الدخول{% endblock %}
+{% block container_class %}container narrow{% endblock %}
 {% block content %}
 <a class="back-link" href="{{ url_for('home') }}">&rarr; رجوع</a>
 <h1>تسجيل الدخول</h1>
 <p class="subtitle">شوف تبرعاتك السابقة واستخدم اسم مستعار محفوظ</p>
 
-<form method="POST">
+<form method="POST" class="form-card">
   <label>رقم التليفون</label>
   <input type="tel" name="phone" value="{{ form.get('phone', '') }}" required>
 
@@ -17,7 +18,7 @@
 </form>
 
 <style>
-  .checkbox-label { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #333; }
+  .checkbox-label { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--navy); }
   .checkbox-label input { width: auto; }
 </style>
 {% endblock %}
