@@ -21,7 +21,7 @@
     {% for d in donations %}
     <div class="row-item">
       <div class="row-main">
-        <p class="row-title">{{ d.get('Quantity') }} {{ d.get('Quantity Unit') }} · {{ d.get('Food Type') }}</p>
+        <p class="row-title">{% if d.get('Quantity') %}{{ d.get('Quantity') }} {{ d.get('Quantity Unit') }} · {% endif %}{{ 'إطعام جاف' if d.get('Food Type') == 'مواد غذائية' else d.get('Food Type') }}</p>
         <p class="row-sub">{% if d.get('Matched Center') %}{{ d.get('Matched Center') }} · {% endif %}{{ d.get('Area') }} · {{ d.get('Ready Date') }}</p>
       </div>
       {% set st = d.get('Status') %}

@@ -39,12 +39,10 @@
       <p class="subtitle" style="margin:0;">اختار المحافظة والمنطقة من القايمة وهتظهر لك الموائد القريبة.</p>
     </div>
     {% else %}
-    <div class="compact-guide"><strong>عشان الوجبة تبقى متكاملة:</strong> بروتين + نشويات + خضار + مشروب + حاجة حلوة.</div>
-
     {% if matched %}
     <div class="results-head"><h2>{{ matched|length }} مائدة في منطقتك</h2></div>
     <div class="results-grid">
-      {% for center in matched %}{{ place_card(center, True) }}{% endfor %}
+      {% for center in matched %}{{ place_card(center, True, food_type_filter == 'مواد غذائية') }}{% endfor %}
     </div>
     {% else %}
     <div class="empty-box">
@@ -64,7 +62,7 @@
     {% if other %}
     <h2 class="other-title">مناطق تانية في نفس المحافظة</h2>
     <div class="results-grid">
-      {% for center in other %}{{ place_card(center, True) }}{% endfor %}
+      {% for center in other %}{{ place_card(center, True, food_type_filter == 'مواد غذائية') }}{% endfor %}
     </div>
     {% endif %}
     {% endif %}

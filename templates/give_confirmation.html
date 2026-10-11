@@ -7,7 +7,7 @@
 <h1>تم حجز الميعاد</h1>
 <p class="subtitle">اتحجز مع {{ matched_center }}</p>
 <div class="info-box">
-  <strong>{{ quantity_number }} {{ quantity_unit }}</strong> · {{ food_type }}{% if meal_slot %} · {{ meal_slot }}{% endif %}<br>
+  {% if quantity_number %}<strong>{{ quantity_number }} {{ quantity_unit }}</strong> · {% endif %}<strong>{{ food_type }}</strong>{% if meal_slot %} · {{ meal_slot }}{% endif %}<br>
   {{ area }} · {{ ready_date.strftime('%d/%m/%Y') }}{% if food_details %}<br>🍽 {{ food_details }}{% endif %}{% if grocery_details %}<br>📦 {{ grocery_details }}{% endif %}
 </div>
 <div class="info-box">

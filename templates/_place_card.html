@@ -1,6 +1,6 @@
 {# Shared result card for both browse pages. Usage:
    {% from "_place_card.html" import place_card %}{{ place_card(center, is_maedet) }} #}
-{% macro place_card(center, is_maedet=False) %}
+{% macro place_card(center, is_maedet=False, dry=False) %}
 {% set photos = (center.get('Photo URLs') or '').split(',') | map('trim') | select | list %}
 <article class="place-card">
   {% if photos %}
@@ -24,12 +24,16 @@
     {% if center.get('Hub Schedule') %}<p class="place-sched">📅 {{ center.get('Hub Schedule') }}</p>{% endif %}
     <p class="place-served">🍽 اتقدّم النهارده: <strong>{{ center.get('Served Today', 0) }}</strong> وجبة</p>
     {% endif %}
+    {% if dry %}
+    {% if center.get('Grocery Hours') %}<p class="place-need">ساعات استلام الإطعام الجاف: {{ center.get('Grocery Hours') }}</p>{% endif %}
+    {% else %}
     <p class="place-need">
       {% if center.get('Total To Feed') %}محتاجين يغطوا {{ center.get('Total To Feed') }} شخص
       {% elif center.get('Capacity Per Slot') %}لحد {{ center.get('Capacity Per Slot') }} في الفترة{% endif %}
       {% if center.get('Meal Slots') %}{% if center.get('Total To Feed') or center.get('Capacity Per Slot') %} · {% endif %}{{ center.get('Meal Slots') }}{% endif %}
     </p>
-    <a class="btn btn-dark choose-btn" href="{{ url_for('give_to_place', center_row=center._row) }}">احجز ميعاد إطعام هنا</a>
+    {% endif %}
+    <a class="btn btn-dark choose-btn" href="{{ url_for('give_to_place', center_row=center._row) }}">{{ 'احجز ميعاد تسليم هنا' if dry else 'احجز ميعاد إطعام هنا' }}</a>
   </div>
 </article>
 {% endmacro %}

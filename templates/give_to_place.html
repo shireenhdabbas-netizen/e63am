@@ -90,15 +90,6 @@
     <label>يوم التسليم *</label>
     <input type="date" name="grocery_date" id="grocery_date" value="{{ form.get('grocery_date', '') }}">
     <p class="hint">من بكرة ولحد 14 يوم قدّام.</p>
-    <label>الكمية الإجمالية *</label>
-    <input type="number" min="1" name="grocery_quantity" id="grocery_quantity" placeholder="مثلاً 10" value="{{ form.get('grocery_quantity', '') }}">
-    <select name="grocery_unit">
-      <option value="كجم">كجم</option>
-      <option value="كرتونة">كرتونة</option>
-      <option value="كيس">كيس</option>
-      <option value="علبة">علبة</option>
-      <option value="قطعة">قطعة</option>
-    </select>
   </div>
   {% endif %}
   {% else %}
@@ -119,15 +110,14 @@
     </div>
   </div>
 
-  <label>هتدّي كام؟ *</label>
-  <input type="number" min="1" name="quantity_number" placeholder="مثلاً 20" value="{{ form.get('quantity_number', '') }}" required>
+  <div id="plain-qty-section">
+  <label>هتدّي كام وجبة؟ *</label>
+  <input type="number" min="1" name="quantity_number" id="plain_quantity" placeholder="مثلاً 20" value="{{ form.get('quantity_number', '') }}">
   <select name="quantity_unit">
     <option value="وجبة">وجبة</option>
     <option value="حصة">حصة</option>
-    <option value="كجم">كجم</option>
-    <option value="كرتونة">كرتونة</option>
-    <option value="قطعة">قطعة</option>
   </select>
+  </div>
 
   <label>هيكون جاهز إمتى؟ *</label>
   <input type="date" name="ready_date" value="{{ form.get('ready_date', '') }}" required>
@@ -185,6 +175,7 @@
   <p class="aside-kicker">معلومات عن الميعاد</p>
   <h2 style="color:#fff;">{{ center.get('Center Name') }}</h2>
   <p class="aside-sub">{{ center.get('Area') }}{% if center.get('Status') == 'موثّق' %} · ✓ معتمد{% endif %}</p>
+  <div id="aside-meals">
   <div class="aside-block">
     <strong>عشان الأكل يبقى متكامل</strong>
     <p>{{ meal_guideline_text }}</p>
@@ -192,6 +183,13 @@
   <div class="aside-block">
     <strong>قبل ما تبعت</strong>
     <p>{{ packaging_guideline_text }}</p>
+  </div>
+  </div>
+  <div id="aside-dry" style="display:none;">
+  <div class="aside-block">
+    <strong>عشان الإطعام الجاف</strong>
+    <p>اكتب كل صنف وكميته بوضوح. خلّي المنتجات سليمة ومقفولة وتاريخ صلاحيتها ساري، وسلّمها في الميعاد اللي اخترته.</p>
+  </div>
   </div>
   <ul class="aside-list">
     <li>مفيش فلوس بتتحوّل عن طريق المنصة</li>
@@ -236,15 +234,20 @@
     document.getElementById('grocery-details').classList.toggle('visible', groc);
     document.getElementById('food_details').required = meals;
     document.getElementById('grocery_details').required = groc;
+    var pq = document.getElementById('plain-qty-section');
+    if (pq) pq.style.display = meals ? '' : 'none';
+    var pqi = document.getElementById('plain_quantity');
+    if (pqi) pqi.required = meals;
+    document.getElementById('aside-meals').style.display = meals ? '' : 'none';
+    document.getElementById('aside-dry').style.display = meals ? 'none' : '';
     var mp = document.getElementById('meals-part');
     if (mp) mp.style.display = meals ? '' : 'none';
     var gp = document.getElementById('grocery-part');
     if (gp) {
       var only = type === 'مواد غذائية';
       gp.classList.toggle('visible', only);
-      var gd = document.getElementById('grocery_date'), gq = document.getElementById('grocery_quantity');
+      var gd = document.getElementById('grocery_date');
       if (gd) gd.required = only;
-      if (gq) gq.required = only;
     }
   }
   document.getElementById('food_type').addEventListener('change', updateFoodTypeSections);

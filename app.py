@@ -708,12 +708,13 @@ def notify_center_of_match(center, giver, giver_row_number):
     no_show_link = url_for("report_no_show", giver_row=giver_row_number, token=token, _external=True)
     send_email(
         center_email,
-        f"ميعاد إطعام محجوز ليكم — {quantity} {unit}",
+        (f"ميعاد إطعام جاف محجوز ليكم" if giver.get("Food Type") == FOOD_TYPE_DRY
+         else f"ميعاد إطعام محجوز ليكم — {quantity} {unit}"),
         f'<div dir="rtl" style="text-align:right;font-family:Tahoma,Arial,sans-serif;">'
         f"<p>أهلاً،</p>"
         f"<p>حد حجز ميعاد إطعام ليكم من خلال مما تحبون:</p>"
         f"<ul>"
-        f"<li>الكمية: <strong>{quantity} {unit}</strong></li>"
+        + (f"<li>الكمية: <strong>{quantity} {unit}</strong></li>" if quantity else "") +
         f"<li>النوع: {food_type_label(giver.get('Food Type'))}"
         f"{' — ' + giver.get('Meal Slot') if giver.get('Meal Slot') else ''}</li>"
         + "".join(f"<li>{k}: <strong>{v}</strong></li>" for k, v in _details_text(giver)) +
@@ -799,7 +800,7 @@ def notify_giver_of_booking(center, giver):
         + _email_row("تليفون المكان", place_phone)
         + _email_row("التاريخ", str(giver.get("Ready Date") or ""))
         + _email_row("النوع", f"{food_type_label(food)} {('— ' + slot) if slot else ''}".strip())
-        + _email_row("الكمية", f"{giver.get('Quantity')} {giver.get('Quantity Unit')}")
+        + (_email_row("الكمية", f"{giver.get('Quantity')} {giver.get('Quantity Unit')}") if giver.get("Quantity") else "")
         + "".join(_email_row(k, v) for k, v in _details_text(giver))
         + "</table>"
         '<p style="margin:0 0 6px;font-weight:bold;">عشان الأكل يبقى متكامل</p>'
@@ -939,6 +940,7 @@ def get_homepage_stats():
         givers_values = givers_ws.get_all_values()
         status_i = col_index(givers_header, "Status")
         quantity_i = col_index(givers_header, "Quantity")
+        type_i = col_index(givers_header, "Food Type")
         phone_i = col_index(givers_header, "Phone")
 
         delivered_total = 0
@@ -950,6 +952,8 @@ def get_homepage_stats():
                 if phone:
                     unique_phones.add(phone.strip())
             if status == STATUS_DELIVERED:
+                if len(row) >= type_i and row[type_i - 1] == FOOD_TYPE_DRY:
+                    continue
                 try:
                     delivered_total += int(row[quantity_i - 1])
                 except (ValueError, IndexError):
@@ -1218,13 +1222,8 @@ def give_to_place(center_row):
                     quantity = remaining
         elif uses_slots:
             # Dry goods at a place that uses meal slots: no slot, just a date, an amount and a description.
-            quantity_unit = request.form.get("grocery_unit", "كجم")
-            try:
-                quantity = int(request.form.get("grocery_quantity", "").strip())
-            except ValueError:
-                quantity = None
-            if not quantity or quantity < 1:
-                errors.append("من فضلك اكتب كمية صحيحة للإطعام الجاف.")
+            quantity = ""          # dry goods: everything is in the description
+            quantity_unit = ""
             gd_raw = request.form.get("grocery_date", "")
             if gd_raw:
                 try:
@@ -1240,13 +1239,17 @@ def give_to_place(center_row):
         else:
             time_preference = request.form.get("time_preference", "مرن حسب احتياج المكان") if food_type != "مواد غذائية" else ""
             meal_slot = request.form.get("meal_slot", "") if (food_type != "مواد غذائية" and time_preference == "وقت محدد") else ""
-            quantity_raw = request.form.get("quantity_number", "").strip()
-            try:
-                quantity = int(quantity_raw)
-            except ValueError:
-                quantity = None
-            if not quantity or quantity < 1:
-                errors.append("من فضلك اكتب كمية صحيحة.")
+            if food_type == FOOD_TYPE_DRY:
+                quantity = ""      # dry goods: everything is in the description
+                quantity_unit = ""
+            else:
+                quantity_raw = request.form.get("quantity_number", "").strip()
+                try:
+                    quantity = int(quantity_raw)
+                except ValueError:
+                    quantity = None
+                if not quantity or quantity < 1:
+                    errors.append("من فضلك اكتب كمية صحيحة.")
             ready_date_raw = request.form.get("ready_date", "")
             recurring = request.form.get("recurring", "لأ")
             recurring_days = ", ".join(request.form.getlist("recurring_days"))
@@ -1297,7 +1300,7 @@ def give_to_place(center_row):
             ("المكان", center.get("Center Name")), ("المنطقة", center.get("Area")),
             ("النوع", food_type_label(food_type)), ("الميعاد", meal_slot),
             ("الوجبة", food_details), ("الإطعام الجاف", grocery_details),
-            ("الكمية", f"{quantity} {quantity_unit}"), ("التاريخ", ready_date.isoformat()),
+            ("الكمية", f"{quantity} {quantity_unit}" if quantity else ""), ("التاريخ", ready_date.isoformat()),
             ("الاسم", name), ("التليفون", phone), ("الإيميل", email),
             ("إيميل المكان", center.get("Contact Email") or "مفيش إيميل — المكان ماتبلّغش"),
         ])
@@ -1345,7 +1348,7 @@ def confirm_receipt(giver_row, token):
         givers_ws.update_cell(giver_row, col_index(header, "Status"), STATUS_DELIVERED)
         notify_admin("وجبة اتوصلت (تأكيد الطرفين)", [
             ("المكان", row.get("Matched Center")), ("الاسم", row.get("Name")),
-            ("الكمية", f"{row.get('Quantity')} {row.get('Quantity Unit')}"), ("التاريخ", row.get("Ready Date")),
+            ("الكمية", f"{row.get('Quantity')} {row.get('Quantity Unit')}" if row.get("Quantity") else ""), ("التاريخ", row.get("Ready Date")),
         ])
     return render_template("confirm_action_result.html", success=True,
                             message="شكرًا! سجّلنا إنكم استلمتوا الوجبة.")
@@ -1368,7 +1371,7 @@ def report_no_show(giver_row, token):
         notify_admin("بلاغ عدم حضور", [
             ("المكان", row.get("Matched Center")), ("الاسم", row.get("Name")),
             ("التليفون", phone), ("التاريخ", row.get("Ready Date")),
-            ("الكمية", f"{row.get('Quantity')} {row.get('Quantity Unit')}"),
+            ("الكمية", f"{row.get('Quantity')} {row.get('Quantity Unit')}" if row.get("Quantity") else ""),
             ("الإجراء", "الرقم اتحظر 30 يوم"),
         ])
     return render_template("confirm_action_result.html", success=True,
@@ -1412,7 +1415,7 @@ def cancel_commitment(giver_row):
     notify_admin("حجز اتلغى", [
         ("المكان", row.get("Matched Center")), ("الاسم", row.get("Name")),
         ("التاريخ", row.get("Ready Date")),
-        ("الكمية", f"{row.get('Quantity')} {row.get('Quantity Unit')}"),
+        ("الكمية", f"{row.get('Quantity')} {row.get('Quantity Unit')}" if row.get("Quantity") else ""),
     ])
     flash("تم الإلغاء. شكرًا إنك قلتلنا بدري.")
     return redirect(url_for("my_activity"))
